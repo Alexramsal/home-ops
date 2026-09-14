@@ -11,7 +11,7 @@ from decimal import Decimal
 import duckdb
 import pytest
 
-from home_ops.models.schema import Config, ScoringThresholds
+from home_ops.models.schema import Config, Listing, ScoringThresholds
 from home_ops.scorer.models import DimensionScore, ScoreResult
 
 # ---------------------------------------------------------------------------
