@@ -25,7 +25,7 @@ from home_ops.alerter.telegram import TelegramAlerter
 from home_ops.config.loader import load_config
 from home_ops.enricher import catastro, llm_analyzer
 from home_ops.logging_setup import configure_logging
-from home_ops.models.data_storage import get_connection
+from home_ops.models.data_storage import daemon_lock, get_connection, get_db_path
 from home_ops.models.schema import Listing, ScheduleConfig
 from home_ops.scorer import RulesScorer
 from home_ops.scorer.models import AcquisitionCostBreakdown, ScoreResult
@@ -64,10 +64,8 @@ ConfigOpt = Annotated[
 
 
 def _get_db_path() -> str:
-    """Resolve the DuckDB path from the default."""
-    from home_ops.models.data_storage import DEFAULT_DB_PATH
-
-    return str(DEFAULT_DB_PATH)
+    """Resolve the DuckDB path, honoring HOME_OPS_DB_PATH."""
+    return str(get_db_path())
 
 
 # ---------------------------------------------------------------------------
@@ -121,20 +119,31 @@ def _next_run_time(
     return candidate.astimezone(UTC)
 
 
-def _get_daily_alert_count(conn: Any) -> int:
-    """Query the daily_alert_log for today's sent alert count.
+def _schedule_day_bounds(
+    timezone: str, now: datetime | None = None
+) -> tuple[datetime, datetime]:
+    """Return UTC-naive DB bounds for the configured local calendar day."""
+    from zoneinfo import ZoneInfo
 
-    Args:
-        conn: DuckDB connection.
+    local_now = (now or datetime.now(UTC)).astimezone(
+        ZoneInfo(timezone if isinstance(timezone, str) else "UTC")
+    )
+    local_start = local_now.replace(hour=0, minute=0, second=0, microsecond=0)
+    return (
+        local_start.astimezone(UTC).replace(tzinfo=None),
+        (local_start + timedelta(days=1)).astimezone(UTC).replace(tzinfo=None),
+    )
 
-    Returns:
-        Number of alerts sent today with status 'sent'.
-    """
-    today_start = datetime.now(UTC).replace(hour=0, minute=0, second=0, microsecond=0)
+
+def _get_daily_alert_count(
+    conn: Any, timezone: str = "UTC", now: datetime | None = None
+) -> int:
+    """Count sent alerts in today's configured-schedule calendar day."""
+    day_start, day_end = _schedule_day_bounds(timezone, now)
     row = conn.execute(
         "SELECT COUNT(*) FROM daily_alert_log "
-        "WHERE status = 'sent' AND sent_at >= ?",
-        [today_start],
+        "WHERE status = 'sent' AND sent_at >= ? AND sent_at < ?",
+        [day_start, day_end],
     ).fetchone()
     return row[0] if row else 0
 
@@ -160,6 +169,18 @@ def _scam_fields_from_result(
 
 
 def _run_daemon_cycle(
+    config: Any, config_path: Path | None = None, run_fn: Any = None,
+    now: datetime | None = None,
+) -> bool:
+    """Run one cycle when no other process holds the daemon lock."""
+    with daemon_lock(_get_db_path()) as acquired:
+        if not acquired:
+            logger.warning("Daemon cycle: another process holds the lock, skipping")
+            return False
+        return _run_daemon_cycle_locked(config, config_path, run_fn, now)
+
+
+def _run_daemon_cycle_locked(
     config: Any,
     config_path: Path | None = None,
     run_fn: Any = None,
@@ -673,7 +694,7 @@ def _run_scan(config_path: Path | None = None, force: bool = False) -> None:
 
                 # Check daily alert quota
                 max_per_day = config.alert_schedule.max_alerts_per_day
-                daily_count = _get_daily_alert_count(db.conn)
+                daily_count = _get_daily_alert_count(db.conn, config.alert_schedule.timezone)
                 if daily_count >= max_per_day:
                     console.print(
                         f"  [yellow]Daily alert limit reached ({max_per_day}), "
@@ -750,7 +771,7 @@ def _run_scan(config_path: Path | None = None, force: bool = False) -> None:
 
             # Check daily alert quota
             max_per_day = config.alert_schedule.max_alerts_per_day
-            daily_count = _get_daily_alert_count(db.conn)
+            daily_count = _get_daily_alert_count(db.conn, config.alert_schedule.timezone)
             if daily_count >= max_per_day:
                 console.print(
                     f"  [yellow]Daily alert limit reached ({max_per_day}), "
@@ -791,7 +812,7 @@ def _run_scan(config_path: Path | None = None, force: bool = False) -> None:
                 )
 
         # 4. Re-attempt queued/failed alerts from previous days (always runs)
-        today_start = datetime.now(UTC).replace(hour=0, minute=0, second=0, microsecond=0)
+        today_start, _ = _schedule_day_bounds(config.alert_schedule.timezone)
         queued_rows = db.conn.execute(
             "SELECT dlh.id, dlh.listing_hash, dlh.sent_at FROM daily_alert_log dlh "
             "WHERE dlh.status IN ('queued', 'failed') "
@@ -807,7 +828,7 @@ def _run_scan(config_path: Path | None = None, force: bool = False) -> None:
 
         queued_max_per_day = config.alert_schedule.max_alerts_per_day
         for queued_id, listing_hash, _queued_at in queued_rows:
-            daily_count = _get_daily_alert_count(db.conn)
+            daily_count = _get_daily_alert_count(db.conn, config.alert_schedule.timezone)
             if daily_count >= queued_max_per_day:
                 console.print(
                     f"  [yellow]Daily alert limit reached ({queued_max_per_day}), "
@@ -862,7 +883,11 @@ def _run_scan(config_path: Path | None = None, force: bool = False) -> None:
             status = 'sent' if success else 'failed'
             db.conn.execute(
                 "UPDATE daily_alert_log SET status = ?, sent_at = ? WHERE id = ?",
-                [status, datetime.now(UTC), queued_id],
+                # UTC-naive is the canonical storage format (DEFAULT writes
+                # (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')); passing an aware
+                # datetime lets DuckDB shift it to local naive and the row
+                # then falls outside today's UTC bounds, inflating the quota.
+                [status, datetime.now(UTC).replace(tzinfo=None), queued_id],
             )
             if success:
                 console.print(

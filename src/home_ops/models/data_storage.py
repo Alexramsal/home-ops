@@ -2,11 +2,17 @@
 
 from __future__ import annotations
 
+import os
 from collections.abc import Generator
 from contextlib import contextmanager, suppress
 from decimal import Decimal
 from pathlib import Path
 from typing import Any
+
+try:
+    import fcntl
+except ImportError:  # pragma: no cover - Home-Ops systemd deployment is POSIX
+    fcntl = None  # type: ignore[assignment]
 
 import duckdb
 
@@ -15,8 +21,33 @@ from home_ops.models.schema import Listing
 # In-memory databases are used for testing and do not support WAL mode
 _IN_MEMORY = ":memory:"
 
-# Default database path; override via HOME_OPS_DB_PATH env var
+# Default database path; HOME_OPS_DB_PATH is resolved at use time.
 DEFAULT_DB_PATH = Path("data/home_ops.duckdb")
+
+
+def get_db_path() -> Path:
+    """Return the configured DuckDB path, honoring HOME_OPS_DB_PATH."""
+    return Path(os.environ.get("HOME_OPS_DB_PATH", str(DEFAULT_DB_PATH)))
+
+
+@contextmanager
+def daemon_lock(db_path: str | Path) -> Generator[bool, None, None]:
+    """Acquire a non-blocking, process-wide lock for one daemon scan cycle."""
+    if fcntl is None:
+        raise RuntimeError("Daemon locking requires a POSIX platform")
+
+    lock_path = Path(f"{db_path}.daemon.lock")
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    with lock_path.open("a+") as lock_file:
+        try:
+            fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            yield False
+            return
+        try:
+            yield True
+        finally:
+            fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
 
 
 class DuckDBConnection:
@@ -140,7 +171,7 @@ class DuckDBConnection:
             CREATE TABLE IF NOT EXISTS daily_alert_log (
                 id INTEGER DEFAULT nextval('seq_daily_alert_log_id') PRIMARY KEY,
                 listing_hash TEXT,
-                sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                sent_at TIMESTAMP DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC'),
                 status TEXT
             );
         """)
@@ -177,7 +208,7 @@ class DuckDBConnection:
                 zone TEXT,
                 price DECIMAL(10,2),
                 m2 DOUBLE,
-                observed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                observed_at TIMESTAMP DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')
             );
         """)
 

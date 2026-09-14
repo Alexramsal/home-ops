@@ -744,14 +744,28 @@ class TestGetDailyAlertCount:
         """GIVEN sent alerts yesterday WHEN queried TODAY THEN returns 0."""
         from home_ops.cli.app import _get_daily_alert_count
 
-        # Insert with yesterday's date
-        yesterday = datetime.now(UTC) - timedelta(days=1)
+        # DuckDB stores naive timestamps; the canonical storage format is
+        # UTC-naive (DEFAULT now writes (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')).
+        # Pass an explicit UTC-naive datetime for yesterday.
+        yesterday = datetime.now(UTC).replace(tzinfo=None) - timedelta(days=1)
         db.conn.execute(
             "INSERT INTO daily_alert_log (listing_hash, sent_at, status) VALUES (?, ?, ?)",
             ["h1", yesterday, "sent"],
         )
         count = _get_daily_alert_count(db.conn)
         assert count == 0
+
+
+def test_daily_quota_uses_schedule_timezone_boundary(db: DuckDBConnection) -> None:
+    from home_ops.cli.app import _get_daily_alert_count
+
+    db.conn.execute(
+        "INSERT INTO daily_alert_log (listing_hash, sent_at, status) VALUES "
+        "('prev', '2026-01-01 22:59:59', 'sent'), "
+        "('today', '2026-01-01 23:00:00', 'sent')"
+    )
+    now = datetime(2026, 1, 2, 0, 30, tzinfo=UTC)
+    assert _get_daily_alert_count(db.conn, "Europe/Madrid", now) == 1
 
 
 class TestRunScanExtra:
@@ -856,7 +870,9 @@ class TestRunScanExtra:
             db.insert_listing(listing)
 
         # Insert queued alerts from yesterday for both
-        yesterday = datetime.now(UTC) - timedelta(days=1)
+        # (UTC-naive is the canonical storage format; aware datetimes get
+        # shifted to local naive by DuckDB and would fall inside today's bounds)
+        yesterday = datetime.now(UTC).replace(tzinfo=None) - timedelta(days=1)
         for i in range(2):
             db.conn.execute(
                 "INSERT INTO daily_alert_log (listing_hash, sent_at, status) VALUES (?, ?, 'queued')",
@@ -1227,9 +1243,10 @@ class TestRunDaemonCycle:
         """GIVEN a custom config_path WHEN daemon cycle runs THEN run_fn
         receives that path, not None (regression: was hardcoded to None,
         silently ignoring --config for every scheduled scan)."""
+        from pathlib import Path
+
         from home_ops.cli.app import _run_daemon_cycle
         from home_ops.models.schema import Config, ScheduleConfig
-        from pathlib import Path
 
         db = DuckDBConnection(":memory:")
         db.connect()
@@ -1419,7 +1436,7 @@ class TestNextRunTimeDailyModeDST:
         from zoneinfo import ZoneInfo
 
         sched = ScheduleConfig(mode="daily", daily_time="09:00", timezone="Europe/Madrid")
-        madrid = ZoneInfo("Europe/Madrid")
+        ZoneInfo("Europe/Madrid")
         # March 29, 2026: DST starts on last Sunday of March (March 29, 2026)
         # At 2026-03-29 02:00 clocks spring forward to 03:00
         # Last run was March 28 at 10:00 CET (09:00 UTC)
