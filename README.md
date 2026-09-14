@@ -86,9 +86,10 @@ Configuration is split across two files: `.env` holds secrets, `user_profile.yml
 
 | Variable | Purpose |
 |----------|---------|
-| `TELEGRAM_BOT_TOKEN` | Required. Bot token, create one via [@BotFather](https://t.me/BotFather). |
-| `TELEGRAM_CHAT_ID` | Required. Chat ID for alerts; the legacy `CHAT_ID` name is also accepted. |
+| `TELEGRAM_BOT_TOKEN` | Optional unless Telegram alerting is enabled. Bot token via [@BotFather](https://t.me/BotFather). |
+| `TELEGRAM_CHAT_ID` | Optional unless Telegram alerting is enabled. Chat ID for alerts; the legacy `CHAT_ID` name is also accepted. |
 | `HOME_OPS_CONFIG` | Optional. Absolute path to an alternative `user_profile.yml`. |
+| `HOME_OPS_DB_PATH` | Optional. DuckDB database path; defaults to `data/home_ops.duckdb`. |
 
 ### user_profile.yml (preferences)
 
@@ -165,10 +166,33 @@ A hardened unit is provided in [`systemd/homeops.service`](systemd/homeops.servi
 
 ```bash
 sudo useradd --system --home /opt/home-ops --shell /usr/sbin/nologin homeops
-sudo chown -R homeops:homeops /opt/home-ops/data
+sudo install -d -o homeops -g homeops -m 0750 /opt/home-ops/data
+sudo install -o root -g homeops -m 0640 config/user_profile.yml /opt/home-ops/data/user_profile.yml
 sudo cp systemd/homeops.service /etc/systemd/system/
 sudo systemctl enable --now homeops
 ```
+
+Telegram is optional: without credentials the daemon and readiness remain available; alert attempts are logged as disabled/failed.
+
+### Backup and restore
+
+Stop the service before copying a live DuckDB file; do not copy an active database file directly.
+
+```bash
+sudo systemctl stop homeops
+sudo cp -a /opt/home-ops/data/home_ops.duckdb /secure-backups/home_ops.duckdb
+sudo systemctl start homeops
+
+# Restore: stop first, replace the database, preserve service ownership, then start.
+sudo systemctl stop homeops
+sudo cp /secure-backups/home_ops.duckdb /opt/home-ops/data/home_ops.duckdb
+sudo chown homeops:homeops /opt/home-ops/data/home_ops.duckdb
+sudo systemctl start homeops
+```
+
+### Dashboard network exposure
+
+The dashboard has no login. Bind it only to localhost (`127.0.0.1`, the default). Remote access requires an authenticated reverse proxy or VPN; never expose the dashboard directly to an untrusted network.
 
 ## Roadmap
 

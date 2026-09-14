@@ -4,8 +4,9 @@ StartLimitIntervalSec=10min
 StartLimitBurst=5
 # Create the static system user once:
 #   sudo useradd --system --home /opt/home-ops --shell /usr/sbin/nologin homeops
-# Then grant write access to the data directory:
-#   sudo chown -R homeops:homeops /opt/home-ops/data
+# Provision the secure runtime layout:
+#   sudo install -d -o homeops -g homeops -m 0750 /opt/home-ops/data
+#   sudo install -o root -g homeops -m 0640 config/user_profile.yml /opt/home-ops/data/user_profile.yml
 After=network-online.target
 Wants=network-online.target
 
@@ -15,7 +16,8 @@ User=homeops
 Group=homeops
 ExecStart=/usr/local/bin/homeops daemon
 WorkingDirectory=/opt/home-ops
-Environment=HOME_OPS_CONFIG=/opt/home-ops/user_profile.yml
+Environment=HOME_OPS_CONFIG=/opt/home-ops/data/user_profile.yml
+Environment=HOME_OPS_DB_PATH=/opt/home-ops/data/home_ops.duckdb
 Restart=on-failure
 RestartSec=30
 ProtectSystem=strict

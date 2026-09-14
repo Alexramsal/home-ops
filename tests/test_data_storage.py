@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from home_ops.models.data_storage import DuckDBConnection, get_connection
+from home_ops.models.data_storage import DuckDBConnection, daemon_lock, get_connection, get_db_path
 from home_ops.models.schema import Listing
 
 
@@ -19,6 +19,19 @@ def db() -> DuckDBConnection:
     conn.connect()
     conn.init_db()
     return conn
+
+
+def test_db_path_environment_override(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    path = tmp_path / "override.duckdb"
+    monkeypatch.setenv("HOME_OPS_DB_PATH", str(path))
+    assert get_db_path() == path
+
+
+def test_daemon_lock_rejects_overlap(tmp_path: Path) -> None:
+    with daemon_lock(tmp_path / "home_ops.duckdb") as first:
+        assert first is True
+        with daemon_lock(tmp_path / "home_ops.duckdb") as second:
+            assert second is False
 
 
 class TestDuckDBConnection:

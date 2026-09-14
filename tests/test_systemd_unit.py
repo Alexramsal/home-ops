@@ -95,6 +95,12 @@ def test_restart_policy_in_service_section() -> None:
     assert service["Restart"] == "on-failure"
 
 
+def test_runtime_paths_stay_in_writable_data_directory() -> None:
+    text = UNIT_PATH.read_text()
+    assert "HOME_OPS_CONFIG=/opt/home-ops/data/user_profile.yml" in text
+    assert "HOME_OPS_DB_PATH=/opt/home-ops/data/home_ops.duckdb" in text
+
+
 def test_no_environment_file_anywhere() -> None:
     assert "EnvironmentFile=" not in UNIT_PATH.read_text()
 
