@@ -1,0 +1,5404 @@
+{
+  "version": "2.17",
+  "children": [
+    {
+      "type": "frame",
+      "id": "D5ybDh",
+      "name": "Home-Ops Public Dashboard (1440)",
+      "clip": true,
+      "width": 1440,
+      "fill": "$bg-main",
+      "layout": "vertical",
+      "gap": 32,
+      "padding": [
+        32,
+        64
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "mnhKb",
+          "name": "Navbar",
+          "width": "fill_container",
+          "stroke": "$border-subtle",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "padding": [
+            0,
+            0,
+            16,
+            0
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "K6mI8a",
+              "name": "Brand Column",
+              "layout": "vertical",
+              "gap": 6,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "SjXIC",
+                  "name": "Tag Row",
+                  "gap": 8,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "EhrlU",
+                      "name": "System Badge",
+                      "fill": "$accent-cyan-bg",
+                      "cornerRadius": 4,
+                      "padding": [
+                        4,
+                        10
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "MYb2n",
+                          "name": "Tag Text",
+                          "fill": "$accent-cyan",
+                          "content": "HOME-OPS | PANEL PÚBLICO",
+                          "fontFamily": "$font-main",
+                          "fontSize": 11,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "I6KMQ",
+                      "name": "Freshness Pill",
+                      "fill": "#1E293B",
+                      "cornerRadius": 4,
+                      "stroke": "$border-subtle",
+                      "strokeWidth": 1,
+                      "padding": [
+                        4,
+                        10
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "zKWag",
+                          "name": "Freshness Text",
+                          "fill": "$text-secondary",
+                          "content": "Últimos datos: 2026-09-01",
+                          "fontFamily": "$font-main",
+                          "fontSize": 11,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "T47F6F",
+                  "name": "Console Title",
+                  "fill": "$text-primary",
+                  "content": "Pipeline Inmobiliario & Scoring de Oportunidades",
+                  "fontFamily": "$font-main",
+                  "fontSize": 22,
+                  "fontWeight": "bold"
+                },
+                {
+                  "type": "text",
+                  "id": "h8JX0",
+                  "name": "Console Subtitle",
+                  "fill": "$text-secondary",
+                  "content": "Auditoría de Ingestión, Observaciones Temporales y Scoring 5D",
+                  "fontFamily": "$font-main",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "J1Qyr",
+              "name": "Nav Right",
+              "gap": 12,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "olUpB",
+                  "name": "GitHub CTA Button",
+                  "fill": "$accent-cyan",
+                  "cornerRadius": 6,
+                  "gap": 8,
+                  "padding": [
+                    10,
+                    18
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "x5s5cj",
+                      "name": "GitHub Icon",
+                      "width": 16,
+                      "height": 16,
+                      "icon": "github",
+                      "library": "lucide",
+                      "fill": "#FFFFFF"
+                    },
+                    {
+                      "type": "text",
+                      "id": "K6Z62Q",
+                      "name": "GitHub Text",
+                      "fill": "#FFFFFF",
+                      "content": "Ver en GitHub",
+                      "fontFamily": "$font-main",
+                      "fontSize": 13,
+                      "fontWeight": "bold"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "j6urpX",
+          "name": "Section - Hero Pipeline",
+          "width": "fill_container",
+          "fill": "$bg-card",
+          "cornerRadius": 8,
+          "stroke": "$border-subtle",
+          "strokeWidth": 1,
+          "layout": "vertical",
+          "gap": 20,
+          "padding": 24,
+          "children": [
+            {
+              "type": "frame",
+              "id": "s1PN9",
+              "name": "Hero Header",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "bsn6g",
+                  "name": "Hero Pretitle",
+                  "fill": "$accent-cyan",
+                  "content": "ARQUITECTURA DE INGENIERÍA DE DATOS",
+                  "fontFamily": "$font-main",
+                  "fontSize": 12,
+                  "fontWeight": "bold"
+                },
+                {
+                  "type": "text",
+                  "id": "CmWp5",
+                  "name": "Hero Title",
+                  "fill": "$text-primary",
+                  "content": "Pipeline Operacional: Scrape → Dedup → Scoring 5D → HITL",
+                  "fontFamily": "$font-main",
+                  "fontSize": 26,
+                  "fontWeight": "bold"
+                },
+                {
+                  "type": "text",
+                  "id": "htmfz",
+                  "name": "Hero Description",
+                  "fill": "$text-secondary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Procesamiento integral desde la ingesta de publicaciones en Idealista hasta la validación de oportunidades mediante un modelo multicriterio supervisado por revisión humana.",
+                  "fontFamily": "$font-main",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "X7mFa5",
+              "name": "Pipeline Stages Row",
+              "width": "fill_container",
+              "gap": 16,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "Ljmgm",
+                  "name": "Stage - Scrape Idealista",
+                  "width": "fill_container",
+                  "fill": "$bg-card-hover",
+                  "cornerRadius": 6,
+                  "stroke": "$border-subtle",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 10,
+                  "padding": 16,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "Y4tqf",
+                      "name": "Stage Top Row",
+                      "width": "fill_container",
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "nqjpt",
+                          "name": "Stage Step",
+                          "fill": "$text-muted",
+                          "content": "01",
+                          "fontFamily": "$font-main",
+                          "fontSize": 18,
+                          "fontWeight": "bold"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "LEZuZ",
+                          "name": "Stage Badge",
+                          "fill": "$status-info-bg",
+                          "cornerRadius": 4,
+                          "padding": [
+                            2,
+                            6
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "W2xCJ",
+                              "name": "Stage Badge Text",
+                              "fill": "$status-info",
+                              "content": "INGESTA",
+                              "fontFamily": "$font-main",
+                              "fontSize": 10,
+                              "fontWeight": "bold"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "N8c3RT",
+                      "name": "Stage Title",
+                      "fill": "$text-primary",
+                      "content": "Scrape Idealista",
+                      "fontFamily": "$font-main",
+                      "fontSize": 15,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "text",
+                      "id": "gC8s7",
+                      "name": "Stage Description",
+                      "fill": "$text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Extracción automatizada de publicaciones activas con captura de precio, superficie y atributos técnicos.",
+                      "fontFamily": "$font-main",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "zWoNB",
+                      "name": "Stage Stat Pill",
+                      "width": "fill_container",
+                      "fill": "$bg-main",
+                      "cornerRadius": 4,
+                      "stroke": "$border-subtle",
+                      "strokeWidth": 1,
+                      "padding": [
+                        4,
+                        8
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "wCTSF",
+                          "name": "Stage Stat Text",
+                          "fill": "$text-primary",
+                          "content": "170 observaciones brutas",
+                          "fontFamily": "$font-main",
+                          "fontSize": 11,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "nLx1G",
+                  "name": "Stage - Deduplicación & Tracking",
+                  "width": "fill_container",
+                  "fill": "$bg-card-hover",
+                  "cornerRadius": 6,
+                  "stroke": "$border-subtle",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 10,
+                  "padding": 16,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "T8aQF",
+                      "name": "Stage Top Row",
+                      "width": "fill_container",
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "lM9UK",
+                          "name": "Stage Step",
+                          "fill": "$text-muted",
+                          "content": "02",
+                          "fontFamily": "$font-main",
+                          "fontSize": 18,
+                          "fontWeight": "bold"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "oVuXT",
+                          "name": "Stage Badge",
+                          "fill": "$accent-cyan-bg",
+                          "cornerRadius": 4,
+                          "padding": [
+                            2,
+                            6
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "pyGAR",
+                              "name": "Stage Badge Text",
+                              "fill": "$accent-cyan",
+                              "content": "NORMALIZACIÓN",
+                              "fontFamily": "$font-main",
+                              "fontSize": 10,
+                              "fontWeight": "bold"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "cNa99",
+                      "name": "Stage Title",
+                      "fill": "$text-primary",
+                      "content": "Deduplicación & Tracking",
+                      "fontFamily": "$font-main",
+                      "fontSize": 15,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "text",
+                      "id": "Xgwx5",
+                      "name": "Stage Description",
+                      "fill": "$text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Agrupación temporal en 28 listings únicos, rastreando 142 observaciones repetidas sin descartar su serie histórica.",
+                      "fontFamily": "$font-main",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "JGkHm",
+                      "name": "Stage Stat Pill",
+                      "width": "fill_container",
+                      "fill": "$bg-main",
+                      "cornerRadius": 4,
+                      "stroke": "$border-subtle",
+                      "strokeWidth": 1,
+                      "padding": [
+                        4,
+                        8
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "x3bno",
+                          "name": "Stage Stat Text",
+                          "fill": "$text-primary",
+                          "content": "28 únicos | 142 repetidas",
+                          "fontFamily": "$font-main",
+                          "fontSize": 11,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "jGMzE",
+                  "name": "Stage - Scoring 5D",
+                  "width": "fill_container",
+                  "fill": "$bg-card-hover",
+                  "cornerRadius": 6,
+                  "stroke": "$border-subtle",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 10,
+                  "padding": 16,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "d2VpCD",
+                      "name": "Stage Top Row",
+                      "width": "fill_container",
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "qsfFc",
+                          "name": "Stage Step",
+                          "fill": "$text-muted",
+                          "content": "03",
+                          "fontFamily": "$font-main",
+                          "fontSize": 18,
+                          "fontWeight": "bold"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "MjCed",
+                          "name": "Stage Badge",
+                          "fill": "$status-good-bg",
+                          "cornerRadius": 4,
+                          "padding": [
+                            2,
+                            6
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "ETJ3Y",
+                              "name": "Stage Badge Text",
+                              "fill": "$status-good",
+                              "content": "EVALUACIÓN",
+                              "fontFamily": "$font-main",
+                              "fontSize": 10,
+                              "fontWeight": "bold"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "op0EJ",
+                      "name": "Stage Title",
+                      "fill": "$text-primary",
+                      "content": "Scoring 5D",
+                      "fontFamily": "$font-main",
+                      "fontSize": 15,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "text",
+                      "id": "Q3CX9p",
+                      "name": "Stage Description",
+                      "fill": "$text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Modelo cuantitativo de 5 dimensiones: descuento vs. mediana, liquidez, superficie, tipología y penalización de riesgo.",
+                      "fontFamily": "$font-main",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "aftL4",
+                      "name": "Stage Stat Pill",
+                      "width": "fill_container",
+                      "fill": "$bg-main",
+                      "cornerRadius": 4,
+                      "stroke": "$border-subtle",
+                      "strokeWidth": 1,
+                      "padding": [
+                        4,
+                        8
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "ELvS1",
+                          "name": "Stage Stat Text",
+                          "fill": "$text-primary",
+                          "content": "14 con Score ≥ 70",
+                          "fontFamily": "$font-main",
+                          "fontSize": 11,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "e9Wh1z",
+                  "name": "Stage - Human-in-the-Loop",
+                  "width": "fill_container",
+                  "fill": "$bg-card-hover",
+                  "cornerRadius": 6,
+                  "stroke": "$border-subtle",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 10,
+                  "padding": 16,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "TV8Ha",
+                      "name": "Stage Top Row",
+                      "width": "fill_container",
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "RJeFh",
+                          "name": "Stage Step",
+                          "fill": "$text-muted",
+                          "content": "04",
+                          "fontFamily": "$font-main",
+                          "fontSize": 18,
+                          "fontWeight": "bold"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "IRD0t",
+                          "name": "Stage Badge",
+                          "fill": "$status-warn-bg",
+                          "cornerRadius": 4,
+                          "padding": [
+                            2,
+                            6
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "TEZDa",
+                              "name": "Stage Badge Text",
+                              "fill": "$status-warn",
+                              "content": "GOBERNANZA",
+                              "fontFamily": "$font-main",
+                              "fontSize": 10,
+                              "fontWeight": "bold"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "D1uBPF",
+                      "name": "Stage Title",
+                      "fill": "$text-primary",
+                      "content": "Human-in-the-Loop",
+                      "fontFamily": "$font-main",
+                      "fontSize": 15,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "text",
+                      "id": "b6VvfP",
+                      "name": "Stage Description",
+                      "fill": "$text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Auditoría manual de notas registrales, titularidad y estado real antes de calificar una oportunidad como apta.",
+                      "fontFamily": "$font-main",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "DJZd9",
+                      "name": "Stage Stat Pill",
+                      "width": "fill_container",
+                      "fill": "$bg-main",
+                      "cornerRadius": 4,
+                      "stroke": "$border-subtle",
+                      "strokeWidth": 1,
+                      "padding": [
+                        4,
+                        8
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "eSsGh",
+                          "name": "Stage Stat Text",
+                          "fill": "$text-primary",
+                          "content": "Validación documental",
+                          "fontFamily": "$font-main",
+                          "fontSize": 11,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "TmLk9",
+          "name": "Section - Evidence KPIs",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 16,
+          "children": [
+            {
+              "type": "frame",
+              "id": "EpssU",
+              "name": "KPI Section Header",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "C3QEFo",
+                  "name": "KPI Section Title",
+                  "fill": "$text-primary",
+                  "content": "Evidencia Cuantitativa Registrada (Hechos en DB)",
+                  "fontFamily": "$font-main",
+                  "fontSize": 18,
+                  "fontWeight": "bold"
+                },
+                {
+                  "type": "text",
+                  "id": "z7xZKY",
+                  "name": "KPI Source Note",
+                  "fill": "$text-secondary",
+                  "content": "Base de Datos Verificada | Sin Datos Sintéticos",
+                  "fontFamily": "$font-main",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "V9uFX",
+              "name": "KPI Row 1",
+              "width": "fill_container",
+              "height": "fit_content(129)",
+              "gap": 16,
+              "children": [
+                {
+                  "id": "x8D8ZD",
+                  "type": "ref",
+                  "ref": "zOP2A",
+                  "name": "KPI - ANUNCIOS ÚNICOS",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "descendants": {
+                    "quvtu": {
+                      "content": "ANUNCIOS ÚNICOS"
+                    },
+                    "FFJke": {
+                      "content": "28 SCORED"
+                    },
+                    "WFT5c": {
+                      "content": "28"
+                    },
+                    "hLt3q": {
+                      "content": "28 listings únicos procesados e indexados en base de datos."
+                    }
+                  }
+                },
+                {
+                  "id": "zY7cC",
+                  "type": "ref",
+                  "ref": "zOP2A",
+                  "name": "KPI - OBSERVACIONES DE PRECIO",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "descendants": {
+                    "quvtu": {
+                      "content": "OBSERVACIONES DE PRECIO"
+                    },
+                    "FFJke": {
+                      "content": "INGESTA TOTAL"
+                    },
+                    "WFT5c": {
+                      "content": "170"
+                    },
+                    "hLt3q": {
+                      "content": "170 capturas de precio registradas en portales inmobiliarios."
+                    }
+                  }
+                },
+                {
+                  "id": "sEThF",
+                  "type": "ref",
+                  "ref": "zOP2A",
+                  "name": "KPI - OBSERVACIONES REPETIDAS",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "descendants": {
+                    "quvtu": {
+                      "content": "OBSERVACIONES REPETIDAS"
+                    },
+                    "FFJke": {
+                      "content": "SEGUIMIENTO"
+                    },
+                    "WFT5c": {
+                      "content": "142"
+                    },
+                    "hLt3q": {
+                      "content": "142 observaciones repetidas tras primer avistamiento (no duplicados difusos)."
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "dzXxu",
+              "name": "KPI Row 2",
+              "width": "fill_container",
+              "height": "fit_content(114)",
+              "gap": 16,
+              "children": [
+                {
+                  "id": "iNgbX",
+                  "type": "ref",
+                  "ref": "zOP2A",
+                  "name": "KPI - MEDIANA PRECIO ACTUAL",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "descendants": {
+                    "quvtu": {
+                      "content": "MEDIANA PRECIO ACTUAL"
+                    },
+                    "FFJke": {
+                      "content": "BENCHMARK DB"
+                    },
+                    "WFT5c": {
+                      "content": "3.618 €/m²"
+                    },
+                    "hLt3q": {
+                      "content": "Mediana global del precio de oferta en listings activos."
+                    }
+                  }
+                },
+                {
+                  "id": "NSV4H",
+                  "type": "ref",
+                  "ref": "zOP2A",
+                  "name": "KPI - OPORTUNIDADES DESTACADAS",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "descendants": {
+                    "quvtu": {
+                      "content": "OPORTUNIDADES DESTACADAS"
+                    },
+                    "FFJke": {
+                      "content": "SCORE ≥ 70"
+                    },
+                    "WFT5c": {
+                      "content": "14"
+                    },
+                    "hLt3q": {
+                      "content": "14 de 28 inmuebles con score cuantitativo ≥ 70."
+                    }
+                  }
+                },
+                {
+                  "id": "HHwHC",
+                  "type": "ref",
+                  "ref": "zOP2A",
+                  "name": "KPI - PENALIZACIÓN RIESGO BASE",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "descendants": {
+                    "quvtu": {
+                      "content": "PENALIZACIÓN RIESGO BASE"
+                    },
+                    "FFJke": {
+                      "content": "SCORE 10 / 100"
+                    },
+                    "WFT5c": {
+                      "content": "28"
+                    },
+                    "hLt3q": {
+                      "content": "Penalización metodológica aplicada a 28; 0 fraudes confirmados."
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "leEVL",
+          "name": "Section - Weekly Evidence",
+          "width": "fill_container",
+          "fill": "$bg-card",
+          "cornerRadius": 8,
+          "stroke": "$border-subtle",
+          "strokeWidth": 1,
+          "layout": "vertical",
+          "gap": 16,
+          "padding": 24,
+          "children": [
+            {
+              "type": "frame",
+              "id": "ixjH2",
+              "name": "Weekly Header",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "JDCqJ",
+                  "name": "Weekly Title Column",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "O1dg7U",
+                      "name": "Weekly Pretitle",
+                      "fill": "$accent-cyan",
+                      "content": "MONITORIZACIÓN TEMPORAL",
+                      "fontFamily": "$font-main",
+                      "fontSize": 12,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "text",
+                      "id": "R24eeH",
+                      "name": "Weekly Title",
+                      "fill": "$text-primary",
+                      "content": "Evidencia Semanal Registrada (Semana 2026-08-31)",
+                      "fontFamily": "$font-main",
+                      "fontSize": 18,
+                      "fontWeight": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "t4jKo",
+                  "name": "Weekly Status Pill",
+                  "fill": "$status-warn-bg",
+                  "cornerRadius": 4,
+                  "stroke": "$status-warn",
+                  "strokeWidth": 1,
+                  "padding": [
+                    4,
+                    10
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "wgiMQ",
+                      "name": "Weekly Status Pill Text",
+                      "fill": "$status-warn",
+                      "content": "1 SEMANA DISPONIBLE",
+                      "fontFamily": "$font-main",
+                      "fontSize": 11,
+                      "fontWeight": "bold"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Wo6T1",
+              "name": "Weekly Content Row",
+              "width": "fill_container",
+              "gap": 24,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "Yln4g",
+                  "name": "Single Data Point Card",
+                  "width": 440,
+                  "fill": "$bg-main",
+                  "cornerRadius": 6,
+                  "stroke": "$border-bright",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 16,
+                  "padding": 20,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "b37mJ",
+                      "name": "Card Top Row",
+                      "width": "fill_container",
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "SW3Xu",
+                          "name": "Week Label",
+                          "fill": "$text-primary",
+                          "content": "Semana: 2026-08-31",
+                          "fontFamily": "$font-main",
+                          "fontSize": 14,
+                          "fontWeight": "bold"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "kfvfM",
+                          "name": "Sample Pill",
+                          "fill": "$accent-cyan-bg",
+                          "cornerRadius": 4,
+                          "padding": [
+                            2,
+                            8
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "WM8FX",
+                              "name": "Sample Text",
+                              "fill": "$accent-cyan",
+                              "content": "N = 150 obs. válidas",
+                              "fontFamily": "$font-main",
+                              "fontSize": 11,
+                              "fontWeight": "bold"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "zXdsK",
+                      "name": "Stats Metrics Row",
+                      "width": "fill_container",
+                      "gap": 16,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "z51HFU",
+                          "name": "Median Box",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 4,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "C3FHwE",
+                              "name": "Median Label",
+                              "fill": "$text-muted",
+                              "content": "MEDIANA SEMANAL",
+                              "fontFamily": "$font-main",
+                              "fontSize": 11,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "ZIxda",
+                              "name": "Median Value",
+                              "fill": "$text-primary",
+                              "content": "3.702 €/m²",
+                              "fontFamily": "$font-main",
+                              "fontSize": 22,
+                              "fontWeight": "bold"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "U6sCx",
+                          "name": "Mean Box",
+                          "width": "fill_container",
+                          "layout": "vertical",
+                          "gap": 4,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "MA8NW",
+                              "name": "Mean Label",
+                              "fill": "$text-muted",
+                              "content": "MEDIA SEMANAL",
+                              "fontFamily": "$font-main",
+                              "fontSize": 11,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "yONUf",
+                              "name": "Mean Value",
+                              "fill": "$accent-cyan",
+                              "content": "3.865 €/m²",
+                              "fontFamily": "$font-main",
+                              "fontSize": 22,
+                              "fontWeight": "bold"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "a2sbM",
+                      "name": "Honest Single Bar Visualization",
+                      "width": "fill_container",
+                      "layout": "vertical",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "Yb5oV",
+                          "name": "Bar Title",
+                          "fill": "$text-secondary",
+                          "content": "Punto de Datos Único Registrado (Escala Real):",
+                          "fontFamily": "$font-main",
+                          "fontSize": 11,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "lahQN",
+                          "name": "Bar Track",
+                          "width": "fill_container",
+                          "height": 28,
+                          "fill": "$bg-card",
+                          "cornerRadius": 4,
+                          "stroke": "$border-subtle",
+                          "strokeWidth": 1,
+                          "padding": [
+                            0,
+                            8
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "w4I0nH",
+                              "name": "Bar Visual Fill",
+                              "width": 240,
+                              "height": 18,
+                              "fill": "$accent-cyan",
+                              "cornerRadius": 3,
+                              "padding": [
+                                0,
+                                8
+                              ],
+                              "justifyContent": "end",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "EvsQh",
+                                  "name": "Bar Value Inline",
+                                  "fill": "#0B0F17",
+                                  "content": "3.702 €/m²",
+                                  "fontFamily": "$font-main",
+                                  "fontSize": 11,
+                                  "fontWeight": "bold"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "SiMkh",
+                  "name": "Methodological Limitation Notice",
+                  "width": "fill_container",
+                  "fill": "#181D27",
+                  "cornerRadius": 6,
+                  "stroke": "$status-warn",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 10,
+                  "padding": 20,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "dwOzJ",
+                      "name": "Notice Header",
+                      "gap": 8,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "EpkvW",
+                          "name": "Notice Icon",
+                          "width": 18,
+                          "height": 18,
+                          "icon": "triangle-alert",
+                          "library": "lucide",
+                          "fill": "$status-warn"
+                        },
+                        {
+                          "type": "text",
+                          "id": "r4NHpb",
+                          "name": "Notice Title",
+                          "fill": "$status-warn",
+                          "content": "INSUFICIENCIA DE DATOS PARA INFERIR TENDENCIA",
+                          "fontFamily": "$font-main",
+                          "fontSize": 13,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "yv3XV",
+                      "name": "Notice Text 1",
+                      "fill": "$text-primary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "La base de datos cuenta con una única semana de muestreo consolidada (semana 2026-08-31 con 150 observaciones válidas). Se declara expresamente que una semana es estadísticamente insuficiente para proyectar una tendencia temporal o comportamiento estacional de precios.",
+                      "fontFamily": "$font-main",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "j2mCWK",
+                      "name": "Notice Text 2",
+                      "fill": "$text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Principio de integridad: Se rechaza la inclusión de gráficos ficticios o simulaciones interpoladas. La visualización refleja únicamente el punto muestral corroborado.",
+                      "fontFamily": "$font-main",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "rogEb",
+          "name": "Section - Ranked Opportunities",
+          "width": "fill_container",
+          "fill": "$bg-card",
+          "cornerRadius": 8,
+          "stroke": "$border-subtle",
+          "strokeWidth": 1,
+          "layout": "vertical",
+          "gap": 16,
+          "padding": 24,
+          "children": [
+            {
+              "type": "frame",
+              "id": "Xcsm1",
+              "name": "Table Header Area",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "YvPpz",
+                  "name": "Title Area",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "BLDO7",
+                      "name": "Table Pretitle",
+                      "fill": "$accent-cyan",
+                      "content": "SELECCIÓN CUANTITATIVA AUDITADA",
+                      "fontFamily": "$font-main",
+                      "fontSize": 12,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "text",
+                      "id": "Gpl8p",
+                      "name": "Table Title",
+                      "fill": "$text-primary",
+                      "content": "Oportunidades Inmobiliarias Rankeadas (Score 5D ≥ 70)",
+                      "fontFamily": "$font-main",
+                      "fontSize": 18,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "text",
+                      "id": "N5RsP",
+                      "name": "Table Subtitle",
+                      "fill": "$text-secondary",
+                      "content": "14 inmuebles con Score ≥ 70 sobre 28 evaluados | Top oportunidad verificada mediante HITL",
+                      "fontFamily": "$font-main",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "elIjO",
+                  "name": "Filter Badge",
+                  "fill": "$status-good-bg",
+                  "cornerRadius": 4,
+                  "stroke": "$status-good",
+                  "strokeWidth": 1,
+                  "padding": [
+                    6,
+                    12
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "UaJ8b",
+                      "name": "Filter Badge Text",
+                      "fill": "$status-good",
+                      "content": "14 OPORTUNIDADES ≥ 70 / 28 EVALUADOS",
+                      "fontFamily": "$font-main",
+                      "fontSize": 11,
+                      "fontWeight": "bold"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "qzoa2",
+              "name": "Data Table",
+              "clip": true,
+              "width": "fill_container",
+              "fill": "$bg-main",
+              "cornerRadius": 6,
+              "stroke": "$border-subtle",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "Fwpup",
+                  "name": "Table Head Row",
+                  "width": "fill_container",
+                  "fill": "#18202E",
+                  "stroke": "$border-subtle",
+                  "strokeWidth": {
+                    "bottom": 1
+                  },
+                  "padding": [
+                    12,
+                    16
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "hCk5L",
+                      "name": "Header Cell - INMUEBLE / UBICACIÓN",
+                      "width": 290,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "ciWqp",
+                          "name": "Header Text",
+                          "fill": "$text-muted",
+                          "content": "INMUEBLE / UBICACIÓN",
+                          "fontFamily": "$font-main",
+                          "fontSize": 11,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "UIszt",
+                      "name": "Header Cell - PRECIO",
+                      "width": 120,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "DOuCa",
+                          "name": "Header Text",
+                          "fill": "$text-muted",
+                          "content": "PRECIO",
+                          "fontFamily": "$font-main",
+                          "fontSize": 11,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "C0YzX",
+                      "name": "Header Cell - SUPERFICIE",
+                      "width": 100,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "LDUvo",
+                          "name": "Header Text",
+                          "fill": "$text-muted",
+                          "content": "SUPERFICIE",
+                          "fontFamily": "$font-main",
+                          "fontSize": 11,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "XVpVL",
+                      "name": "Header Cell - EUR / m²",
+                      "width": 130,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "n6BBa4",
+                          "name": "Header Text",
+                          "fill": "$text-muted",
+                          "content": "EUR / m²",
+                          "fontFamily": "$font-main",
+                          "fontSize": 11,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "KaiUp",
+                      "name": "Header Cell - SCORE 5D",
+                      "width": 120,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "b3Khy",
+                          "name": "Header Text",
+                          "fill": "$text-muted",
+                          "content": "SCORE 5D",
+                          "fontFamily": "$font-main",
+                          "fontSize": 11,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Tutpy",
+                      "name": "Header Cell - PENALIZACIÓN RIESGO",
+                      "width": 180,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "Npylr",
+                          "name": "Header Text",
+                          "fill": "$text-muted",
+                          "content": "PENALIZACIÓN RIESGO",
+                          "fontFamily": "$font-main",
+                          "fontSize": 11,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "IPTHn",
+                      "name": "Header Cell - PORTAL",
+                      "width": 100,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "UeSuj",
+                          "name": "Header Text",
+                          "fill": "$text-muted",
+                          "content": "PORTAL",
+                          "fontFamily": "$font-main",
+                          "fontSize": 11,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "j9MRb8",
+                      "name": "Header Cell - ESTADO HITL",
+                      "width": "fill_container",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "kTsTX",
+                          "name": "Header Text",
+                          "fill": "$text-muted",
+                          "content": "ESTADO HITL",
+                          "fontFamily": "$font-main",
+                          "fontSize": 11,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "q3KCu",
+                  "name": "Data Row - 1",
+                  "width": "fill_container",
+                  "fill": "#141E2C",
+                  "stroke": "$border-subtle",
+                  "strokeWidth": {
+                    "bottom": 1
+                  },
+                  "padding": [
+                    14,
+                    16
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "GAux4",
+                      "name": "Cell Inmueble",
+                      "width": 290,
+                      "layout": "vertical",
+                      "gap": 4,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "knRuw",
+                          "name": "Inmueble Name",
+                          "fill": "$accent-cyan",
+                          "content": "Dúplex Plaza de Toros, El Puerto",
+                          "fontFamily": "$font-main",
+                          "fontSize": 13,
+                          "fontWeight": "bold"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "vOCJP",
+                          "name": "Inmueble Sub Badge",
+                          "fill": "$accent-cyan-bg",
+                          "cornerRadius": 3,
+                          "padding": [
+                            2,
+                            6
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "lRPzD",
+                              "name": "Inmueble Sub Badge Text",
+                              "fill": "$accent-cyan",
+                              "content": "TOP #1 VERIFICADO",
+                              "fontFamily": "$font-main",
+                              "fontSize": 9,
+                              "fontWeight": "bold"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "beG6N",
+                      "name": "Cell Precio",
+                      "width": 120,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "z0sPS",
+                          "name": "Precio Text",
+                          "fill": "$text-primary",
+                          "content": "230.000 €",
+                          "fontFamily": "$font-main",
+                          "fontSize": 13,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "FZiUj",
+                      "name": "Cell Superficie",
+                      "width": 100,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "WLH5n",
+                          "name": "M2 Text",
+                          "fill": "$text-secondary",
+                          "content": "130 m²",
+                          "fontFamily": "$font-main",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "fsl7I",
+                      "name": "Cell EurM2",
+                      "width": 130,
+                      "layout": "vertical",
+                      "gap": 2,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "cawOk",
+                          "name": "EurM2 Text",
+                          "fill": "$text-primary",
+                          "content": "1.769 €/m²",
+                          "fontFamily": "$font-main",
+                          "fontSize": 13,
+                          "fontWeight": "bold"
+                        },
+                        {
+                          "type": "text",
+                          "id": "MnKOx",
+                          "name": "EurSub Text",
+                          "fill": "$status-good",
+                          "content": "-51% vs mediana",
+                          "fontFamily": "$font-main",
+                          "fontSize": 10,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "NpfnA",
+                      "name": "Cell Score",
+                      "width": 120,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "RXepu",
+                          "name": "Score Badge",
+                          "fill": "$status-good-bg",
+                          "cornerRadius": 4,
+                          "padding": [
+                            4,
+                            8
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "IUM9c",
+                              "name": "Score Text",
+                              "fill": "$status-good",
+                              "content": "87 / 100",
+                              "fontFamily": "$font-main",
+                              "fontSize": 12,
+                              "fontWeight": "bold"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "GmABU",
+                      "name": "Cell Riesgo",
+                      "width": 180,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "ErJpp",
+                          "name": "Risk Badge",
+                          "fill": "$status-warn-bg",
+                          "cornerRadius": 4,
+                          "padding": [
+                            4,
+                            8
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "HprGY",
+                              "name": "Risk Text",
+                              "fill": "$status-warn",
+                              "content": "10 (Metodología)",
+                              "fontFamily": "$font-main",
+                              "fontSize": 11,
+                              "fontWeight": "bold"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "KuiQY",
+                      "name": "Cell Portal",
+                      "width": 100,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "aB7Tj",
+                          "name": "Portal Text",
+                          "fill": "$text-secondary",
+                          "content": "Idealista",
+                          "fontFamily": "$font-main",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Rx3SB",
+                      "name": "Cell HITL",
+                      "width": "fill_container",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "GPZpW",
+                          "name": "HITL Badge",
+                          "fill": "$status-good-bg",
+                          "cornerRadius": 4,
+                          "padding": [
+                            4,
+                            8
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "rPvrW",
+                              "name": "HITL Text",
+                              "fill": "$status-good",
+                              "content": "Verificado HITL OK",
+                              "fontFamily": "$font-main",
+                              "fontSize": 11,
+                              "fontWeight": "bold"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "wWlo3",
+                  "name": "Data Row - 2",
+                  "width": "fill_container",
+                  "fill": "$bg-card",
+                  "stroke": "$border-subtle",
+                  "strokeWidth": {
+                    "bottom": 1
+                  },
+                  "padding": [
+                    14,
+                    16
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "xJ4Xx",
+                      "name": "Cell Inmueble",
+                      "width": 290,
+                      "layout": "vertical",
+                      "gap": 4,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "mBBjQ",
+                          "name": "Inmueble Name",
+                          "fill": "$text-primary",
+                          "content": "Piso en Casco Historico - Ribera del Marisco, El Puerto de Santa Maria",
+                          "fontFamily": "$font-main",
+                          "fontSize": 13,
+                          "fontWeight": "bold"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "yN4Ko",
+                          "name": "Inmueble Sub Badge",
+                          "fill": "#1E293B",
+                          "cornerRadius": 3,
+                          "padding": [
+                            2,
+                            6
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "i7hiC",
+                              "name": "Inmueble Sub Badge Text",
+                              "fill": "$text-muted",
+                              "content": "SCORE 74",
+                              "fontFamily": "$font-main",
+                              "fontSize": 9,
+                              "fontWeight": "bold"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "nxYBB",
+                      "name": "Cell Precio",
+                      "width": 120,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "U5AXw",
+                          "name": "Precio Text",
+                          "fill": "$text-primary",
+                          "content": "260.000 €",
+                          "fontFamily": "$font-main",
+                          "fontSize": 13,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Buypj",
+                      "name": "Cell Superficie",
+                      "width": 100,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "YqEAq",
+                          "name": "M2 Text",
+                          "fill": "$text-secondary",
+                          "content": "110 m²",
+                          "fontFamily": "$font-main",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "QuLvP",
+                      "name": "Cell EurM2",
+                      "width": 130,
+                      "layout": "vertical",
+                      "gap": 2,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "c0Hud",
+                          "name": "EurM2 Text",
+                          "fill": "$text-primary",
+                          "content": "2.364 €/m²",
+                          "fontFamily": "$font-main",
+                          "fontSize": 13,
+                          "fontWeight": "bold"
+                        },
+                        {
+                          "type": "text",
+                          "id": "Eqngg",
+                          "name": "EurSub Text",
+                          "fill": "$status-good",
+                          "content": "-35% vs mediana",
+                          "fontFamily": "$font-main",
+                          "fontSize": 10,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "agOvk",
+                      "name": "Cell Score",
+                      "width": 120,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "fW1uX",
+                          "name": "Score Badge",
+                          "fill": "$status-good-bg",
+                          "cornerRadius": 4,
+                          "padding": [
+                            4,
+                            8
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "SxIbm",
+                              "name": "Score Text",
+                              "fill": "$status-good",
+                              "content": "74 / 100",
+                              "fontFamily": "$font-main",
+                              "fontSize": 12,
+                              "fontWeight": "bold"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "JIzN2",
+                      "name": "Cell Riesgo",
+                      "width": 180,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "X52BB",
+                          "name": "Risk Badge",
+                          "fill": "$status-warn-bg",
+                          "cornerRadius": 4,
+                          "padding": [
+                            4,
+                            8
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "u6THU",
+                              "name": "Risk Text",
+                              "fill": "$status-warn",
+                              "content": "10 (Metodología)",
+                              "fontFamily": "$font-main",
+                              "fontSize": 11,
+                              "fontWeight": "bold"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "PoxD1",
+                      "name": "Cell Portal",
+                      "width": 100,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "qGUtt",
+                          "name": "Portal Text",
+                          "fill": "$text-secondary",
+                          "content": "Idealista",
+                          "fontFamily": "$font-main",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "VdYAu",
+                      "name": "Cell HITL",
+                      "width": "fill_container",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "Fukku",
+                          "name": "HITL Badge",
+                          "fill": "#1E293B",
+                          "cornerRadius": 4,
+                          "padding": [
+                            4,
+                            8
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "fQ4To",
+                              "name": "HITL Text",
+                              "fill": "$text-secondary",
+                              "content": "Pendiente Auditoría",
+                              "fontFamily": "$font-main",
+                              "fontSize": 11,
+                              "fontWeight": "bold"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "CTXXw",
+                  "name": "Data Row - 3",
+                  "width": "fill_container",
+                  "fill": "$bg-main",
+                  "stroke": "$border-subtle",
+                  "strokeWidth": {
+                    "bottom": 1
+                  },
+                  "padding": [
+                    14,
+                    16
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "P888F",
+                      "name": "Cell Inmueble",
+                      "width": 290,
+                      "layout": "vertical",
+                      "gap": 4,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "Gx3H0",
+                          "name": "Inmueble Name",
+                          "fill": "$text-primary",
+                          "content": "Piso en Centro, Jerez de la Frontera",
+                          "fontFamily": "$font-main",
+                          "fontSize": 13,
+                          "fontWeight": "bold"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "yoSDl",
+                          "name": "Inmueble Sub Badge",
+                          "fill": "#1E293B",
+                          "cornerRadius": 3,
+                          "padding": [
+                            2,
+                            6
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "lEJ9H",
+                              "name": "Inmueble Sub Badge Text",
+                              "fill": "$text-muted",
+                              "content": "SCORE 70",
+                              "fontFamily": "$font-main",
+                              "fontSize": 9,
+                              "fontWeight": "bold"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "cj1yT",
+                      "name": "Cell Precio",
+                      "width": 120,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "OXzMx",
+                          "name": "Precio Text",
+                          "fill": "$text-primary",
+                          "content": "675.000 €",
+                          "fontFamily": "$font-main",
+                          "fontSize": 13,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "z7kYG0",
+                      "name": "Cell Superficie",
+                      "width": 100,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "scbsq",
+                          "name": "M2 Text",
+                          "fill": "$text-secondary",
+                          "content": "371 m²",
+                          "fontFamily": "$font-main",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Z0F0w",
+                      "name": "Cell EurM2",
+                      "width": 130,
+                      "layout": "vertical",
+                      "gap": 2,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "LBl2S",
+                          "name": "EurM2 Text",
+                          "fill": "$text-primary",
+                          "content": "1.819 €/m²",
+                          "fontFamily": "$font-main",
+                          "fontSize": 13,
+                          "fontWeight": "bold"
+                        },
+                        {
+                          "type": "text",
+                          "id": "L6Tjk",
+                          "name": "EurSub Text",
+                          "fill": "$status-good",
+                          "content": "-50% vs mediana",
+                          "fontFamily": "$font-main",
+                          "fontSize": 10,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "C3gyQC",
+                      "name": "Cell Score",
+                      "width": 120,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "WewHH",
+                          "name": "Score Badge",
+                          "fill": "$status-good-bg",
+                          "cornerRadius": 4,
+                          "padding": [
+                            4,
+                            8
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "J5ZVP",
+                              "name": "Score Text",
+                              "fill": "$status-good",
+                              "content": "70 / 100",
+                              "fontFamily": "$font-main",
+                              "fontSize": 12,
+                              "fontWeight": "bold"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "v61XNe",
+                      "name": "Cell Riesgo",
+                      "width": 180,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "avkka",
+                          "name": "Risk Badge",
+                          "fill": "$status-warn-bg",
+                          "cornerRadius": 4,
+                          "padding": [
+                            4,
+                            8
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "bMiZS",
+                              "name": "Risk Text",
+                              "fill": "$status-warn",
+                              "content": "10 (Metodología)",
+                              "fontFamily": "$font-main",
+                              "fontSize": 11,
+                              "fontWeight": "bold"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "fez5b",
+                      "name": "Cell Portal",
+                      "width": 100,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "FLiBa",
+                          "name": "Portal Text",
+                          "fill": "$text-secondary",
+                          "content": "Idealista",
+                          "fontFamily": "$font-main",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "I1A6Rc",
+                      "name": "Cell HITL",
+                      "width": "fill_container",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "sLh85",
+                          "name": "HITL Badge",
+                          "fill": "#1E293B",
+                          "cornerRadius": 4,
+                          "padding": [
+                            4,
+                            8
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "rJLlL",
+                              "name": "HITL Text",
+                              "fill": "$text-secondary",
+                              "content": "Pendiente Auditoría",
+                              "fontFamily": "$font-main",
+                              "fontSize": 11,
+                              "fontWeight": "bold"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "M80LmJ",
+                  "name": "Data Row - 4",
+                  "width": "fill_container",
+                  "fill": "$bg-card",
+                  "stroke": "$border-subtle",
+                  "strokeWidth": {
+                    "bottom": 1
+                  },
+                  "padding": [
+                    14,
+                    16
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "OTqng",
+                      "name": "Cell Inmueble",
+                      "width": 290,
+                      "layout": "vertical",
+                      "gap": 4,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "BctdM",
+                          "name": "Inmueble Name",
+                          "fill": "$text-primary",
+                          "content": "Piso en Plaza Topete, Centro Historico - Plaza Espana, Cadiz",
+                          "fontFamily": "$font-main",
+                          "fontSize": 13,
+                          "fontWeight": "bold"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "TvEDQ",
+                          "name": "Inmueble Sub Badge",
+                          "fill": "#1E293B",
+                          "cornerRadius": 3,
+                          "padding": [
+                            2,
+                            6
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "aieeL",
+                              "name": "Inmueble Sub Badge Text",
+                              "fill": "$text-muted",
+                              "content": "SCORE 70",
+                              "fontFamily": "$font-main",
+                              "fontSize": 9,
+                              "fontWeight": "bold"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "C1fWO",
+                      "name": "Cell Precio",
+                      "width": 120,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "iQxIX",
+                          "name": "Precio Text",
+                          "fill": "$text-primary",
+                          "content": "595.000 €",
+                          "fontFamily": "$font-main",
+                          "fontSize": 13,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "WtkeV",
+                      "name": "Cell Superficie",
+                      "width": 100,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "BRQv9",
+                          "name": "M2 Text",
+                          "fill": "$text-secondary",
+                          "content": "212 m²",
+                          "fontFamily": "$font-main",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "zFGzR",
+                      "name": "Cell EurM2",
+                      "width": 130,
+                      "layout": "vertical",
+                      "gap": 2,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "FbhCk",
+                          "name": "EurM2 Text",
+                          "fill": "$text-primary",
+                          "content": "2.807 €/m²",
+                          "fontFamily": "$font-main",
+                          "fontSize": 13,
+                          "fontWeight": "bold"
+                        },
+                        {
+                          "type": "text",
+                          "id": "Z55a8",
+                          "name": "EurSub Text",
+                          "fill": "$status-good",
+                          "content": "-22% vs mediana",
+                          "fontFamily": "$font-main",
+                          "fontSize": 10,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "B3DYPO",
+                      "name": "Cell Score",
+                      "width": 120,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "Mon5O",
+                          "name": "Score Badge",
+                          "fill": "$status-good-bg",
+                          "cornerRadius": 4,
+                          "padding": [
+                            4,
+                            8
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "uH4DL",
+                              "name": "Score Text",
+                              "fill": "$status-good",
+                              "content": "70 / 100",
+                              "fontFamily": "$font-main",
+                              "fontSize": 12,
+                              "fontWeight": "bold"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "etaBz",
+                      "name": "Cell Riesgo",
+                      "width": 180,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "KQQZ5",
+                          "name": "Risk Badge",
+                          "fill": "$status-warn-bg",
+                          "cornerRadius": 4,
+                          "padding": [
+                            4,
+                            8
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "tFwuy",
+                              "name": "Risk Text",
+                              "fill": "$status-warn",
+                              "content": "10 (Metodología)",
+                              "fontFamily": "$font-main",
+                              "fontSize": 11,
+                              "fontWeight": "bold"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "N1xUzN",
+                      "name": "Cell Portal",
+                      "width": 100,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "nHDSv",
+                          "name": "Portal Text",
+                          "fill": "$text-secondary",
+                          "content": "Idealista",
+                          "fontFamily": "$font-main",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "e2HLe",
+                      "name": "Cell HITL",
+                      "width": "fill_container",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "qF9DR",
+                          "name": "HITL Badge",
+                          "fill": "#1E293B",
+                          "cornerRadius": 4,
+                          "padding": [
+                            4,
+                            8
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "b7dDG0",
+                              "name": "HITL Text",
+                              "fill": "$text-secondary",
+                              "content": "Pendiente Auditoría",
+                              "fontFamily": "$font-main",
+                              "fontSize": 11,
+                              "fontWeight": "bold"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "U1u3ea",
+                  "name": "Table Note Footer",
+                  "width": "fill_container",
+                  "fill": "#101622",
+                  "padding": [
+                    12,
+                    16
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "lWMcS",
+                      "name": "Table Footnote",
+                      "fill": "$text-muted",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Nota metodológica: Se muestran las oportunidades principales del conjunto de 14 inmuebles con Score ≥ 70 (de 28 evaluados). Todos los registros cuentan con scam_risk_score = 10 asignado por política de penalización preventiva sin imputar fraude.",
+                      "fontFamily": "$font-main",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "tZGc0",
+          "name": "Section - Methodology and Limitations Split",
+          "width": "fill_container",
+          "gap": 24,
+          "children": [
+            {
+              "type": "frame",
+              "id": "PwAFS",
+              "name": "Col - Methodology",
+              "width": "fill_container",
+              "fill": "$bg-card",
+              "cornerRadius": 8,
+              "stroke": "$border-subtle",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 16,
+              "padding": 24,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "ZUdBq",
+                  "name": "Method Header",
+                  "gap": 10,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "n9Pr7e",
+                      "name": "Method Icon",
+                      "width": 20,
+                      "height": 20,
+                      "icon": "circle-check",
+                      "library": "lucide",
+                      "fill": "$status-good"
+                    },
+                    {
+                      "type": "text",
+                      "id": "T4p60",
+                      "name": "Method Title",
+                      "fill": "$text-primary",
+                      "content": "Metodología Transparente",
+                      "fontFamily": "$font-main",
+                      "fontSize": 16,
+                      "fontWeight": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "Acxl1",
+                  "name": "Method Item - 1. Ingestión & Trazabilidad",
+                  "width": "fill_container",
+                  "fill": "$bg-main",
+                  "cornerRadius": 6,
+                  "stroke": "$border-subtle",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 4,
+                  "padding": [
+                    10,
+                    14
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "LC3gS",
+                      "name": "Item Title",
+                      "fill": "$accent-cyan",
+                      "content": "1. Ingestión & Trazabilidad",
+                      "fontFamily": "$font-main",
+                      "fontSize": 13,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "text",
+                      "id": "An1Ng",
+                      "name": "Item Desc",
+                      "fill": "$text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Scraping estructurado de listings en Idealista, persistiendo metadatos completos y fechas de avistamiento para trazabilidad inmutable.",
+                      "fontFamily": "$font-main",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "TlPOR",
+                  "name": "Method Item - 2. Tracking de Observaciones (No Duplicados)",
+                  "width": "fill_container",
+                  "fill": "$bg-main",
+                  "cornerRadius": 6,
+                  "stroke": "$border-subtle",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 4,
+                  "padding": [
+                    10,
+                    14
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "T6qNUd",
+                      "name": "Item Title",
+                      "fill": "$accent-cyan",
+                      "content": "2. Tracking de Observaciones (No Duplicados)",
+                      "fontFamily": "$font-main",
+                      "fontSize": 13,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "text",
+                      "id": "iI5TR",
+                      "name": "Item Desc",
+                      "fill": "$text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "De las 170 capturas, se aíslan 28 inmuebles únicos y 142 observaciones repetidas en el tiempo (seguimiento de publicación activa, no duplicados difusos).",
+                      "fontFamily": "$font-main",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "TkklD",
+                  "name": "Method Item - 3. Modelo de Scoring 5D",
+                  "width": "fill_container",
+                  "fill": "$bg-main",
+                  "cornerRadius": 6,
+                  "stroke": "$border-subtle",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 4,
+                  "padding": [
+                    10,
+                    14
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "D7vnyx",
+                      "name": "Item Title",
+                      "fill": "$accent-cyan",
+                      "content": "3. Modelo de Scoring 5D",
+                      "fontFamily": "$font-main",
+                      "fontSize": 13,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "text",
+                      "id": "MtDcP",
+                      "name": "Item Desc",
+                      "fill": "$text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Algoritmo multicriterio ponderado: diferencial vs. mediana zonal (3.618 €/m²), liquidez de zona, eficiencia de superficie, estado y tipología.",
+                      "fontFamily": "$font-main",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "P5mHC",
+                  "name": "Method Item - 4. Gestión de Riesgo Preventivo",
+                  "width": "fill_container",
+                  "fill": "$bg-main",
+                  "cornerRadius": 6,
+                  "stroke": "$border-subtle",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 4,
+                  "padding": [
+                    10,
+                    14
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "V7FiIx",
+                      "name": "Item Title",
+                      "fill": "$accent-cyan",
+                      "content": "4. Gestión de Riesgo Preventivo",
+                      "fontFamily": "$font-main",
+                      "fontSize": 13,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "text",
+                      "id": "phifJ",
+                      "name": "Item Desc",
+                      "fill": "$text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Se aplica penalización metodológica base (scam_risk_score = 10) a los 28 registros sin categorizarlos indebidamente como fraudes confirmados.",
+                      "fontFamily": "$font-main",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "WH2eV",
+                  "name": "Method Item - 5. Auditoría Human-in-the-Loop (HITL)",
+                  "width": "fill_container",
+                  "fill": "$bg-main",
+                  "cornerRadius": 6,
+                  "stroke": "$border-subtle",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 4,
+                  "padding": [
+                    10,
+                    14
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "h4B9e",
+                      "name": "Item Title",
+                      "fill": "$accent-cyan",
+                      "content": "5. Auditoría Human-in-the-Loop (HITL)",
+                      "fontFamily": "$font-main",
+                      "fontSize": 13,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "text",
+                      "id": "rcLGD",
+                      "name": "Item Desc",
+                      "fill": "$text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Las 14 oportunidades con Score ≥ 70 se someten a validación documental humana (verificación registral y cargas) previo a su selección.",
+                      "fontFamily": "$font-main",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Q78bz",
+              "name": "Col - Limitations",
+              "width": "fill_container",
+              "fill": "$bg-card",
+              "cornerRadius": 8,
+              "stroke": "$border-subtle",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 16,
+              "padding": 24,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "u4B2f",
+                  "name": "Limits Header",
+                  "gap": 10,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "QsFED",
+                      "name": "Limits Icon",
+                      "width": 20,
+                      "height": 20,
+                      "icon": "info",
+                      "library": "lucide",
+                      "fill": "$status-warn"
+                    },
+                    {
+                      "type": "text",
+                      "id": "O2gh9v",
+                      "name": "Limits Title",
+                      "fill": "$text-primary",
+                      "content": "Límites del Sistema & Frescura de Datos",
+                      "fontFamily": "$font-main",
+                      "fontSize": 16,
+                      "fontWeight": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "ncoHR",
+                  "name": "Limit Item - • Fecha de Corte de Datos: 2026-09-01",
+                  "width": "fill_container",
+                  "fill": "$bg-main",
+                  "cornerRadius": 6,
+                  "stroke": "$border-subtle",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 4,
+                  "padding": [
+                    10,
+                    14
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "F740Xe",
+                      "name": "Item Title",
+                      "fill": "$status-warn",
+                      "content": "• Fecha de Corte de Datos: 2026-09-01",
+                      "fontFamily": "$font-main",
+                      "fontSize": 13,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "text",
+                      "id": "qpMLr",
+                      "name": "Item Desc",
+                      "fill": "$text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Los datos analizados corresponden exactamente al snapshot capturado el 2026-09-01. No se han incorporado eventos posteriores.",
+                      "fontFamily": "$font-main",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "wlzpN",
+                  "name": "Limit Item - • Insuficiencia de Serie Temporal (1 Semana)",
+                  "width": "fill_container",
+                  "fill": "$bg-main",
+                  "cornerRadius": 6,
+                  "stroke": "$border-subtle",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 4,
+                  "padding": [
+                    10,
+                    14
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "PbwiF",
+                      "name": "Item Title",
+                      "fill": "$status-warn",
+                      "content": "• Insuficiencia de Serie Temporal (1 Semana)",
+                      "fontFamily": "$font-main",
+                      "fontSize": 13,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "text",
+                      "id": "UA4iH",
+                      "name": "Item Desc",
+                      "fill": "$text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Disponibilidad de una única semana de muestra (2026-08-31 con 150 observaciones). No es técnicamente admisible modelar tendencia o estacionalidad con este horizonte.",
+                      "fontFamily": "$font-main",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "TT5fA",
+                  "name": "Limit Item - • Precios de Oferta Publicados",
+                  "width": "fill_container",
+                  "fill": "$bg-main",
+                  "cornerRadius": 6,
+                  "stroke": "$border-subtle",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 4,
+                  "padding": [
+                    10,
+                    14
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "jWSIQ",
+                      "name": "Item Title",
+                      "fill": "$status-warn",
+                      "content": "• Precios de Oferta Publicados",
+                      "fontFamily": "$font-main",
+                      "fontSize": 13,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "text",
+                      "id": "RgESz",
+                      "name": "Item Desc",
+                      "fill": "$text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "Los importes reflejan precios anunciados por vendedores en Idealista; las operaciones notariales reales suelen negociarse con descuentos adicionales.",
+                      "fontFamily": "$font-main",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "bQJ1o",
+                  "name": "Limit Item - • Muestra Acotada (28 Inmuebles Únicos)",
+                  "width": "fill_container",
+                  "fill": "$bg-main",
+                  "cornerRadius": 6,
+                  "stroke": "$border-subtle",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 4,
+                  "padding": [
+                    10,
+                    14
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "CBrtL",
+                      "name": "Item Title",
+                      "fill": "$status-warn",
+                      "content": "• Muestra Acotada (28 Inmuebles Únicos)",
+                      "fontFamily": "$font-main",
+                      "fontSize": 13,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "text",
+                      "id": "ANMxQ",
+                      "name": "Item Desc",
+                      "fill": "$text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "El análisis se circunscribe a los 28 registros verificados. Home-Ops es un ejercicio de ingeniería de datos y no constituye asesoramiento financiero.",
+                      "fontFamily": "$font-main",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "cX3mS",
+                  "name": "Limit Item - • Cero Datos Inventados o Sintéticos",
+                  "width": "fill_container",
+                  "fill": "$bg-main",
+                  "cornerRadius": 6,
+                  "stroke": "$border-subtle",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 4,
+                  "padding": [
+                    10,
+                    14
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "NnuFM",
+                      "name": "Item Title",
+                      "fill": "$status-warn",
+                      "content": "• Cero Datos Inventados o Sintéticos",
+                      "fontFamily": "$font-main",
+                      "fontSize": 13,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "text",
+                      "id": "D4BYP",
+                      "name": "Item Desc",
+                      "fill": "$text-secondary",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "No se publican versiones ficticias, runs inventados ni conteos de tests ficticios. Todos los números derivan estrictamente de la base de datos.",
+                      "fontFamily": "$font-main",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "YpDmE",
+          "name": "Section - GitHub CTA Banner",
+          "width": "fill_container",
+          "fill": "#131E2E",
+          "cornerRadius": 8,
+          "stroke": "$accent-cyan",
+          "strokeWidth": 1,
+          "padding": 24,
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "rEkH6",
+              "name": "Banner Text Column",
+              "layout": "vertical",
+              "gap": 6,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "JxvXE",
+                  "name": "Banner Pretitle",
+                  "fill": "$accent-cyan",
+                  "content": "REPOSITORIO PÚBLICO & AUDITABLE",
+                  "fontFamily": "$font-main",
+                  "fontSize": 11,
+                  "fontWeight": "bold"
+                },
+                {
+                  "type": "text",
+                  "id": "yHib4",
+                  "name": "Banner Title",
+                  "fill": "$text-primary",
+                  "content": "Accede al Código Fuente Completo y Pipeline de Ingestión en GitHub",
+                  "fontFamily": "$font-main",
+                  "fontSize": 18,
+                  "fontWeight": "bold"
+                },
+                {
+                  "type": "text",
+                  "id": "hM1gj",
+                  "name": "Banner Desc",
+                  "fill": "$text-secondary",
+                  "content": "Arquitectura de datos, scripts de normalización, scoring multicriterio 5D y esquemas de persistencia disponibles abiertamente.",
+                  "fontFamily": "$font-main",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "F4pGOh",
+              "name": "Banner GitHub Button",
+              "fill": "$accent-cyan",
+              "cornerRadius": 6,
+              "gap": 8,
+              "padding": [
+                12,
+                20
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "RLtRA",
+                  "name": "Btn Icon",
+                  "width": 18,
+                  "height": 18,
+                  "icon": "github",
+                  "library": "lucide",
+                  "fill": "#FFFFFF"
+                },
+                {
+                  "type": "text",
+                  "id": "d0YbP",
+                  "name": "Btn Text",
+                  "fill": "#FFFFFF",
+                  "content": "Explorar en GitHub",
+                  "fontFamily": "$font-main",
+                  "fontSize": 14,
+                  "fontWeight": "bold"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "t3JDtu",
+          "name": "Footer",
+          "width": "fill_container",
+          "stroke": "$border-subtle",
+          "strokeWidth": {
+            "top": 1
+          },
+          "padding": [
+            16,
+            0,
+            0,
+            0
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "QrY9t",
+              "name": "Footer Left",
+              "fill": "$text-muted",
+              "content": "Home-Ops | Consola de Auditoría Inmobiliaria y Análisis Cuantitativo",
+              "fontFamily": "$font-main",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "z7ac9",
+              "name": "Footer Right",
+              "fill": "$text-muted",
+              "content": "Últimos datos: 2026-09-01 | 28 Inmuebles Únicos | 170 Observaciones",
+              "fontFamily": "$font-main",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "zOP2A",
+      "name": "Component - KPI Card",
+      "reusable": true,
+      "width": 340,
+      "fill": "$bg-card",
+      "cornerRadius": 6,
+      "stroke": "$border-subtle",
+      "strokeWidth": 1,
+      "layout": "vertical",
+      "gap": 8,
+      "padding": 18,
+      "children": [
+        {
+          "type": "frame",
+          "id": "m5JYa",
+          "name": "KPI Header Row",
+          "width": "fill_container",
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "quvtu",
+              "name": "KPI Title",
+              "fill": "$text-muted",
+              "content": "TÍTULO MÉTRICA",
+              "fontFamily": "$font-main",
+              "fontSize": 11,
+              "fontWeight": "bold"
+            },
+            {
+              "type": "frame",
+              "id": "J0yoJ",
+              "name": "KPI Badge",
+              "fill": "$accent-cyan-bg",
+              "cornerRadius": 4,
+              "padding": [
+                2,
+                8
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "FFJke",
+                  "name": "KPI Badge Text",
+                  "fill": "$accent-cyan",
+                  "content": "ESTADO",
+                  "fontFamily": "$font-main",
+                  "fontSize": 10,
+                  "fontWeight": "bold"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "WFT5c",
+          "name": "KPI Value",
+          "fill": "$text-primary",
+          "content": "0",
+          "fontFamily": "$font-main",
+          "fontSize": 26,
+          "fontWeight": "bold"
+        },
+        {
+          "type": "text",
+          "id": "hLt3q",
+          "name": "KPI Subtext",
+          "fill": "$text-secondary",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "Detalle descriptivo de la métrica observada.",
+          "fontFamily": "$font-main",
+          "fontSize": 12,
+          "fontWeight": "normal"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "kV7Gs",
+      "name": "Home-Ops Mobile Dashboard (390)",
+      "clip": true,
+      "width": 390,
+      "fill": "$bg-main",
+      "layout": "vertical",
+      "gap": 20,
+      "padding": [
+        24,
+        16
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "XdL4W",
+          "name": "Mobile Navbar",
+          "width": "fill_container",
+          "stroke": "$border-subtle",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "layout": "vertical",
+          "gap": 12,
+          "padding": [
+            0,
+            0,
+            16,
+            0
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "u9WaGN",
+              "name": "Mobile Tag Row",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "ZM2x6",
+                  "name": "Mobile System Tag",
+                  "fill": "$accent-cyan-bg",
+                  "cornerRadius": 4,
+                  "padding": [
+                    4,
+                    8
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "JYBP3",
+                      "name": "Mobile Sys Text",
+                      "fill": "$accent-cyan",
+                      "content": "HOME-OPS | AUDITORÍA",
+                      "fontFamily": "$font-main",
+                      "fontSize": 10,
+                      "fontWeight": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "M6qQvR",
+                  "name": "Mobile Date Pill",
+                  "fill": "#1E293B",
+                  "cornerRadius": 4,
+                  "padding": [
+                    4,
+                    8
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "qWfOi",
+                      "name": "Mobile Date Text",
+                      "fill": "$text-secondary",
+                      "content": "Datos: 2026-09-01",
+                      "fontFamily": "$font-main",
+                      "fontSize": 10,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "h7tINK",
+              "name": "Mobile Title",
+              "fill": "$text-primary",
+              "content": "Pipeline Inmobiliario & Scoring",
+              "fontFamily": "$font-main",
+              "fontSize": 18,
+              "fontWeight": "bold"
+            },
+            {
+              "type": "text",
+              "id": "T4LZao",
+              "name": "Mobile Subtitle",
+              "fill": "$text-secondary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Ingestión, Observaciones y Scoring 5D sin datos inventados",
+              "fontFamily": "$font-main",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "Vr2oK",
+              "name": "Mobile GitHub Header Button",
+              "width": "fill_container",
+              "fill": "$accent-cyan",
+              "cornerRadius": 6,
+              "gap": 8,
+              "padding": [
+                8,
+                14
+              ],
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "iHfmB",
+                  "name": "M Git Icon",
+                  "width": 14,
+                  "height": 14,
+                  "icon": "github",
+                  "library": "lucide",
+                  "fill": "#FFFFFF"
+                },
+                {
+                  "type": "text",
+                  "id": "L2Y5d",
+                  "name": "M Git Text",
+                  "fill": "#FFFFFF",
+                  "content": "Ver Código en GitHub",
+                  "fontFamily": "$font-main",
+                  "fontSize": 12,
+                  "fontWeight": "bold"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "wIF5w",
+          "name": "Mobile Hero Card",
+          "width": "fill_container",
+          "fill": "$bg-card",
+          "cornerRadius": 8,
+          "stroke": "$border-subtle",
+          "strokeWidth": 1,
+          "layout": "vertical",
+          "gap": 12,
+          "padding": 16,
+          "children": [
+            {
+              "type": "text",
+              "id": "DRCT5",
+              "name": "M Hero Pretitle",
+              "fill": "$accent-cyan",
+              "content": "FLUJO OPERACIONAL END-TO-END",
+              "fontFamily": "$font-main",
+              "fontSize": 11,
+              "fontWeight": "bold"
+            },
+            {
+              "type": "text",
+              "id": "SM4NY",
+              "name": "M Hero Title",
+              "fill": "$text-primary",
+              "content": "Scrape → Dedup → Scoring 5D → HITL",
+              "fontFamily": "$font-main",
+              "fontSize": 16,
+              "fontWeight": "bold"
+            },
+            {
+              "type": "text",
+              "id": "Ac6ek",
+              "name": "M Hero Desc",
+              "fill": "$text-secondary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Ingestión en Idealista, seguimiento temporal de 170 observaciones sobre 28 inmuebles únicos, scoring en 5 dimensiones y supervisión humana (HITL).",
+              "fontFamily": "$font-main",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "X8z35H",
+              "name": "M Stages Col",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "uhsAU",
+                  "name": "M Stage - 01. SCRAPE",
+                  "width": "fill_container",
+                  "fill": "$bg-main",
+                  "cornerRadius": 4,
+                  "stroke": "$border-subtle",
+                  "strokeWidth": 1,
+                  "padding": [
+                    8,
+                    10
+                  ],
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "j0vAcn",
+                      "name": "L",
+                      "gap": 6,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "IZXTS",
+                          "name": "Step",
+                          "fill": "$text-muted",
+                          "content": "01. SCRAPE",
+                          "fontFamily": "$font-main",
+                          "fontSize": 10,
+                          "fontWeight": "bold"
+                        },
+                        {
+                          "type": "text",
+                          "id": "rZhO8",
+                          "name": "Title",
+                          "fill": "$text-primary",
+                          "content": "Scrape Idealista",
+                          "fontFamily": "$font-main",
+                          "fontSize": 11,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "cVyFD",
+                      "name": "Detail",
+                      "fill": "$accent-cyan",
+                      "content": "170 observaciones de precio",
+                      "fontFamily": "$font-main",
+                      "fontSize": 10,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "B0ERge",
+                  "name": "M Stage - 02. DEDUP",
+                  "width": "fill_container",
+                  "fill": "$bg-main",
+                  "cornerRadius": 4,
+                  "stroke": "$border-subtle",
+                  "strokeWidth": 1,
+                  "padding": [
+                    8,
+                    10
+                  ],
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "bxZYk",
+                      "name": "L",
+                      "gap": 6,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "J4fFlI",
+                          "name": "Step",
+                          "fill": "$text-muted",
+                          "content": "02. DEDUP",
+                          "fontFamily": "$font-main",
+                          "fontSize": 10,
+                          "fontWeight": "bold"
+                        },
+                        {
+                          "type": "text",
+                          "id": "b9d91Z",
+                          "name": "Title",
+                          "fill": "$text-primary",
+                          "content": "Tracking & Dedup",
+                          "fontFamily": "$font-main",
+                          "fontSize": 11,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "JADp4",
+                      "name": "Detail",
+                      "fill": "$accent-cyan",
+                      "content": "28 únicos | 142 repetidas",
+                      "fontFamily": "$font-main",
+                      "fontSize": 10,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "sYByc",
+                  "name": "M Stage - 03. SCORING",
+                  "width": "fill_container",
+                  "fill": "$bg-main",
+                  "cornerRadius": 4,
+                  "stroke": "$border-subtle",
+                  "strokeWidth": 1,
+                  "padding": [
+                    8,
+                    10
+                  ],
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "mhmVJ",
+                      "name": "L",
+                      "gap": 6,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "AbWPw",
+                          "name": "Step",
+                          "fill": "$text-muted",
+                          "content": "03. SCORING",
+                          "fontFamily": "$font-main",
+                          "fontSize": 10,
+                          "fontWeight": "bold"
+                        },
+                        {
+                          "type": "text",
+                          "id": "YGhvO",
+                          "name": "Title",
+                          "fill": "$text-primary",
+                          "content": "Scoring 5D",
+                          "fontFamily": "$font-main",
+                          "fontSize": 11,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "r842w9",
+                      "name": "Detail",
+                      "fill": "$accent-cyan",
+                      "content": "14 inmuebles con Score ≥ 70",
+                      "fontFamily": "$font-main",
+                      "fontSize": 10,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "Ta56g",
+                  "name": "M Stage - 04. HITL",
+                  "width": "fill_container",
+                  "fill": "$bg-main",
+                  "cornerRadius": 4,
+                  "stroke": "$border-subtle",
+                  "strokeWidth": 1,
+                  "padding": [
+                    8,
+                    10
+                  ],
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "R8beTe",
+                      "name": "L",
+                      "gap": 6,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "yEtR8",
+                          "name": "Step",
+                          "fill": "$text-muted",
+                          "content": "04. HITL",
+                          "fontFamily": "$font-main",
+                          "fontSize": 10,
+                          "fontWeight": "bold"
+                        },
+                        {
+                          "type": "text",
+                          "id": "p1AZD",
+                          "name": "Title",
+                          "fill": "$text-primary",
+                          "content": "Auditoría Humana",
+                          "fontFamily": "$font-main",
+                          "fontSize": 11,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "nJN1N",
+                      "name": "Detail",
+                      "fill": "$accent-cyan",
+                      "content": "Validación documental física",
+                      "fontFamily": "$font-main",
+                      "fontSize": 10,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "GQxXm",
+          "name": "Mobile Section - KPIs",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 10,
+          "children": [
+            {
+              "type": "text",
+              "id": "Q93D5",
+              "name": "M KPI Title",
+              "fill": "$text-primary",
+              "content": "Evidencia Cuantitativa (Hechos en DB)",
+              "fontFamily": "$font-main",
+              "fontSize": 15,
+              "fontWeight": "bold"
+            },
+            {
+              "type": "frame",
+              "id": "s06UJ",
+              "name": "M Card - ANUNCIOS ÚNICOS",
+              "width": "fill_container",
+              "fill": "$bg-card",
+              "cornerRadius": 6,
+              "stroke": "$border-subtle",
+              "strokeWidth": 1,
+              "padding": [
+                12,
+                14
+              ],
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "W1XgEW",
+                  "name": "Left",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "u0eXLl",
+                      "name": "K Title",
+                      "fill": "$text-muted",
+                      "content": "ANUNCIOS ÚNICOS",
+                      "fontFamily": "$font-main",
+                      "fontSize": 10,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "text",
+                      "id": "pwL9N",
+                      "name": "K Desc",
+                      "fill": "$text-secondary",
+                      "content": "Listings únicos indexados",
+                      "fontFamily": "$font-main",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "e0U8K",
+                  "name": "Right",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "alignItems": "end",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "PRSjf",
+                      "name": "K Val",
+                      "fill": "$text-primary",
+                      "content": "28",
+                      "fontFamily": "$font-main",
+                      "fontSize": 18,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "K9IOmy",
+                      "name": "K Badge",
+                      "fill": "$accent-cyan-bg",
+                      "cornerRadius": 3,
+                      "padding": [
+                        2,
+                        6
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "kkxaP",
+                          "name": "K Badge Text",
+                          "fill": "$accent-cyan",
+                          "content": "28 Scored",
+                          "fontFamily": "$font-main",
+                          "fontSize": 9,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "RkSaq",
+              "name": "M Card - OBSERVACIONES DE PRECIO",
+              "width": "fill_container",
+              "fill": "$bg-card",
+              "cornerRadius": 6,
+              "stroke": "$border-subtle",
+              "strokeWidth": 1,
+              "padding": [
+                12,
+                14
+              ],
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "Z9vt2",
+                  "name": "Left",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "QSZcp",
+                      "name": "K Title",
+                      "fill": "$text-muted",
+                      "content": "OBSERVACIONES DE PRECIO",
+                      "fontFamily": "$font-main",
+                      "fontSize": 10,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "text",
+                      "id": "GHxkb",
+                      "name": "K Desc",
+                      "fill": "$text-secondary",
+                      "content": "Capturas brutas registradas",
+                      "fontFamily": "$font-main",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "Hcn2K",
+                  "name": "Right",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "alignItems": "end",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "P9jXK",
+                      "name": "K Val",
+                      "fill": "$text-primary",
+                      "content": "170",
+                      "fontFamily": "$font-main",
+                      "fontSize": 18,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "jaF8b",
+                      "name": "K Badge",
+                      "fill": "$accent-cyan-bg",
+                      "cornerRadius": 3,
+                      "padding": [
+                        2,
+                        6
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "jl4U3",
+                          "name": "K Badge Text",
+                          "fill": "$accent-cyan",
+                          "content": "Ingesta Total",
+                          "fontFamily": "$font-main",
+                          "fontSize": 9,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "WDqde",
+              "name": "M Card - OBSERVACIONES REPETIDAS",
+              "width": "fill_container",
+              "fill": "$bg-card",
+              "cornerRadius": 6,
+              "stroke": "$border-subtle",
+              "strokeWidth": 1,
+              "padding": [
+                12,
+                14
+              ],
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "fG9uO",
+                  "name": "Left",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "Pw6kS",
+                      "name": "K Title",
+                      "fill": "$text-muted",
+                      "content": "OBSERVACIONES REPETIDAS",
+                      "fontFamily": "$font-main",
+                      "fontSize": 10,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "text",
+                      "id": "K5gOjW",
+                      "name": "K Desc",
+                      "fill": "$text-secondary",
+                      "content": "Repetidas tras primer avistamiento",
+                      "fontFamily": "$font-main",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "rDO5X",
+                  "name": "Right",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "alignItems": "end",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "BPKM8",
+                      "name": "K Val",
+                      "fill": "$text-primary",
+                      "content": "142",
+                      "fontFamily": "$font-main",
+                      "fontSize": 18,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "j6hu1",
+                      "name": "K Badge",
+                      "fill": "$accent-cyan-bg",
+                      "cornerRadius": 3,
+                      "padding": [
+                        2,
+                        6
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "S4z3y",
+                          "name": "K Badge Text",
+                          "fill": "$accent-cyan",
+                          "content": "Seguimiento",
+                          "fontFamily": "$font-main",
+                          "fontSize": 9,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "HIcmA",
+              "name": "M Card - MEDIANA PRECIO ACTUAL",
+              "width": "fill_container",
+              "fill": "$bg-card",
+              "cornerRadius": 6,
+              "stroke": "$border-subtle",
+              "strokeWidth": 1,
+              "padding": [
+                12,
+                14
+              ],
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "LcB0L",
+                  "name": "Left",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "p7hdSX",
+                      "name": "K Title",
+                      "fill": "$text-muted",
+                      "content": "MEDIANA PRECIO ACTUAL",
+                      "fontFamily": "$font-main",
+                      "fontSize": 10,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "text",
+                      "id": "Uw6nm",
+                      "name": "K Desc",
+                      "fill": "$text-secondary",
+                      "content": "Mediana global en listings activos",
+                      "fontFamily": "$font-main",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "wJKsa",
+                  "name": "Right",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "alignItems": "end",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "XmyO7",
+                      "name": "K Val",
+                      "fill": "$text-primary",
+                      "content": "3.618 €/m²",
+                      "fontFamily": "$font-main",
+                      "fontSize": 18,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "STNJV",
+                      "name": "K Badge",
+                      "fill": "$accent-cyan-bg",
+                      "cornerRadius": 3,
+                      "padding": [
+                        2,
+                        6
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "Hbe13",
+                          "name": "K Badge Text",
+                          "fill": "$accent-cyan",
+                          "content": "Benchmark",
+                          "fontFamily": "$font-main",
+                          "fontSize": 9,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "K2zRJ",
+              "name": "M Card - OPORTUNIDADES DESTACADAS",
+              "width": "fill_container",
+              "fill": "$bg-card",
+              "cornerRadius": 6,
+              "stroke": "$border-subtle",
+              "strokeWidth": 1,
+              "padding": [
+                12,
+                14
+              ],
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "xebBG",
+                  "name": "Left",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "XM4UN",
+                      "name": "K Title",
+                      "fill": "$text-muted",
+                      "content": "OPORTUNIDADES DESTACADAS",
+                      "fontFamily": "$font-main",
+                      "fontSize": 10,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "text",
+                      "id": "a5hsW",
+                      "name": "K Desc",
+                      "fill": "$text-secondary",
+                      "content": "14 de 28 con score alto",
+                      "fontFamily": "$font-main",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "r60OOF",
+                  "name": "Right",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "alignItems": "end",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "HVmq5",
+                      "name": "K Val",
+                      "fill": "$text-primary",
+                      "content": "14",
+                      "fontFamily": "$font-main",
+                      "fontSize": 18,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "T4vg1",
+                      "name": "K Badge",
+                      "fill": "$accent-cyan-bg",
+                      "cornerRadius": 3,
+                      "padding": [
+                        2,
+                        6
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "O0ZAK6",
+                          "name": "K Badge Text",
+                          "fill": "$accent-cyan",
+                          "content": "Score ≥ 70",
+                          "fontFamily": "$font-main",
+                          "fontSize": 9,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "b0eWdW",
+              "name": "M Card - PENALIZACIÓN RIESGO BASE",
+              "width": "fill_container",
+              "fill": "$bg-card",
+              "cornerRadius": 6,
+              "stroke": "$border-subtle",
+              "strokeWidth": 1,
+              "padding": [
+                12,
+                14
+              ],
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "mSyOa",
+                  "name": "Left",
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "gNSC4",
+                      "name": "K Title",
+                      "fill": "$text-muted",
+                      "content": "PENALIZACIÓN RIESGO BASE",
+                      "fontFamily": "$font-main",
+                      "fontSize": 10,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "text",
+                      "id": "G75Htw",
+                      "name": "K Desc",
+                      "fill": "$text-secondary",
+                      "content": "Metodología aplicada (0 fraudes)",
+                      "fontFamily": "$font-main",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "zQJcE",
+                  "name": "Right",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "alignItems": "end",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "VX1bS",
+                      "name": "K Val",
+                      "fill": "$text-primary",
+                      "content": "28",
+                      "fontFamily": "$font-main",
+                      "fontSize": 18,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Olalc",
+                      "name": "K Badge",
+                      "fill": "$accent-cyan-bg",
+                      "cornerRadius": 3,
+                      "padding": [
+                        2,
+                        6
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "OBvyr",
+                          "name": "K Badge Text",
+                          "fill": "$accent-cyan",
+                          "content": "Score 10",
+                          "fontFamily": "$font-main",
+                          "fontSize": 9,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "J5rav",
+          "name": "Mobile Section - Weekly Evidence",
+          "width": "fill_container",
+          "fill": "$bg-card",
+          "cornerRadius": 8,
+          "stroke": "$border-subtle",
+          "strokeWidth": 1,
+          "layout": "vertical",
+          "gap": 12,
+          "padding": 16,
+          "children": [
+            {
+              "type": "text",
+              "id": "l6Tgdr",
+              "name": "M Weekly Title",
+              "fill": "$text-primary",
+              "content": "Evidencia Semanal (Semana 2026-08-31)",
+              "fontFamily": "$font-main",
+              "fontSize": 15,
+              "fontWeight": "bold"
+            },
+            {
+              "type": "frame",
+              "id": "w1r6Xh",
+              "name": "M Weekly Stats Card",
+              "width": "fill_container",
+              "fill": "$bg-main",
+              "cornerRadius": 6,
+              "stroke": "$border-bright",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 10,
+              "padding": 14,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "Zoq03",
+                  "name": "Top",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "niV9p",
+                      "name": "Week",
+                      "fill": "$text-primary",
+                      "content": "2026-08-31",
+                      "fontFamily": "$font-main",
+                      "fontSize": 12,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "W5OU3",
+                      "name": "N Pill",
+                      "fill": "$accent-cyan-bg",
+                      "cornerRadius": 3,
+                      "padding": [
+                        2,
+                        6
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "xxfVG",
+                          "name": "N Text",
+                          "fill": "$accent-cyan",
+                          "content": "150 obs. válidas",
+                          "fontFamily": "$font-main",
+                          "fontSize": 10,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "mjdHY",
+                  "name": "Metrics Row",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "QZZBJ",
+                      "name": "Med Col",
+                      "layout": "vertical",
+                      "gap": 2,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "gRsbM",
+                          "name": "L",
+                          "fill": "$text-muted",
+                          "content": "MEDIANA",
+                          "fontFamily": "$font-main",
+                          "fontSize": 10,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "UcKdp",
+                          "name": "V",
+                          "fill": "$text-primary",
+                          "content": "3.702 €/m²",
+                          "fontFamily": "$font-main",
+                          "fontSize": 16,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "wFdTL",
+                      "name": "Mean Col",
+                      "layout": "vertical",
+                      "gap": 2,
+                      "alignItems": "end",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "A5bc2C",
+                          "name": "L",
+                          "fill": "$text-muted",
+                          "content": "MEDIA",
+                          "fontFamily": "$font-main",
+                          "fontSize": 10,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "U3S35B",
+                          "name": "V",
+                          "fill": "$accent-cyan",
+                          "content": "3.865 €/m²",
+                          "fontFamily": "$font-main",
+                          "fontSize": 16,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "J5LiI7",
+                  "name": "Bar Track",
+                  "width": "fill_container",
+                  "height": 22,
+                  "fill": "$bg-card",
+                  "cornerRadius": 4,
+                  "padding": [
+                    0,
+                    6
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "RKc2d",
+                      "name": "Bar Fill",
+                      "width": 180,
+                      "height": 14,
+                      "fill": "$accent-cyan",
+                      "cornerRadius": 3,
+                      "padding": [
+                        0,
+                        6
+                      ],
+                      "justifyContent": "end",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "weZwW",
+                          "name": "Bar Val",
+                          "fill": "#0B0F17",
+                          "content": "3.702 €/m²",
+                          "fontFamily": "$font-main",
+                          "fontSize": 9,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "EdQwl",
+              "name": "M Notice Banner",
+              "width": "fill_container",
+              "fill": "#181D27",
+              "cornerRadius": 6,
+              "stroke": "$status-warn",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 6,
+              "padding": 12,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "x72AX1",
+                  "name": "H",
+                  "gap": 6,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "WX1uD",
+                      "name": "Icon",
+                      "width": 14,
+                      "height": 14,
+                      "icon": "triangle-alert",
+                      "library": "lucide",
+                      "fill": "$status-warn"
+                    },
+                    {
+                      "type": "text",
+                      "id": "VAZf8",
+                      "name": "T",
+                      "fill": "$status-warn",
+                      "content": "UNA SEMANA DISPONIBLE",
+                      "fontFamily": "$font-main",
+                      "fontSize": 11,
+                      "fontWeight": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "LncIQ",
+                  "name": "Msg",
+                  "fill": "$text-secondary",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Una semana registrada es insuficiente para proyectar tendencia temporal o estacionalidad. Se rechazan gráficos inventados.",
+                  "fontFamily": "$font-main",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "Bwi3P",
+          "name": "Mobile Section - Ranked Opportunities",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 12,
+          "children": [
+            {
+              "type": "text",
+              "id": "BoMww",
+              "name": "M Opp Title",
+              "fill": "$text-primary",
+              "content": "Oportunidades Destacadas (Score ≥ 70)",
+              "fontFamily": "$font-main",
+              "fontSize": 15,
+              "fontWeight": "bold"
+            },
+            {
+              "type": "text",
+              "id": "OZSVp",
+              "name": "M Opp Sub",
+              "fill": "$text-secondary",
+              "content": "14 inmuebles con Score ≥ 70 de 28 evaluados",
+              "fontFamily": "$font-main",
+              "fontSize": 11,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "CJzAZ",
+              "name": "Mobile Top Opportunity Card",
+              "width": "fill_container",
+              "fill": "#141E2C",
+              "cornerRadius": 8,
+              "stroke": "$accent-cyan",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 10,
+              "padding": 16,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "OT7YU",
+                  "name": "Card Head",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "mf9MZ",
+                      "name": "Badge",
+                      "fill": "$accent-cyan-bg",
+                      "cornerRadius": 4,
+                      "padding": [
+                        3,
+                        8
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "BYDp4",
+                          "name": "Badge Text",
+                          "fill": "$accent-cyan",
+                          "content": "TOP #1 VERIFICADO",
+                          "fontFamily": "$font-main",
+                          "fontSize": 10,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Sznce",
+                      "name": "HITL Badge",
+                      "fill": "$status-good-bg",
+                      "cornerRadius": 4,
+                      "padding": [
+                        3,
+                        8
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "SIgDz",
+                          "name": "HITL Text",
+                          "fill": "$status-good",
+                          "content": "Verificado HITL",
+                          "fontFamily": "$font-main",
+                          "fontSize": 10,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "UM8Qa",
+                  "name": "Inmueble Name",
+                  "fill": "$text-primary",
+                  "content": "Dúplex Plaza de Toros, El Puerto",
+                  "fontFamily": "$font-main",
+                  "fontSize": 15,
+                  "fontWeight": "bold"
+                },
+                {
+                  "type": "frame",
+                  "id": "c7J4w",
+                  "name": "Metrics Grid",
+                  "width": "fill_container",
+                  "fill": "$bg-main",
+                  "cornerRadius": 6,
+                  "layout": "vertical",
+                  "gap": 6,
+                  "padding": 10,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "WEQar",
+                      "name": "R1",
+                      "width": "fill_container",
+                      "justifyContent": "space_between",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "oww4l",
+                          "name": "P Label",
+                          "fill": "$text-muted",
+                          "content": "Precio & Sup:",
+                          "fontFamily": "$font-main",
+                          "fontSize": 11,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "n2Dx2N",
+                          "name": "P Val",
+                          "fill": "$text-primary",
+                          "content": "230.000 € | 130 m²",
+                          "fontFamily": "$font-main",
+                          "fontSize": 12,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Llrp3",
+                      "name": "R2",
+                      "width": "fill_container",
+                      "justifyContent": "space_between",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "xJOms",
+                          "name": "E Label",
+                          "fill": "$text-muted",
+                          "content": "Precio / m²:",
+                          "fontFamily": "$font-main",
+                          "fontSize": 11,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "vzxFH",
+                          "name": "E Val",
+                          "fill": "$status-good",
+                          "content": "1.769 €/m² (-51% zonal)",
+                          "fontFamily": "$font-main",
+                          "fontSize": 12,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "bkGfM",
+                      "name": "R3",
+                      "width": "fill_container",
+                      "justifyContent": "space_between",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "BSBed",
+                          "name": "S Label",
+                          "fill": "$text-muted",
+                          "content": "Score 5D & Riesgo:",
+                          "fontFamily": "$font-main",
+                          "fontSize": 11,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "N3isZJ",
+                          "name": "S Val",
+                          "fill": "$accent-cyan",
+                          "content": "87/100 | Penalización 10",
+                          "fontFamily": "$font-main",
+                          "fontSize": 12,
+                          "fontWeight": "bold"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "XUcwF",
+                      "name": "R4",
+                      "width": "fill_container",
+                      "justifyContent": "space_between",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "UtxxL",
+                          "name": "Port Label",
+                          "fill": "$text-muted",
+                          "content": "Portal:",
+                          "fontFamily": "$font-main",
+                          "fontSize": 11,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "V7l5G",
+                          "name": "Port Val",
+                          "fill": "$text-secondary",
+                          "content": "Idealista",
+                          "fontFamily": "$font-main",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "eiJqo",
+              "name": "Mobile Second Opportunity Card",
+              "width": "fill_container",
+              "fill": "$bg-card",
+              "cornerRadius": 6,
+              "stroke": "$border-subtle",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 8,
+              "padding": 14,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "tmGrh",
+                  "name": "Name",
+                  "fill": "$text-primary",
+                  "content": "Piso en Casco Historico - Ribera del Marisco, El Puerto de Santa Maria",
+                  "fontFamily": "$font-main",
+                  "fontSize": 13,
+                  "fontWeight": "bold"
+                },
+                {
+                  "type": "text",
+                  "id": "HX7ue",
+                  "name": "Details",
+                  "fill": "$text-secondary",
+                  "content": "260.000 € • 110 m² • 2.364 €/m² • Score 74 • Riesgo 10 • Idealista",
+                  "fontFamily": "$font-main",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "m9nES0",
+          "name": "Mobile Section - Method & Limits",
+          "width": "fill_container",
+          "fill": "$bg-card",
+          "cornerRadius": 8,
+          "stroke": "$border-subtle",
+          "strokeWidth": 1,
+          "layout": "vertical",
+          "gap": 12,
+          "padding": 16,
+          "children": [
+            {
+              "type": "text",
+              "id": "l1CkH",
+              "name": "Title",
+              "fill": "$text-primary",
+              "content": "Metodología & Límites del Sistema",
+              "fontFamily": "$font-main",
+              "fontSize": 14,
+              "fontWeight": "bold"
+            },
+            {
+              "type": "text",
+              "id": "GI5ct",
+              "name": "Point",
+              "fill": "$text-secondary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "• Ingestión: Scraping automatizado en Idealista con preservación de timestamp.",
+              "fontFamily": "$font-main",
+              "fontSize": 11,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "UlcDT",
+              "name": "Point",
+              "fill": "$text-secondary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "• Tracking: 170 observaciones; 142 repetidas en seguimiento (no duplicados difusos).",
+              "fontFamily": "$font-main",
+              "fontSize": 11,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "XIRGd",
+              "name": "Point",
+              "fill": "$text-secondary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "• Scoring 5D: Ponderación de precio, liquidez, superficie, tipología y riesgo.",
+              "fontFamily": "$font-main",
+              "fontSize": 11,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "tlanp",
+              "name": "Point",
+              "fill": "$text-secondary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "• Riesgo: Penalización metodológica base (10 puntos) aplicada a los 28 inmuebles.",
+              "fontFamily": "$font-main",
+              "fontSize": 11,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "Jr4vU",
+              "name": "Point",
+              "fill": "$text-secondary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "• HITL: Verificación manual previa sobre los 14 inmuebles con score ≥ 70.",
+              "fontFamily": "$font-main",
+              "fontSize": 11,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "vuX5h",
+              "name": "Point",
+              "fill": "$text-secondary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "• Corte: Últimos datos al 2026-09-01.",
+              "fontFamily": "$font-main",
+              "fontSize": 11,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "n8J91",
+              "name": "Point",
+              "fill": "$text-secondary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "• Serie: Únicamente 1 semana registrada; datos insuficientes para tendencia.",
+              "fontFamily": "$font-main",
+              "fontSize": 11,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "KF4UK",
+              "name": "Point",
+              "fill": "$text-secondary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "• Precios de oferta de portal, no precios finales de cierre notarial.",
+              "fontFamily": "$font-main",
+              "fontSize": 11,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "UOR3y",
+          "name": "Mobile GitHub Banner",
+          "width": "fill_container",
+          "fill": "#131E2E",
+          "cornerRadius": 8,
+          "stroke": "$accent-cyan",
+          "strokeWidth": 1,
+          "layout": "vertical",
+          "gap": 10,
+          "padding": 16,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "vohQz",
+              "name": "M CTA Title",
+              "fill": "$text-primary",
+              "content": "Código y Datos Abiertos en GitHub",
+              "fontFamily": "$font-main",
+              "fontSize": 13,
+              "fontWeight": "bold"
+            },
+            {
+              "type": "frame",
+              "id": "q0Jiwz",
+              "name": "Btn",
+              "fill": "$accent-cyan",
+              "cornerRadius": 6,
+              "gap": 6,
+              "padding": [
+                10,
+                16
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "w3QSX",
+                  "name": "Icon",
+                  "width": 14,
+                  "height": 14,
+                  "icon": "github",
+                  "library": "lucide",
+                  "fill": "#FFFFFF"
+                },
+                {
+                  "type": "text",
+                  "id": "HP294",
+                  "name": "Text",
+                  "fill": "#FFFFFF",
+                  "content": "github.com/AlejandroRS21/home-ops",
+                  "fontFamily": "$font-main",
+                  "fontSize": 12,
+                  "fontWeight": "bold"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "Cb1gT",
+          "name": "Mobile Footer",
+          "width": "fill_container",
+          "stroke": "$border-subtle",
+          "strokeWidth": {
+            "top": 1
+          },
+          "layout": "vertical",
+          "gap": 4,
+          "padding": [
+            12,
+            0,
+            0,
+            0
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "KW9he",
+              "name": "Foot Left",
+              "fill": "$text-muted",
+              "content": "Home-Ops | Auditoría Pública Inmobiliaria",
+              "fontFamily": "$font-main",
+              "fontSize": 10,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "aRX0C",
+              "name": "Foot Right",
+              "fill": "$text-muted",
+              "content": "2026-09-01 • 28 Inmuebles • 170 Observaciones",
+              "fontFamily": "$font-main",
+              "fontSize": 10,
+              "fontWeight": "normal"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "themes": {
+    "mode": [
+      "light",
+      "dark"
+    ]
+  },
+  "variables": {
+    "background": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#FAF9F4",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#1C1B18",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "foreground": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#33394A",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#F1EEE7",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "card": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#FEFEFB",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#262420",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "primary": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#3E6DA3",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#7FA8D4",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "primary-foreground": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#FEFEFB",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#16212C",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "secondary": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#E9EEF3",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#322F29",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "secondary-foreground": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#3C4557",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#D9D4C9",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "muted": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#EBEFF3",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#2B2822",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "muted-foreground": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#656F82",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#A19C90",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "accent": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#DCEDE4",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#1F3A31",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "accent-foreground": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#1F5647",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#8FD9BE",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "border": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#DCE1E8",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#3D392F",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "success": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#3E927A",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#6BC2A4",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "success-surface": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#E4F1EC",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#1E332B",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "warning": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#B5822E",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#E0B36A",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "warning-surface": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#F5EDDD",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#362D1C",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "error": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#B4483E",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#E4948A",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "error-surface": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#F6E7E5",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#3A231F",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "info": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#3E6DA3",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#7FA8D4",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "info-surface": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#E7EEF6",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#1E2933",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "font-sans": {
+      "type": "string",
+      "value": "Geist"
+    },
+    "space-compact": {
+      "type": "number",
+      "value": 8
+    },
+    "space-normal": {
+      "type": "number",
+      "value": 16
+    },
+    "space-generous": {
+      "type": "number",
+      "value": 32
+    },
+    "space-breathing": {
+      "type": "number",
+      "value": 48
+    },
+    "content-width": {
+      "type": "number",
+      "value": 720
+    },
+    "focus-warm": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#E8905A",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#F0A878",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "focus-warm-foreground": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#FEFEFB",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#2B1608",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "focus-warm-surface": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#FBEAE0",
+          "theme": {
+            "mode": "light"
+          }
+        },
+        {
+          "value": "#3D2C1E",
+          "theme": {
+            "mode": "dark"
+          }
+        }
+      ]
+    },
+    "bg-main": {
+      "type": "color",
+      "value": "#0B0F17"
+    },
+    "bg-card": {
+      "type": "color",
+      "value": "#151B26"
+    },
+    "bg-card-hover": {
+      "type": "color",
+      "value": "#1C2433"
+    },
+    "border-subtle": {
+      "type": "color",
+      "value": "#212B3B"
+    },
+    "border-bright": {
+      "type": "color",
+      "value": "#334155"
+    },
+    "text-primary": {
+      "type": "color",
+      "value": "#F8FAFC"
+    },
+    "text-secondary": {
+      "type": "color",
+      "value": "#94A3B8"
+    },
+    "text-muted": {
+      "type": "color",
+      "value": "#64748B"
+    },
+    "accent-cyan": {
+      "type": "color",
+      "value": "#0EA5E9"
+    },
+    "accent-cyan-bg": {
+      "type": "color",
+      "value": "#0C4A6E"
+    },
+    "status-good": {
+      "type": "color",
+      "value": "#10B981"
+    },
+    "status-good-bg": {
+      "type": "color",
+      "value": "#064E3B"
+    },
+    "status-warn": {
+      "type": "color",
+      "value": "#F59E0B"
+    },
+    "status-warn-bg": {
+      "type": "color",
+      "value": "#78350F"
+    },
+    "status-danger": {
+      "type": "color",
+      "value": "#EF4444"
+    },
+    "status-danger-bg": {
+      "type": "color",
+      "value": "#7F1D1D"
+    },
+    "status-info": {
+      "type": "color",
+      "value": "#3B82F6"
+    },
+    "status-info-bg": {
+      "type": "color",
+      "value": "#1E3A8A"
+    },
+    "font-main": {
+      "type": "string",
+      "value": "Inter"
+    }
+  },
+  "fileToken": "6de181fb-e849-4551-815c-6c7bdc8be8c3"
+}
