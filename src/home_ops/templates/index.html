@@ -77,7 +77,7 @@
   <!-- HEADER -->
   <div class="topbar">
     <span class="brand">HOME-OPS | PANEL PÚBLICO</span>
-    <span class="ver">Últimos datos: 2026-09-01</span>
+    <span class="ver">Últimos datos: {{ cutoff }}</span>
   </div>
   <h1>Pipeline Inmobiliario &amp; Scoring de Oportunidades</h1>
   <p class="subtitle">Auditoría de Ingestión, Observaciones Temporales y Scoring 5D</p>
@@ -87,31 +87,31 @@
   <div class="section-title">Arquitectura de Ingeniería de Datos</div>
   <p style="color:var(--muted);font-size:.85rem;margin-bottom:1rem;">Pipeline Operacional: Scrape → Dedup → Scoring 5D → HITL</p>
   <div class="pipeline">
-    <div class="step"><div class="num">01</div><h3>Ingesta</h3><p>Extracción automatizada de publicaciones activas con captura de precio, superficie y atributos técnicos.</p><div class="stat">170 observaciones brutas</div></div>
-    <div class="step"><div class="num">02</div><h3>Normalización</h3><p>Agrupación temporal en 28 listings únicos, rastreando 142 observaciones repetidas sin descartar su serie histórica.</p><div class="stat">28 únicos | 142 repetidas</div></div>
-    <div class="step"><div class="num">03</div><h3>Evaluación</h3><p>Modelo cuantitativo de 5 dimensiones: descuento vs. mediana, liquidez, superficie, tipología y penalización de riesgo.</p><div class="stat">14 con Score ≥ 70</div></div>
+    <div class="step"><div class="num">01</div><h3>Ingesta</h3><p>Extracción automatizada de publicaciones activas con captura de precio, superficie y atributos técnicos.</p><div class="stat">{{ n_obs_total }} observaciones brutas</div></div>
+    <div class="step"><div class="num">02</div><h3>Normalización</h3><p>Agrupación temporal en {{ n_unique }} listings únicos, rastreando {{ n_repeated }} observaciones repetidas sin descartar su serie histórica.</p><div class="stat">{{ n_unique }} únicos | {{ n_repeated }} repetidas</div></div>
+    <div class="step"><div class="num">03</div><h3>Evaluación</h3><p>Modelo cuantitativo de 5 dimensiones: descuento vs. mediana, liquidez, superficie, tipología y penalización de riesgo.</p><div class="stat">{{ n_scored }} con Score ≥ 70</div></div>
     <div class="step"><div class="num">04</div><h3>Gobernanza</h3><p>Auditoría manual de notas registrales, titularidad y estado real antes de calificar una oportunidad como apta.</p><div class="stat">Validación documental</div></div>
   </div>
 
   <!-- KPIS -->
   <div class="section-title">Evidencia Cuantitativa Registrada (Hechos en DB)</div>
   <div class="kpis">
-    <div class="kpi"><div class="lbl">Anuncios Únicos</div><div class="num">{{ kpis.unique }}</div><div class="desc">Listings únicos indexados</div><div class="badge">28 Scored</div></div>
+    <div class="kpi"><div class="lbl">Anuncios Únicos</div><div class="num">{{ kpis.unique }}</div><div class="desc">Listings únicos indexados</div><div class="badge">{{ n_unique }} Scored</div></div>
     <div class="kpi"><div class="lbl">Observaciones de Precio</div><div class="num">{{ kpis.obs }}</div><div class="desc">Capturas brutas registradas</div><div class="badge">Ingesta Total</div></div>
     <div class="kpi"><div class="lbl">Observaciones Repetidas</div><div class="num">{{ kpis.repeated }}</div><div class="desc">Repetidas tras primer avistamiento</div><div class="badge">Seguimiento</div></div>
     <div class="kpi"><div class="lbl">Mediana Precio Actual</div><div class="num">{{ kpis.median }} €/m²</div><div class="desc">Mediana global en listings activos</div><div class="badge">Benchmark</div></div>
-    <div class="kpi"><div class="lbl">Oportunidades Destacadas</div><div class="num">{{ kpis.scored70 }}</div><div class="desc">14 de 28 con score alto</div><div class="badge">Score ≥ 70</div></div>
+    <div class="kpi"><div class="lbl">Oportunidades Destacadas</div><div class="num">{{ kpis.scored70 }}</div><div class="desc">{{ n_scored }} de {{ n_unique }} con score alto</div><div class="badge">Score ≥ 70</div></div>
     <div class="kpi"><div class="lbl">Penalización Riesgo Base</div><div class="num">{{ kpis.risk }}</div><div class="desc">Metodología aplicada (0 fraudes)</div><div class="badge">Score 10</div></div>
   </div>
 
   <!-- SEMANA -->
   <div class="section-title">Monitorización Temporal</div>
   <div class="weekly">
-    <h3>Evidencia Semanal Registrada ({{ week.week }} · N = {{ week.n }} obs. válidas)</h3>
+    <h3>Evidencia Semanal Registrada ({{ week.date }} · N = {{ week.n }} obs. válidas)</h3>
     <div class="grid">
       <div class="wstat"><div class="lbl">Mediana Semanal</div><div class="val">{{ week.median }} €/m²</div></div>
       <div class="wstat"><div class="lbl">Media Semanal</div><div class="val">{{ week.mean }} €/m²</div></div>
-      <div class="wstat"><div class="lbl">Punto de Datos</div><div class="val">{{ week.median }} €/m²</div><div style="font-size:.6rem;color:var(--muted);">1 semana disponible</div></div>
+      <div class="wstat"><div class="lbl">Punto de Datos</div><div class="val">{{ week.median }} €/m²</div><div style="font-size:.6rem;color:var(--muted);">{{ week.count }} semana(s) disponible(s)</div></div>
     </div>
     <div class="warn">⚠ Una semana registrada es insuficiente para proyectar tendencia temporal o estacionalidad. Se rechazan gráficos inventados.</div>
   </div>
@@ -119,7 +119,7 @@
   <!-- TABLA -->
   <div class="section-title">Selección Cuantitativa Auditada</div>
   <h2 style="font-size:1.1rem;">Oportunidades Inmobiliarias Rankeadas (Score 5D ≥ 70)</h2>
-  <p style="color:var(--muted);font-size:.8rem;margin-top:.25rem;">14 inmuebles con Score ≥ 70 sobre 28 evaluados · mediana de referencia <b style="color:var(--text);">{{ kpis.median }} €/m²</b></p>
+  <p style="color:var(--muted);font-size:.8rem;margin-top:.25rem;">{{ n_scored }} inmuebles con Score ≥ 70 sobre {{ n_unique }} evaluados · mediana de referencia <b style="color:var(--text);">{{ kpis.median }} €/m²</b></p>
   <table>
     <thead><tr><th>Inmueble / Ubicación</th><th>Precio</th><th>Superficie</th><th>€/m²</th><th>Vs mediana</th><th>Score 5D</th><th>Riesgo</th><th>Portal</th><th>Estado HITL</th></tr></thead>
     <tbody>
@@ -138,26 +138,26 @@
       {% endfor %}
     </tbody>
   </table>
-  <p style="font-size:.7rem;color:var(--muted);margin-top:.5rem;">Nota metodológica: se muestran las oportunidades principales del conjunto de 14 inmuebles con Score ≥ 70 (de 28 evaluados). Todos los registros cuentan con scam_risk_score = 10 asignado por política de penalización preventiva sin imputar fraude.</p>
+  <p style="font-size:.7rem;color:var(--muted);margin-top:.5rem;">Nota metodológica: se muestran las oportunidades principales del conjunto de {{ n_scored }} inmuebles con Score ≥ 70 (de {{ n_unique }} evaluados). Todos los registros cuentan con scam_risk_score = 10 asignado por política de penalización preventiva sin imputar fraude.</p>
 
   <!-- METODOLOGÍA -->
   <div class="section-title">Metodología Transparente</div>
   <div class="methods">
     <div class="method"><h4>1. Ingestión &amp; Trazabilidad</h4><p>Scraping estructurado de listings en Idealista, persistiendo metadatos completos y fechas de avistamiento para trazabilidad inmutable.</p></div>
-    <div class="method"><h4>2. Tracking de Observaciones</h4><p>De las 170 capturas, se aíslan 28 inmuebles únicos y 142 observaciones repetidas en el tiempo (seguimiento de publicación activa, no duplicados difusos).</p></div>
+    <div class="method"><h4>2. Tracking de Observaciones</h4><p>De las {{ n_obs_total }} capturas, se aíslan {{ n_unique }} inmuebles únicos y {{ n_repeated }} observaciones repetidas en el tiempo (seguimiento de publicación activa, no duplicados difusos).</p></div>
     <div class="method"><h4>3. Modelo de Scoring 5D</h4><p>Algoritmo multicriterio ponderado: diferencial vs. mediana zonal ({{ kpis.median }} €/m²), liquidez de zona, eficiencia de superficie, estado y tipología.</p></div>
-    <div class="method"><h4>4. Gestión de Riesgo Preventivo</h4><p>Se aplica penalización metodológica base (scam_risk_score = 10) a los 28 registros sin categorizarlos indebidamente como fraudes confirmados.</p></div>
-    <div class="method"><h4>5. Auditoría HITL</h4><p>Las 14 oportunidades con Score ≥ 70 se someten a validación documental humana (verificación registral y cargas) previo a su selección.</p></div>
+    <div class="method"><h4>4. Gestión de Riesgo Preventivo</h4><p>Se aplica penalización metodológica base (scam_risk_score = 10) a los {{ n_unique }} registros sin categorizarlos indebidamente como fraudes confirmados.</p></div>
+    <div class="method"><h4>5. Auditoría HITL</h4><p>Las {{ n_scored }} oportunidades con Score ≥ 70 se someten a validación documental humana (verificación registral y cargas) previo a su selección.</p></div>
   </div>
 
   <!-- LÍMITES -->
   <div class="section-title">Límites del Sistema &amp; Frescura de Datos</div>
   <div class="limits">
     <ul>
-      <li><b>Fecha de Corte de Datos:</b> 2026-09-01 — los datos analizados corresponden exactamente al snapshot capturado el 2026-09-01. No se han incorporado eventos posteriores.</li>
-      <li><b>Insuficiencia de Serie Temporal (1 Semana):</b> disponibilidad de una única semana de muestra (2026-08-31 con 150 observaciones). No es técnicamente admisible modelar tendencia o estacionalidad con este horizonte.</li>
+      <li><b>Fecha de Corte de Datos:</b> {{ cutoff }} — los datos analizados corresponden exactamente al snapshot capturado el {{ cutoff }}. No se han incorporado eventos posteriores.</li>
+      <li><b>Insuficiencia de Serie Temporal (1 Semana):</b> disponibilidad de una única semana de muestra ({{ week.date }} con {{ week.n }} observaciones). No es técnicamente admisible modelar tendencia o estacionalidad con este horizonte.</li>
       <li><b>Precios de Oferta Publicados:</b> los importes reflejan precios anunciados por vendedores en Idealista; las operaciones notariales reales suelen negociarse con descuentos adicionales.</li>
-      <li><b>Muestra Acotada (28 Inmuebles Únicos):</b> el análisis se circunscribe a los 28 registros verificados. Home-Ops es un ejercicio de ingeniería de datos y no constituye asesoramiento financiero.</li>
+      <li><b>Muestra Acotada ({{ n_unique }} Inmuebles Únicos):</b> el análisis se circunscribe a los {{ n_unique }} registros verificados. Home-Ops es un ejercicio de ingeniería de datos y no constituye asesoramiento financiero.</li>
       <li><b>Cero Datos Inventados o Sintéticos:</b> no se publican versiones ficticias, runs inventados ni conteos de tests ficticios. Todos los números derivan estrictamente de la base de datos.</li>
     </ul>
   </div>
@@ -172,7 +172,7 @@
 
   <footer>
     <span>Home-Ops | Consola de Auditoría Inmobiliaria y Análisis Cuantitativo</span>
-    <span>Últimos datos: 2026-09-01 | {{ kpis.unique }} Inmuebles Únicos | {{ kpis.obs }} Observaciones</span>
+    <span>Últimos datos: {{ cutoff }} | {{ kpis.unique }} Inmuebles Únicos | {{ kpis.obs }} Observaciones</span>
   </footer>
 </div>
 </body>

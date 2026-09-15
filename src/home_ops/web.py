@@ -31,11 +31,6 @@ _PORTAL_BASES = {
     "fotocasa": "https://www.fotocasa.es",
     "pisos": "https://www.pisos.com",
 }
-_MEDIAN_EUR_M2 = 3618.0  # mediana global listings activos (verificada DuckDB)
-_WEEK = "2026-08-31"
-_WEEK_N = 150
-_WEEK_MEDIAN = 3702.0
-_WEEK_MEAN = 3865.0
 
 
 def _safe_url(url: str | None, portal: str = "idealista") -> str:
@@ -72,11 +67,11 @@ def _fmt_eur_m2(v: float | None) -> str:
     return f"{v:,.0f} €/m²" if v is not None else "—"
 
 
-def _vs_median(price: float, m2: float) -> str:
-    """% vs the verified global median (3.618 €/m²)."""
-    if not price or not m2:
+def _vs_median(price: float, m2: float, median_eur_m2: float) -> str:
+    """% vs the current global median (€/m²)."""
+    if not price or not m2 or not median_eur_m2:
         return "—"
-    pct = (price / m2 / _MEDIAN_EUR_M2 - 1) * 100
+    pct = (price / m2 / median_eur_m2 - 1) * 100
     return f"{pct:.0f}% vs mediana"
 
 
@@ -84,8 +79,25 @@ def _vs_median(price: float, m2: float) -> str:
 def index(request: Request) -> HTMLResponse:
     with get_connection(_get_db_path()) as db:
         db.init_db()
+        # Mediana global actual
+        per_m2 = analytics.price_per_m2_stats(db)
+        median_eur_m2 = float(per_m2["p50"] or 0)
+
+        # Semana más reciente
+        weekly = db.conn.execute("""
+            SELECT date_trunc('week', observed_at), COUNT(*),
+                   quantile_cont(price / m2, 0.5), AVG(price / m2)
+            FROM price_history WHERE price > 0 AND m2 > 0
+            GROUP BY 1 ORDER BY 1 DESC
+        """).fetchall()
+        latest_week = weekly[0] if weekly else (None, 0, None, None)
+        n_weeks = len(weekly)
+
+        # Fecha de corte (última observación)
+        cutoff = db.conn.execute("SELECT MAX(observed_at) FROM price_history").fetchone()
+        cutoff_date = cutoff[0].strftime("%Y-%m-%d") if cutoff and cutoff[0] else "—"
+
         # Totales reales (volumen capturado, sin filtro de precio):
-        # 28 únicos / 170 observaciones — los mismos del diseño.
         total_obs_row = db.conn.execute(
             "SELECT COUNT(*) FROM price_history"
         ).fetchone()
@@ -95,7 +107,6 @@ def index(request: Request) -> HTMLResponse:
         n_obs = int(total_obs_row[0] or 0) if total_obs_row else 0
         n_unique = int(total_unique_row[0] or 0) if total_unique_row else 0
         n_repeated = n_obs - n_unique
-        per_m2 = analytics.price_per_m2_stats(db)
         scored_row = db.conn.execute(
             "SELECT COUNT(*) FROM listings WHERE score IS NOT NULL AND score >= 70"
         ).fetchone()
@@ -130,7 +141,7 @@ def index(request: Request) -> HTMLResponse:
                 "eur_m2": _fmt_eur_m2(
                     float(price) / float(m2) if price and m2 else None
                 ),
-                "vs_median": _vs_median(float(price), float(m2))
+                "vs_median": _vs_median(float(price), float(m2), median_eur_m2)
                 if price and m2
                 else "—",
                 "score": f"{score:.0f}" if score is not None else "—",
@@ -152,11 +163,18 @@ def index(request: Request) -> HTMLResponse:
                 "scored70": scored_70,
                 "risk": n_risk,
             },
+            "n_obs_total": n_obs,
+            "n_unique": n_unique,
+            "n_repeated": n_repeated,
+            "n_scored": scored_70,
+            "median_eur_m2": f"{median_eur_m2:,.0f}" if median_eur_m2 else "—",
+            "cutoff": cutoff_date,
             "week": {
-                "week": _WEEK,
-                "n": _WEEK_N,
-                "median": f"{_WEEK_MEDIAN:,.0f}",
-                "mean": f"{_WEEK_MEAN:,.0f}",
+                "date": latest_week[0].strftime("%Y-%m-%d") if latest_week[0] else "—",
+                "n": int(latest_week[1]),
+                "median": f"{latest_week[2]:,.0f}" if latest_week[2] else "—",
+                "mean": f"{latest_week[3]:,.0f}" if latest_week[3] else "—",
+                "count": n_weeks,
             },
             "rank": rank,
         },

@@ -28,6 +28,11 @@ def test_index_renders_empty(tmp_path, monkeypatch) -> None:
     # Empty DB: dashboard renders with zeroes, no crash
     assert "Home-Ops" in resp.text
     assert "0" in resp.text
+    # No hardcoded legacy values leak from an empty DB
+    assert "28 Scored" not in resp.text
+    assert "170 observaciones brutas" not in resp.text
+    assert "142 observaciones repetidas" not in resp.text
+    assert "2026-09-01" not in resp.text
 
 
 def test_index_renders_listing(tmp_path, monkeypatch) -> None:
@@ -46,7 +51,14 @@ def test_index_renders_listing(tmp_path, monkeypatch) -> None:
     assert resp.status_code == 200
     assert "Calle Falsa 123" in resp.text
     assert "150,000 €" in resp.text
-    assert "85 / 100" in resp.text  # score renders
+    assert "85 / 100" in resp.text
+    # Dynamic counts rendered, not hardcoded legacy values
+    assert "1" in resp.text  # 1 listing, not hardcoded 28
+    assert "28 Scored" not in resp.text
+    assert "170 observaciones brutas" not in resp.text
+    assert "2026-09-01" not in resp.text
+    # Pipeline and KPI sections present
+    assert "Score ≥ 70" in resp.text
 
 
 def test_index_neutralizes_unsafe_url_scheme(tmp_path, monkeypatch) -> None:
