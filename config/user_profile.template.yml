@@ -1,9 +1,13 @@
 # Home-Ops User Profile Configuration
 # Copy this file and customize for your needs
 
-# Portal configuration
+# Portal configuration — scan one or more supported portals
 portal:
-  idealista_url: "https://www.idealista.com/..."  # Replace with your Idealista search URL
+  idealista_url: "https://www.idealista.com/venta-viviendas/cadiz-provincia/"
+  urls:
+    - "https://www.idealista.com/venta-viviendas/cadiz-provincia/"
+    - "https://www.fotocasa.es/es/comprar/viviendas/cadiz-provincia/todas-las-zonas/l"
+    - "https://www.pisos.com/venta/pisos-cadiz/"
 
 # Multi-dimensional scoring engine configuration
 scoring:
