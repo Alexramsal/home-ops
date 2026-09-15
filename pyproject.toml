@@ -42,7 +42,7 @@ web = [
 ]
 
 [project.urls]
-repository = "https://github.com/AlejandroRS21/home-ops"
+repository = "https://github.com/alexramsal/home-ops"
 
 [project.scripts]
 homeops = "home_ops.cli.app:app"

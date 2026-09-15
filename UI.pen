@@ -4,6 +4,8 @@
     {
       "type": "frame",
       "id": "D5ybDh",
+      "x": 0,
+      "y": 0,
       "name": "Home-Ops Public Dashboard (1440)",
       "clip": true,
       "width": 1440,
@@ -3078,6 +3080,8 @@
     {
       "type": "frame",
       "id": "zOP2A",
+      "x": 0,
+      "y": -220,
       "name": "Component - KPI Card",
       "reusable": true,
       "width": 340,
@@ -3159,6 +3163,8 @@
     {
       "type": "frame",
       "id": "kV7Gs",
+      "x": 1520,
+      "y": 0,
       "name": "Home-Ops Mobile Dashboard (390)",
       "clip": true,
       "width": 390,
@@ -4899,6 +4905,17 @@
           ]
         }
       ]
+    },
+    {
+      "type": "text",
+      "id": "aEPFE",
+      "x": 907.1901132021795,
+      "y": 1984.693071067361,
+      "fill": "#000000",
+      "content": "ExamForge",
+      "fontFamily": "Inter",
+      "fontSize": 12,
+      "fontWeight": "normal"
     }
   ],
   "themes": {

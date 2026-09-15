@@ -2,10 +2,10 @@
 
 Real estate agentic pipeline: scrape Idealista, score every listing across 5 dimensions, alert via Telegram.
 
-[![CI](https://img.shields.io/github/actions/workflow/status/AlejandroRS21/home-ops/ci.yml?branch=main&label=CI)](https://github.com/AlejandroRS21/home-ops/actions)
-[![Python](https://img.shields.io/badge/python-3.11%2B-3776AB)](https://github.com/AlejandroRS21/home-ops)
-[![License: MIT](https://img.shields.io/github/license/AlejandroRS21/home-ops)](https://github.com/AlejandroRS21/home-ops/blob/main/LICENSE)
-[![Last commit](https://img.shields.io/github/last-commit/AlejandroRS21/home-ops)](https://github.com/AlejandroRS21/home-ops)
+[![CI](https://img.shields.io/github/actions/workflow/status/alexramsal/home-ops/ci.yml?branch=main&label=CI)](https://github.com/alexramsal/home-ops/actions)
+[![Python](https://img.shields.io/badge/python-3.11%2B-3776AB)](https://github.com/alexramsal/home-ops)
+[![License: MIT](https://img.shields.io/github/license/alexramsal/home-ops)](https://github.com/alexramsal/home-ops/blob/main/LICENSE)
+[![Last commit](https://img.shields.io/github/last-commit/alexramsal/home-ops)](https://github.com/alexramsal/home-ops)
 
 ## Why
 
@@ -59,7 +59,7 @@ The pipeline scrapes Idealista, parses and deduplicates listings, scores each on
 ### Option A: Docker (recommended)
 
 ```bash
-git clone https://github.com/AlejandroRS21/home-ops
+git clone https://github.com/alexramsal/home-ops
 cd home-ops
 cp .env.example .env                              # add your Telegram secrets
 cp config/user_profile.template.yml config/user_profile.yml  # set your search URL and scoring
