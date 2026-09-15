@@ -557,33 +557,43 @@ def _run_scan(config_path: Path | None = None, force: bool = False) -> None:
         db.init_db()
 
         # 1. Auto-detect: cold start (empty DB) vs subsequent run
-        console.print("[bold]Scanning portal...[/bold]")
-        row = db.conn.execute("SELECT COUNT(*) FROM listings").fetchone()
-        has_data = row is not None and row[0] is not None and row[0] != 0
+        #    Iterate all configured portal URLs (idealista + fotocasa + ...)
+        from home_ops.scraper.lifecycle import cold_start, subsequent_run
 
-        if has_data:
+        configured_urls = getattr(config, "portal_urls", None)
+        portal_urls = (
+            configured_urls
+            if isinstance(configured_urls, (list, tuple)) and configured_urls
+            else [config.portal_url]
+        )
+        listings: list[Listing] = []
+        portal_errors: list[tuple[str, Exception]] = []
+        successful_portals = 0
+        for purl in portal_urls:
+            console.print(f"[bold]Scanning {purl}...[/bold]")
+            row = db.conn.execute("SELECT COUNT(*) FROM listings").fetchone()
+            has_data = row is not None and row[0] is not None and row[0] != 0
             try:
-                from home_ops.scraper.lifecycle import subsequent_run
-
-                listings: list[Listing] = subsequent_run(
-                    config.portal_url, db, max_pages=5, force=force
-                )
+                if has_data:
+                    new = subsequent_run(
+                        purl, db, max_pages=5, force=force
+                    )
+                else:
+                    new = cold_start(purl)
             except Exception as exc:
-                console.print(f"[yellow]Scraper failed: {exc}[/yellow]")
-                raise
-        else:
-            try:
-                from home_ops.scraper.lifecycle import cold_start
+                console.print(f"[yellow]Scraper failed ({purl}): {exc}[/yellow]")
+                portal_errors.append((purl, exc))
+                continue
+            successful_portals += 1
+            listings.extend(new)
 
-                listings = cold_start(config.portal_url)
-            except Exception as exc:
-                console.print(f"[yellow]Scraper failed: {exc}[/yellow]")
-                raise
+        if not successful_portals and portal_errors:
+            raise portal_errors[0][1]
 
         # 2. Process new listings (if any)
         from home_ops.analytics import zone_from_portal_url
 
-        zone = zone_from_portal_url(config.portal_url)
+        zone = zone_from_portal_url(portal_urls[0])
 
         if listings:
             scored: list[

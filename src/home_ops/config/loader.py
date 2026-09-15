@@ -122,8 +122,16 @@ def load_config(config_path: Path | None = None, env_path: Path | None = None) -
         api_key=secrets.get("AI_API_KEY", ""),
     )
 
+    portal_raw = raw.get("portal", {}) or {}
+    portal_url = portal_raw.get("idealista_url", "")
+    # Optional explicit multi-portal list; falls back to [idealista_url].
+    portal_urls = portal_raw.get("urls") or ([portal_url] if portal_url else [])
+    if not isinstance(portal_urls, list):
+        portal_urls = [str(portal_urls)]
+
     return Config(
-        portal_url=raw.get("portal", {}).get("idealista_url", ""),
+        portal_url=portal_url,
+        portal_urls=portal_urls,
         scoring=scoring,
         alert_schedule=schedule_config,
         buyer_protection=buyer_protection,

@@ -20,6 +20,12 @@ class TestComputeContentHash:
         assert h1 == h2
         assert len(h1) == 16  # truncated SHA-256 hex digest
 
+    def test_external_id_prevents_same_shape_collision(self) -> None:
+        """Distinct portal IDs must not collide for equal zone/surface/floor."""
+        h1 = compute_content_hash("fotocasa", "cadiz", 80.0, "2", "123")
+        h2 = compute_content_hash("fotocasa", "cadiz", 80.0, "2", "456")
+        assert h1 != h2
+
     def test_different_portal_differs(self) -> None:
         """GIVEN different portals WHEN compute THEN hashes differ."""
         h1 = compute_content_hash("idealista", "centro", 80.0, "2")

@@ -5,7 +5,7 @@ from decimal import Decimal
 from typing import Literal
 from zoneinfo import available_timezones
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class Listing(BaseModel):
@@ -178,6 +178,7 @@ class Config(BaseModel):
     """Merged application configuration from YAML + .env."""
 
     portal_url: str = ""
+    portal_urls: list[str] = Field(default_factory=list)
     hitl_approval_required: bool = True
     euribor_rate: float = 3.5
     telegram_bot_token: str = ""
@@ -187,3 +188,10 @@ class Config(BaseModel):
     buyer_protection: BuyerProtectionConfig | None = None
     catastro: CatastroConfig = Field(default_factory=CatastroConfig)
     llm: LlmConfig = Field(default_factory=LlmConfig)
+
+    @model_validator(mode="after")
+    def _derive_portal_urls(self) -> "Config":
+        """Backwards-compat: portal_urls defaults to [portal_url]."""
+        if not self.portal_urls and self.portal_url:
+            self.portal_urls = [self.portal_url]
+        return self

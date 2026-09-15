@@ -15,7 +15,9 @@ from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 from home_ops.models.schema import Listing
 from home_ops.scraper.dedup import batch_known_hashes, compute_content_hash
+from home_ops.scraper.fotocasa import parse_listings as parse_fotocasa_listings
 from home_ops.scraper.parse import parse_detail, parse_listings
+from home_ops.scraper.pisos import parse_listings as parse_pisos_listings
 
 if TYPE_CHECKING:
     from home_ops.models.data_storage import DuckDBConnection
@@ -26,6 +28,36 @@ SNAPSHOT_DIR = Path("data/snapshots")
 
 DETAIL_DELAY_SECONDS = 1.5
 DETAIL_FETCH_CAP = 10
+
+
+def _portal_parser(url: str) -> tuple[str, Any]:
+    """Resolve (portal_name, parse_listings_fn) from a search URL."""
+    if "fotocasa" in url:
+        return "fotocasa", parse_fotocasa_listings
+    if "pisos.com" in url:
+        return "pisos", parse_pisos_listings
+    if "idealista" in url:
+        return "idealista", parse_listings
+    return "unknown", parse_listings
+
+
+def _paginate_url(url: str, portal: str, page_num: int) -> str:
+    """Build the URL for ``page_num`` of a portal search.
+
+    Idealista: ``?pagina=N``. Fotocasa: path suffix ``/l/N`` (the base URL
+    ends with ``/l``, verified against a live capture 2026-09-15).
+    """
+    if page_num == 1:
+        return url
+    if portal == "fotocasa":
+        return f"{url.rstrip('/')}/{page_num}"
+    if portal == "pisos":
+        return f"{url.rstrip('/')}/{page_num}/"
+    parsed = urlparse(url)
+    qs = parse_qs(parsed.query, keep_blank_values=True)
+    qs["pagina"] = [str(page_num)]
+    parsed = parsed._replace(query=urlencode(qs, doseq=True))
+    return urlunparse(parsed)
 
 
 def _fetch_page_text(fetcher: Any, url: str) -> str:
@@ -64,7 +96,8 @@ def _dicts_to_listings(dicts: list[dict[str, Any]], zone: str) -> list[Listing]:
         portal = item.get("portal", "idealista")
         m2 = item.get("m2")
         floor = item.get("floor")
-        ch = compute_content_hash(portal, zone, m2, floor)
+        external_id = item.get("external_id")
+        ch = compute_content_hash(portal, zone, m2, floor, external_id)
         results.append(
             Listing(
                 content_hash=ch,
@@ -131,7 +164,8 @@ def _enrich_new_listings(listings: list[Listing], fetcher: Any) -> None:
     are never overwritten by None.
     """
     for listing in listings[:DETAIL_FETCH_CAP]:
-        if not listing.url:
+        # parse_detail currently targets Idealista markup only.
+        if not listing.url or listing.portal != "idealista":
             continue
         time.sleep(DETAIL_DELAY_SECONDS)
         try:
@@ -173,7 +207,7 @@ def cold_start(url: str, zone: str = "", max_pages: int = 5) -> list[Listing]:
     logger.info("Cold start — fetching %s (max %d pages)", url, max_pages)
 
     fetcher = _get_fetcher()
-    portal = "idealista" if "idealista" in url else "unknown"
+    portal, parse = _portal_parser(url)
     snap = SNAPSHOT_DIR / f"{portal}_{datetime.now().strftime('%Y%m%d')}.snap"
     first_page = True
 
@@ -181,14 +215,7 @@ def cold_start(url: str, zone: str = "", max_pages: int = 5) -> list[Listing]:
     page_num = 0
 
     for page_num in range(1, max_pages + 1):
-        if page_num == 1:
-            page_url = url
-        else:
-            parsed = urlparse(url)
-            qs = parse_qs(parsed.query, keep_blank_values=True)
-            qs["pagina"] = [str(page_num)]
-            parsed = parsed._replace(query=urlencode(qs, doseq=True))
-            page_url = urlunparse(parsed)
+        page_url = _paginate_url(url, portal, page_num)
         logger.info("Fetching page %d: %s", page_num, page_url)
 
         try:
@@ -197,7 +224,7 @@ def cold_start(url: str, zone: str = "", max_pages: int = 5) -> list[Listing]:
             logger.error("Page %d fetch failed: %s — stopping pagination", page_num, exc)
             raise
 
-        raw_dicts = parse_listings(html)
+        raw_dicts = parse(html)
         logger.info("Page %d: found %d listings", page_num, len(raw_dicts))
 
         if first_page:
@@ -251,20 +278,13 @@ def subsequent_run(
     """
     logger.info("Subsequent run — fetching %s (max_pages=%d, force=%s)", url, max_pages, force)
     fetcher = _get_fetcher()
-    portal = "idealista" if "idealista" in url else "unknown"
+    portal, parse = _portal_parser(url)
     snap = SNAPSHOT_DIR / f"{portal}_{datetime.now().strftime('%Y%m%d')}.snap"
 
     new_listings: list[Listing] = []
 
     for page_num in range(1, max_pages + 1):
-        if page_num == 1:
-            page_url = url
-        else:
-            parsed = urlparse(url)
-            qs = parse_qs(parsed.query, keep_blank_values=True)
-            qs["pagina"] = [str(page_num)]
-            parsed = parsed._replace(query=urlencode(qs, doseq=True))
-            page_url = urlunparse(parsed)
+        page_url = _paginate_url(url, portal, page_num)
 
         # Fetch
         try:
@@ -278,7 +298,7 @@ def subsequent_run(
             _save_snapshot(snap, html)
 
         # Parse
-        raw_dicts = parse_listings(html)
+        raw_dicts = parse(html)
         if not raw_dicts:
             logger.info("Page %d is empty — stopping pagination", page_num)
             break

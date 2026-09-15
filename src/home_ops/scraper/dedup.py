@@ -13,7 +13,13 @@ if TYPE_CHECKING:
     from home_ops.models.data_storage import DuckDBConnection
 
 
-def compute_content_hash(portal: str, zone: str, m2: float | None, floor: str | None) -> str:
+def compute_content_hash(
+    portal: str,
+    zone: str,
+    m2: float | None,
+    floor: str | None,
+    external_id: str | None = None,
+) -> str:
     """Compute a SHA-256 content hash for deduplication.
 
     The hash is built from the portal name, zone (neighbourhood or area),
@@ -30,11 +36,19 @@ def compute_content_hash(portal: str, zone: str, m2: float | None, floor: str | 
     Returns:
         Truncated hexadecimal SHA-256 digest (16 characters).
     """
-    raw = "|".join([
-        portal, zone,
-        str(m2) if m2 is not None else "",
-        floor if floor is not None else "",
-    ])
+    # Portal listing IDs are stable and avoid collisions between distinct
+    # homes sharing zone/surface/floor. Keep the old shape as fallback for
+    # records whose portal does not expose an ID.
+    raw = (
+        f"{portal}|id|{external_id}"
+        if external_id
+        else "|".join([
+            portal,
+            zone,
+            str(m2) if m2 is not None else "",
+            floor if floor is not None else "",
+        ])
+    )
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:16]
 
 
