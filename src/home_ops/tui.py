@@ -22,7 +22,7 @@ import webbrowser
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlparse
+from urllib.parse import urljoin, urlparse
 
 from rich.markup import escape
 from rich.text import Text
@@ -47,6 +47,20 @@ _TABLE_COLUMNS = ("ID", "Dirección", "Precio", "€/m²", "Score", "Portal")
 _OPEN_HINT = "Atajo: o — abrir anuncio en el navegador"
 _TAB_IDS = ("summary-tab", "pending-tab", "ranking-tab", "trends-tab", "activity-tab")
 _URL_SCHEMES = {"http", "https"}
+_PORTAL_BASES = {
+    "idealista": "https://www.idealista.com",
+    "fotocasa": "https://www.fotocasa.es",
+    "pisos": "https://www.pisos.com",
+    "tecnocasa": "https://www.tecnocasa.es",
+    "habitaclia": "https://www.habitaclia.com",
+}
+_PORTAL_BASES = {
+    "idealista": "https://www.idealista.com",
+    "fotocasa": "https://www.fotocasa.es",
+    "pisos": "https://www.pisos.com",
+    "tecnocasa": "https://www.tecnocasa.es",
+    "habitaclia": "https://www.habitaclia.com",
+}
 
 
 def _is_safe_listing_url(url: str) -> bool:
@@ -63,6 +77,12 @@ def _is_safe_listing_url(url: str) -> bool:
         )
     except ValueError:
         return False
+
+
+def _resolve_listing_url(url: str, portal: str) -> str:
+    """Resolve portal-relative URLs, then apply the strict URL policy."""
+    candidate = urljoin(_PORTAL_BASES.get(portal, ""), url) if url.startswith("/") else url
+    return candidate if _is_safe_listing_url(candidate) else ""
 
 
 class HomeOpsTUI(App[None]):
@@ -134,6 +154,7 @@ class HomeOpsTUI(App[None]):
         self._pending_ids: list[int] = []
         self._pending_details: list[str] = []
         self._pending_urls: list[str] = []
+        self._pending_portals: list[str] = []
         self._ranking_all: list[dict[str, Any]] = []
         self._ranking_rows: list[dict[str, Any]] = []
         self._ranking_filter = 0
@@ -293,9 +314,11 @@ class HomeOpsTUI(App[None]):
         if active == "pending-tab":
             table = self.query_one("#pending", DataTable)
             urls = self._pending_urls
+            portals = self._pending_portals
         elif active == "ranking-tab":
             table = self.query_one("#ranking", DataTable)
             urls = [str(row.get("url") or "") for row in self._ranking_rows]
+            portals = [str(row.get("portal") or "") for row in self._ranking_rows]
         else:
             self.notify("Abrir solo está disponible para listings", severity="warning")
             return
@@ -305,8 +328,8 @@ class HomeOpsTUI(App[None]):
         if not 0 <= table.cursor_row < len(urls):
             self.notify("No hay listing seleccionado", severity="warning")
             return
-        url = urls[table.cursor_row]
-        if not _is_safe_listing_url(url):
+        url = _resolve_listing_url(urls[table.cursor_row], portals[table.cursor_row])
+        if not url:
             self.notify("URL de listing insegura o faltante", severity="warning")
             return
         webbrowser.open(url)
@@ -466,9 +489,11 @@ class HomeOpsTUI(App[None]):
         self._pending_ids = []
         self._pending_details = []
         self._pending_urls = []
+        self._pending_portals = []
         for row in pending:
             self._pending_ids.append(int(row[0]))
             self._pending_urls.append(str(row[6] or ""))
+            self._pending_portals.append(str(row[7] or ""))
             addr = escape(str(row[1] or ""))
             url_str = escape(str(row[6] or "sin URL"))
             self._pending_details.append(

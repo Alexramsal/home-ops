@@ -12,7 +12,7 @@ from rich.text import Text
 pytest.importorskip("textual")
 
 from home_ops.models.data_storage import get_connection  # noqa: E402
-from home_ops.tui import HomeOpsTUI, _is_safe_listing_url  # noqa: E402
+from home_ops.tui import HomeOpsTUI, _is_safe_listing_url, _resolve_listing_url  # noqa: E402
 
 MANDATORY_IDS = (
     "#top-status",
@@ -300,6 +300,27 @@ def test_tui_rejects_unsafe_listing_urls(url: str) -> None:
 @pytest.mark.parametrize("url", ["http://example.test/x", "https://example.test/x"])
 def test_tui_accepts_safe_listing_urls(url: str) -> None:
     assert _is_safe_listing_url(url)
+
+
+@pytest.mark.parametrize(
+    ("url", "portal", "expected"),
+    [
+        ("/inmueble/123/", "idealista", "https://www.idealista.com/inmueble/123/"),
+        (
+            "/es/comprar/vivienda/foo/1/d",
+            "fotocasa",
+            "https://www.fotocasa.es/es/comprar/vivienda/foo/1/d",
+        ),
+        ("/comprar/piso-barrio-1_2/", "pisos", "https://www.pisos.com/comprar/piso-barrio-1_2/"),
+        ("https://www.tecnocasa.es/venta/piso/1", "tecnocasa", "https://www.tecnocasa.es/venta/piso/1"),
+        ("/comprar/vivienda/3", "habitaclia", "https://www.habitaclia.com/comprar/vivienda/3"),
+        ("javascript:alert(1)", "fotocasa", ""),
+        ("/inmueble/123/", "unknown-portal", ""),
+        ("", "fotocasa", ""),
+    ],
+)
+def test_tui_resolves_portal_relative_urls(url: str, portal: str, expected: str) -> None:
+    assert _resolve_listing_url(url, portal) == expected
 
 
 @pytest.mark.asyncio

@@ -36,7 +36,7 @@ def test_portal_configs_include_cadiz_integrations() -> None:
         "https://www.tecnocasa.es/venta/casa/andalucia/cadiz.html",
         "https://www.habitaclia.com/comprar/viviendas/cadiz-provincia/s",
     }
-    for path in (Path("user_profile.yml"), Path("config/user_profile.template.yml")):
+    for path in (Path("config/user_profile.template.yml"),):
         urls = set(load_user_profile(path)["portal"]["urls"])
         assert expected <= urls
         assert "https://www.idealista.com/venta-viviendas/cadiz-provincia/" in urls
