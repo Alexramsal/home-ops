@@ -1,155 +1,190 @@
+<div align="center">
+
 # Home-Ops
 
-<p align="center">
-  <img src="assets/banner-home-ops.png" alt="Home-Ops banner" width="100%">
+### Agentic real-estate scouting for Spain
+
+Scrape listings. Score opportunities. Verify signals. Get alerted before the good ones disappear.
+
+<p>
+  <a href="https://github.com/Alexramsal/home-ops/actions"><img src="https://img.shields.io/github/actions/workflow/status/alexramsal/home-ops/ci.yml?branch=main&label=CI&style=flat-square" alt="CI"></a>
+  <a href="https://github.com/Alexramsal/home-ops"><img src="https://img.shields.io/badge/python-3.11%2B-3776AB?style=flat-square" alt="Python 3.11+"></a>
+  <a href="https://github.com/Alexramsal/home-ops/blob/main/LICENSE"><img src="https://img.shields.io/github/license/alexramsal/home-ops?style=flat-square" alt="MIT License"></a>
+  <a href="https://github.com/Alexramsal/home-ops"><img src="https://img.shields.io/github/last-commit/alexramsal/home-ops?style=flat-square" alt="Last commit"></a>
 </p>
 
-Real estate agentic pipeline: scrape Idealista, Fotocasa & Pisos.com, score every listing across 5 dimensions, alert via Telegram.
+<img src="assets/banner-home-ops.png" alt="Home-Ops banner" width="100%">
 
-[![CI](https://img.shields.io/github/actions/workflow/status/alexramsal/home-ops/ci.yml?branch=main&label=CI)](https://github.com/alexramsal/home-ops/actions)
-[![Python](https://img.shields.io/badge/python-3.11%2B-3776AB)](https://github.com/alexramsal/home-ops)
-[![License: MIT](https://img.shields.io/github/license/alexramsal/home-ops)](https://github.com/alexramsal/home-ops/blob/main/LICENSE)
-[![Last commit](https://img.shields.io/github/last-commit/alexramsal/home-ops)](https://github.com/alexramsal/home-ops)
+</div>
 
-## Why
+> **Home-Ops turns a property search into a daily decision pipeline.** It scans configured real-estate portals, deduplicates and scores new listings against your priorities, optionally enriches them with LLM and cadastral data, and delivers the best opportunities to Telegram.
 
-Finding a flat in Spain is a race. By the time a listing appears on Idealista and you open the app, the good ones are already gone. Home-Ops checks your Idealista search every morning at 09:00 (Europe/Madrid), scores each new listing against your personal criteria, and pushes the best matches to your phone before you finish breakfast.
+## Why Home-Ops?
 
-No daily "I should look at Idealista" mental load. Just a Telegram ping when something worth seeing appears — plus an optional public audit dashboard when you want the raw numbers.
+Finding a good flat in Spain is a timing problem as much as a search problem. Home-Ops is built around one idea: **do the repetitive scouting automatically, surface the highest-signal listings, and keep the human in control of the final alert.**
 
-## Features
+| | What it does |
+| --- | --- |
+| 🔎 **Collect** | Scan configured Idealista, Fotocasa and Pisos.com search URLs independently. |
+| 🧠 **Score** | Rank listings across five weighted dimensions based on your profile. |
+| 🛡️ **Enrich** | Optionally add LLM analysis and Catastro OVC cross-checks. |
+| ✅ **Approve** | Keep an optional human-in-the-loop gate before Telegram alerts. |
+| 📊 **Measure** | Persist the pipeline in DuckDB and expose real metrics through the dashboard. |
+| ⏱️ **Automate** | Run daily or at intervals with quotas, catch-up recovery and overlap protection. |
 
-- **Multi-portal scraping** — Idealista, Fotocasa and Pisos.com feeds in one scan; each portal fails independently without blocking the rest.
-- **Public results dashboard** — a FastAPI web dashboard (dark audit console) exposes real DuckDB KPIs, the weekly snapshot and the ranked opportunity table, without login.
-- **5-dimension weighted scoring** — every listing is scored against your own priorities: price, size, energy certificate, garage, and Euribor-based affordability. Weights are yours to configure.
-- **Content-hash deduplication** — identical listings are detected by content hash, so only genuinely new inventory triggers an alert.
-- **Human-in-the-loop approval gate** — optional manual approval before any alert is sent, so nothing reaches your phone without your sign-off.
-- **Scheduled daemon** — runs on a daily or interval schedule with a per-day alert quota, catch-up recovery after downtime, and overlap protection.
-- **DuckDB storage** — embedded, zero-config database that persists across restarts.
-- **LLM enrichment (opt-in)** — litellm reads each description and extracts renovation state, orientation, zone noise, and LLM-judged scam red flags, persisted with full traceability.
-- **Catastro OVC enrichment (opt-in)** — free public cadastral data (surface, age, usage) cross-checked against each listing.
-- **DuckDB analytics** — `homeops analytics` computes price/price-per-m² percentiles, portal counts, and a per-day run time-series.
-- **Structured logging (opt-in)** — one JSON object per line via `HOME_OPS_LOG_JSON=1`.
-- **Docker and systemd deployment** — run it with `docker compose up` or as a hardened systemd service.
-
-Scoring dimensions and default weights:
-
-| Dimension | Weight |
-|-----------|--------|
-| price | 0.35 |
-| size | 0.25 |
-| energy_cert | 0.15 |
-| garage | 0.10 |
-| affordability | 0.15 |
-
-## Architecture
+## Pipeline
 
 ```mermaid
 flowchart LR
-    P1[Idealista] --> LS[scraper/lifecycle.py]
-    P2[Fotocasa] --> LS
-    P3[Pisos.com] --> LS
-    LS --> P[scraper/parse.py]
-    P --> D[scraper/dedup.py]
-    D --> R[scorer/rules.py]
-    R --> H{cli/app.py approve<br/>HITL gate}
-    H -- approved --> T[alerter/telegram.py]
-    LS --> DB[(models/data_storage.py<br/>DuckDB)]
-    D --> DB
-    R --> DB
-    H --> DB
-    DB --> W[web.py public dashboard]
+    A[Portal searches] --> B[Scrape & parse]
+    B --> C[Deduplicate]
+    C --> D[Weighted scoring]
+    D --> E{Approval gate}
+    E -->|Approved| F[Telegram]
+    E -->|Held| G[Pending queue]
+
+    C --> H[(DuckDB)]
+    D --> H
+    E --> H
+    H --> I[Public dashboard]
+
+    B -. optional .-> J[LLM enrichment]
+    B -. optional .-> K[Catastro OVC]
+    J --> H
+    K --> H
 ```
 
-The pipeline scrapes Idealista, Fotocasa and Pisos.com, parses and deduplicates listings, scores each one with the rules engine, gates alerts behind manual approval when enabled, and notifies you via Telegram. DuckDB records every stage, and the public web dashboard renders the real stored metrics.
+The execution path is intentionally simple: **collect → normalize → deduplicate → score → approve → alert**, with DuckDB recording the pipeline state and the dashboard reading directly from that stored data.
+
+## Scoring model
+
+Every listing receives a weighted score from five dimensions. The weights live in `config/user_profile.yml`, so the model follows your priorities rather than a fixed global ranking.
+
+| Dimension | Default weight | Signal |
+| --- | ---: | --- |
+| Price | **35%** | Price fit against your target range |
+| Size | **25%** | Surface-area fit |
+| Energy certificate | **15%** | Energy-efficiency signal |
+| Garage | **10%** | Garage / parking preference |
+| Affordability | **15%** | Euribor-based affordability |
+
+**Alert threshold:** `70` by default.
+
+## Features
+
+### Multi-portal collection
+Idealista, Fotocasa and Pisos.com can be scanned in one run. Each source fails independently, so a problem in one portal does not block the rest of the pipeline.
+
+### Content-hash deduplication
+Listings are fingerprinted by content so repeated observations do not become repeated alerts. Only genuinely new inventory is promoted through the alert path.
+
+### Human-in-the-loop alerts
+Set `hitl_approval_required: true` to require manual approval before a listing can reach Telegram.
+
+### Optional intelligence layers
+LLM enrichment can extract renovation state, orientation, zone noise and potential scam red flags. Catastro OVC enrichment can cross-check public cadastral attributes such as surface, age and usage. Both are opt-in and their results are persisted for traceability.
+
+### Analytics + dashboard
+The project ships with a FastAPI dashboard backed by the real DuckDB dataset. It exposes KPIs, a weekly snapshot and the ranked opportunity table, while `homeops analytics` provides price, €/m², portal and run-time aggregates.
+
+### Automation built for long-running operation
+The daemon supports daily or interval schedules, daily alert quotas, catch-up recovery after downtime and overlap protection.
 
 ## Quick start
 
-### Option A: Docker (recommended)
+### Docker — recommended
 
 ```bash
-git clone https://github.com/alexramsal/home-ops
+git clone https://github.com/Alexramsal/home-ops.git
 cd home-ops
-cp .env.example .env                              # add your Telegram secrets
-cp config/user_profile.template.yml config/user_profile.yml  # set your search URL and scoring
+
+cp .env.example .env
+cp config/user_profile.template.yml config/user_profile.yml
+
+# Add your Telegram credentials and configure the search profile.
 docker compose up
 ```
 
-The daemon starts, scrapes on your schedule, and alerts to Telegram. No cloud dependencies, no external services.
-
-### Option B: Local development
+### Local development
 
 ```bash
-python -m venv .venv && source .venv/bin/activate
+python -m venv .venv
+source .venv/bin/activate
 pip install -e ".[dev]"
+
 cp config/user_profile.template.yml config/user_profile.yml
-homeops scan       # run one full pipeline cycle now
-homeops status     # inspect pipeline state
+
+homeops scan
+homeops status
 ```
 
 ## Dashboard
 
-Home-Ops ships a read-only public dashboard that renders the real DuckDB metrics: KPIs (unique listings, observations, repeated tracking, current €/m² median, opportunities ≥ 70, risk penalty), the latest weekly snapshot, and the ranked opportunity table with direct links to each portal listing.
+Run the read-only dashboard locally with:
 
 ```bash
-homeops web            # or: uvicorn home_ops.web:app --port 8321
+homeops web
+# or
+uvicorn home_ops.web:app --port 8321
 ```
 
-Open http://localhost:8321 . The dashboard requires no login, so bind it only to localhost or put it behind an authenticated reverse proxy (see Deployment).
+Then open `http://localhost:8321`.
+
+The dashboard does not provide authentication. Keep it bound to localhost or place it behind an authenticated reverse proxy / VPN before exposing it to a wider network.
 
 ## Configuration
 
-Configuration is split across two files: `.env` holds secrets, `user_profile.yml` holds your preferences. An optional `HOME_OPS_CONFIG` environment variable overrides the profile path.
+Home-Ops keeps **secrets** and **preferences** separate:
 
-### .env (secrets)
+### `.env`
 
 | Variable | Purpose |
-|----------|---------|
-| `TELEGRAM_BOT_TOKEN` | Optional unless Telegram alerting is enabled. Bot token via [@BotFather](https://t.me/BotFather). |
-| `TELEGRAM_CHAT_ID` | Optional unless Telegram alerting is enabled. Chat ID for alerts; the legacy `CHAT_ID` name is also accepted. |
-| `HOME_OPS_CONFIG` | Optional. Absolute path to an alternative `user_profile.yml`. |
-| `HOME_OPS_DB_PATH` | Optional. DuckDB database path; defaults to `data/home_ops.duckdb`. |
+| --- | --- |
+| `TELEGRAM_BOT_TOKEN` | Telegram bot token; required only when Telegram alerting is enabled. |
+| `TELEGRAM_CHAT_ID` | Telegram destination chat ID. The legacy `CHAT_ID` name is also accepted. |
+| `HOME_OPS_CONFIG` | Optional absolute path to an alternative `user_profile.yml`. |
+| `HOME_OPS_DB_PATH` | Optional DuckDB path; defaults to `data/home_ops.duckdb`. |
 
-### user_profile.yml (preferences)
+### `config/user_profile.yml`
 
 | Key | Default | Purpose |
-|-----|---------|---------|
-| `portal.urls` | `[idealista_url]` | Full scan list. One entry per portal search URL (Idealista, Fotocasa, Pisos.com). Each is scanned and fails independently. |
-| `scoring.thresholds.min_score_to_alert` | `70` | Minimum score before a listing is considered for alerting. |
-| `scoring.thresholds.weights` | see table above | Per-dimension scoring weights. |
-| `hitl_approval_required` | `true` | Require manual approval before alerts are sent. |
-| `alert_schedule.daily_time` | `"09:00"` | Daily alert time (HH:MM). |
-| `alert_schedule.timezone` | `"Europe/Madrid"` | Timezone for the schedule. |
+| --- | --- | --- |
+| `portal.urls` | `[idealista_url]` | Search URLs to scan across supported portals. |
+| `scoring.thresholds.min_score_to_alert` | `70` | Minimum score before a listing becomes alert-eligible. |
+| `scoring.thresholds.weights` | See scoring table | Per-dimension scoring weights. |
+| `hitl_approval_required` | `true` | Require approval before alerting. |
+| `alert_schedule.daily_time` | `"09:00"` | Daily alert time. |
+| `alert_schedule.timezone` | `"Europe/Madrid"` | Schedule timezone. |
 | `alert_schedule.max_alerts_per_day` | `5` | Daily alert quota. |
-| `euribor_rate` | `3.5` | Euribor rate used by the affordability dimension. |
+| `euribor_rate` | `3.5` | Rate used by the affordability dimension. |
 
-Config lives outside the container — edit `config/user_profile.yml` and run `docker compose restart`.
+## CLI
 
-## CLI reference
+| Command | Purpose |
+| --- | --- |
+| `homeops scan` | Run a full scrape → dedup → score → alert cycle. |
+| `homeops status` | Inspect pipeline state and pending approvals. |
+| `homeops analytics` | Show price, €/m², portal and per-day run analytics. |
+| `homeops snapshots-reset` | Invalidate cached scraper snapshots for a fresh cold start. |
+| `homeops approve <listing_id>` | Approve a pending listing for the next alert cycle. |
+| `homeops daemon` | Start the scheduled daily / interval execution loop. |
 
-| Command | Behavior |
-|---------|----------|
-| `scan [CONFIG_PATH] [-f/--force]` | Run the full pipeline: scrape, deduplicate, score, alert. Cold-start and incremental modes are auto-detected; `--force` bypasses early-stop pagination. |
-| `status [CONFIG_PATH]` | Rich summary: total listings, last scan time, pending HITL approvals. |
-| `analytics` | Price distribution, price-per-m², portal counts, and per-day run time-series (DuckDB aggregates). |
-| `snapshots-reset` | Invalidate cached scraper snapshots; the next scan performs a full cold start. |
-| `approve <listing_id> [-c PATH]` | HITL gate: mark a listing as approved; alerts are sent on the next scan. |
-| `daemon [-c PATH] [--dry-run]` | Schedule loop (60s tick) in daily or interval mode, with catch-up recovery, overlap guard, and daily alert quota. |
+Useful flags such as `--force`, `--dry-run` and custom config paths are available on the corresponding commands.
 
-## Project layout
+## Project structure
 
-```
+```text
 home-ops/
 ├── src/home_ops/
-│   ├── cli/        # Typer CLI: scan, status, snapshots-reset, approve, daemon
-│   ├── config/     # YAML + .env configuration loader
-│   ├── models/     # Pydantic schemas and DuckDB storage
-│   ├── scraper/    # lifecycle, parse, dedup
-│   ├── scorer/     # rules engine and affordability model
-│   └── alerter/    # Telegram notifier
-├── config/         # user_profile.template.yml
-├── systemd/        # homeops.service unit
-├── tests/          # pytest suite (unit + CLI)
+│   ├── cli/        # Typer commands and daemon entry points
+│   ├── config/     # YAML + .env configuration
+│   ├── models/     # Pydantic schemas + DuckDB storage
+│   ├── scraper/    # lifecycle, parsing and deduplication
+│   ├── scorer/     # scoring rules + affordability model
+│   └── alerter/    # Telegram notifications
+├── config/         # user profile template
+├── systemd/        # hardened service unit
+├── tests/          # unit + CLI tests
 ├── docker-compose.yml
 ├── Dockerfile
 └── pyproject.toml
@@ -157,31 +192,32 @@ home-ops/
 
 ## Quality gates
 
-Every push to `main` runs in CI (GitHub Actions):
+Every push to `main` runs the CI pipeline with:
 
 ```bash
-ruff check src/                    # lint
-mypy src/                          # strict type checking
-pytest                            # full test suite (coverage floor 70%)
-docker compose up --build         # docker smoke: image builds and runs
+ruff check src/
+mypy src/
+pytest
+
+docker compose up --build
 ```
 
-The full test suite passes on every CI run, with a 70% coverage floor enforced by the coverage gate.
+The test suite enforces a **70% coverage floor** and CI also performs a Docker smoke check.
 
 ## Deployment
 
 ### Docker
-
-`docker compose` is the recommended deployment: `.env` is loaded via `env_file`, your profile is mounted read-only from `./config` into the container (`HOME_OPS_CONFIG=/app/config/user_profile.yml`), and the DuckDB database persists in the `homeops-data` volume.
 
 ```bash
 docker compose up -d
 docker compose logs -f homeops
 ```
 
+The compose deployment loads `.env`, mounts the profile read-only, and persists DuckDB in the `homeops-data` volume.
+
 ### systemd
 
-A hardened unit is provided in [`systemd/homeops.service`](systemd/homeops.service): runs as a dedicated non-root `homeops` user with `ProtectSystem=strict`, `PrivateTmp`, and a locked-down capability set.
+A hardened unit is included at [`systemd/homeops.service`](systemd/homeops.service). It is designed to run under a dedicated non-root `homeops` user with filesystem and capability restrictions.
 
 ```bash
 sudo useradd --system --home /opt/home-ops --shell /usr/sbin/nologin homeops
@@ -191,43 +227,47 @@ sudo cp systemd/homeops.service /etc/systemd/system/
 sudo systemctl enable --now homeops
 ```
 
-Telegram is optional: without credentials the daemon and readiness remain available; alert attempts are logged as disabled/failed.
+### Backup & restore
 
-### Backup and restore
-
-Stop the service before copying a live DuckDB file; do not copy an active database file directly.
+Stop the service before copying a live DuckDB database.
 
 ```bash
 sudo systemctl stop homeops
 sudo cp -a /opt/home-ops/data/home_ops.duckdb /secure-backups/home_ops.duckdb
 sudo systemctl start homeops
-
-# Restore: stop first, replace the database, preserve service ownership, then start.
-sudo systemctl stop homeops
-sudo cp /secure-backups/home_ops.duckdb /opt/home-ops/data/home_ops.duckdb
-sudo chown homeops:homeops /opt/home-ops/data/home_ops.duckdb
-sudo systemctl start homeops
 ```
 
-### Dashboard network exposure
+For restore, stop the service, replace the database, preserve ownership, then start it again.
 
-The dashboard has no login. Bind it only to localhost (`127.0.0.1`, the default). Remote access requires an authenticated reverse proxy or VPN; never expose the dashboard directly to an untrusted network.
+## Security notes
+
+> [!WARNING]
+> The dashboard has **no login**. Do not expose it directly to an untrusted network. Use localhost, an authenticated reverse proxy, or a VPN.
+
+> [!NOTE]
+> Telegram is optional. Without Telegram credentials, the daemon and readiness remain available and alert attempts are recorded as disabled / failed.
 
 ## Roadmap
 
-- [x] MVP: scrape, score, alert on Telegram
-- [x] Daemon scheduler with catch-up recovery and daily quota
+- [x] Scrape, score and alert on Telegram
+- [x] Daily daemon with catch-up recovery and alert quota
 - [x] Human-in-the-loop approval gate
 - [x] Docker deployment
-- [x] Detail page scraping (exact garage price, real energy certificate)
-- [x] Catastro OVC enrichment (free public cadastral data, opt-in)
-- [x] LLM description enrichment + scam second-opinion (litellm, opt-in)
-- [x] DuckDB analytics layer (`homeops analytics`)
-- [x] Structured JSON logging (opt-in)
+- [x] Detail-page extraction for garage price and energy certificate
+- [x] Catastro OVC enrichment
+- [x] LLM description enrichment + scam second opinion
+- [x] DuckDB analytics
+- [x] Structured JSON logging
 - [x] GHCR release pipeline on version tags
 - [ ] Textual TUI for real-time pipeline monitoring
-- [ ] Multi-portal support (Fotocasa, Habitaclia)
+- [ ] Expand portal coverage (including Habitaclia)
 
 ## License
 
-[MIT](LICENSE)
+Released under the [MIT License](LICENSE).
+
+<div align="center">
+
+**Home-Ops** · automate the hunt, keep the human in the loop.
+
+</div>
