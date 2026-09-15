@@ -12,6 +12,7 @@ Ponytail: no pagination -- add if listing count grows past a screenful
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 from urllib.parse import urlparse
 
 from fastapi import FastAPI, Request
@@ -68,6 +69,52 @@ def _fmt_eur_m2(v: float | None) -> str:
     return f"{v:,.0f} €/m²" if v is not None else "—"
 
 
+def _fmt_es_number(value: float) -> str:
+    return f"{value:,.0f}".replace(",", ".")
+
+
+def _build_weekly_chart(series: list[dict[str, Any]]) -> dict[str, Any] | None:
+    """Build SVG coordinates from observed weekly values only."""
+    if not series:
+        return None
+    width, height = 760, 340
+    left, right, top, bottom = 82, 58, 42, 82
+    plot_width = width - left - right
+    plot_height = height - top - bottom
+    values = [float(row[key]) for row in series for key in ("median_raw", "mean_raw")]
+    low, high = min(values), max(values)
+    padding = max((high - low) * 0.12, max(high, 1) * 0.04)
+    y_min, y_max = max(0.0, low - padding), high + padding
+    span = y_max - y_min or 1.0
+
+    def y(value: float) -> float:
+        return top + (y_max - value) / span * plot_height
+
+    points: list[dict[str, Any]] = []
+    for index, row in enumerate(series):
+        x = left + (plot_width / 2 if len(series) == 1 else index * plot_width / (len(series) - 1))
+        points.append({
+            **row,
+            "x": round(x, 2),
+            "median_y": round(y(float(row["median_raw"])), 2),
+            "mean_y": round(y(float(row["mean_raw"])), 2),
+        })
+    ticks = [
+        {"y": round(top + index * plot_height / 4, 2), "label": _fmt_es_number(y_max - index * span / 4)}
+        for index in range(5)
+    ]
+    first = float(series[0]["median_raw"])
+    last = float(series[-1]["median_raw"])
+    variation = ((last / first) - 1) * 100 if len(series) > 1 and first else None
+    return {
+        "view_box": f"0 0 {width} {height}", "left": left, "right_x": width - right,
+        "top": top, "bottom_y": height - bottom, "points": points, "ticks": ticks,
+        "median_path": " ".join(f"{p['x']},{p['median_y']}" for p in points),
+        "mean_path": " ".join(f"{p['x']},{p['mean_y']}" for p in points),
+        "variation": f"{variation:+.1f}".replace(".", ",") if variation is not None else None,
+    }
+
+
 def _vs_median(price: float, m2: float, median_eur_m2: float) -> str:
     """% vs the current global median (€/m²)."""
     if not price or not m2 or not median_eur_m2:
@@ -98,9 +145,10 @@ def index(request: Request) -> HTMLResponse:
             {
                 "date": w[0].strftime("%Y-%m-%d") if w[0] else "—",
                 "n": int(w[1]),
-                "median": f"{w[2]:,.0f}" if w[2] else "—",
-                "mean": f"{w[3]:,.0f}" if w[3] else "—",
+                "median": _fmt_es_number(float(w[2])) if w[2] else "—",
+                "mean": _fmt_es_number(float(w[3])) if w[3] else "—",
                 "median_raw": float(w[2]) if w[2] else None,
+                "mean_raw": float(w[3]) if w[3] else None,
             }
             for w in reversed(weekly)  # weekly viene DESC; reverse a ASC
         ]
@@ -200,6 +248,7 @@ def index(request: Request) -> HTMLResponse:
             "median_eur_m2": f"{median_eur_m2:,.0f}" if median_eur_m2 else "—",
             "cutoff": cutoff_date,
             "series": series,
+            "chart": _build_weekly_chart(series),
             "trend_qty": len(series),
             "week": {
                 "date": latest_week[0].strftime("%Y-%m-%d") if latest_week[0] else "—",

@@ -139,8 +139,11 @@ def test_index_trends_section_insufficient_weeks(tmp_path, monkeypatch) -> None:
     resp = client.get("/")
     assert resp.status_code == 200
     assert "Tendencias Temporales" in resp.text
-    assert "<svg" not in resp.text
-    assert "gráfico se activa" in resp.text or "insuficiente" in resp.text
+    assert "<svg" in resp.text
+    assert "2024-12-30" in resp.text
+    assert "2.000 €/m²" in resp.text
+    assert "N=1" in resp.text
+    assert "Comparación descriptiva; no constituye una tendencia" in resp.text
 
 
 def test_index_trends_section_with_two_weeks(tmp_path, monkeypatch) -> None:
@@ -162,3 +165,21 @@ def test_index_trends_section_with_two_weeks(tmp_path, monkeypatch) -> None:
     assert "Tendencias Temporales" in resp.text
     assert "<svg" in resp.text
     assert "Evolución semanal" in resp.text
+    assert "Mediana" in resp.text
+    assert "Media" in resp.text
+    assert "2024-12-30" in resp.text
+    assert "2025-01-13" in resp.text
+    assert "Comparación semanal real" in resp.text
+    assert "DuckDB" in resp.text
+
+
+def test_index_trends_section_without_observations(tmp_path, monkeypatch) -> None:
+    db_path = str(tmp_path / "home_ops.duckdb")
+    _seed(db_path, [])
+    monkeypatch.setattr(web_mod, "get_db_path", lambda: db_path)
+
+    resp = TestClient(web_mod.app).get("/")
+
+    assert resp.status_code == 200
+    assert "Aún no hay observaciones semanales válidas" in resp.text
+    assert "<svg" not in resp.text

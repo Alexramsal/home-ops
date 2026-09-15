@@ -120,35 +120,36 @@
   <div class="section-title">Tendencias Temporales</div>
   <div class="trends weekly">
     <h3>Evolución semanal de €/m² ({{ trend_qty }} semanas registradas)</h3>
-    {% if trend_qty >= 2 %}
-    <svg viewBox="0 0 600 240" role="img" aria-label="Evolución semanal del precio por metro cuadrado" style="width:100%;height:auto;">
-      {% set max_v = series | map(attribute='median_raw') | max %}
-      {% set min_v = series | map(attribute='median_raw') | min %}
-      {% set span = (max_v - min_v) if (max_v - min_v) > 0 else 1 %}
-      {% set step_x = 520.0 / (trend_qty - 1) %}
-      {% for s in series %}
-        {% set x = 60 + (loop.index0 * step_x) %}
-        {% set y = 210 - (((s.median_raw - min_v) / span) * 170) %}
-        {% if loop.first %}
-          <circle cx="{{ x }}" cy="{{ y }}" r="4" fill="#58a6ff"/>
-          <text x="{{ x }}" y="{{ y - 12 }}" fill="#8b949e" font-size="12" text-anchor="middle">{{ s.date }}</text>
-          <text x="{{ x }}" y="{{ y + 20 }}" fill="#58a6ff" font-size="12" text-anchor="middle">{{ s.median }} €/m²</text>
-        {% else %}
-          {% set px = 60 + ((loop.index0 - 1) * step_x) %}
-          {% set py = 210 - (((series[loop.index0 - 1].median_raw - min_v) / span) * 170) %}
-          <line x1="{{ px }}" y1="{{ py }}" x2="{{ x }}" y2="{{ y }}" stroke="#58a6ff" stroke-width="2"/>
-          <circle cx="{{ x }}" cy="{{ y }}" r="4" fill="#58a6ff"/>
-          <text x="{{ x }}" y="{{ y - 12 }}" fill="#8b949e" font-size="12" text-anchor="middle">{{ s.date }}</text>
-          <text x="{{ x }}" y="{{ y + 20 }}" fill="#58a6ff" font-size="12" text-anchor="middle">{{ s.median }} €/m²</text>
-        {% endif %}
+    {% if chart %}
+    <svg viewBox="{{ chart.view_box }}" role="img" aria-labelledby="trend-title trend-desc" style="width:100%;height:auto;">
+      <title id="trend-title">Comparación semanal real del precio por metro cuadrado</title>
+      <desc id="trend-desc">Mediana y media semanal calculadas desde las observaciones almacenadas en DuckDB.</desc>
+      {% for tick in chart.ticks %}
+      <line x1="{{ chart.left }}" y1="{{ tick.y }}" x2="{{ chart.right_x }}" y2="{{ tick.y }}" stroke="#30363d"/>
+      <text x="{{ chart.left - 10 }}" y="{{ tick.y + 4 }}" fill="#8b949e" font-size="11" text-anchor="end">{{ tick.label }}</text>
       {% endfor %}
+      <line x1="{{ chart.left }}" y1="{{ chart.top }}" x2="{{ chart.left }}" y2="{{ chart.bottom_y }}" stroke="#8b949e"/>
+      <line x1="{{ chart.left }}" y1="{{ chart.bottom_y }}" x2="{{ chart.right_x }}" y2="{{ chart.bottom_y }}" stroke="#8b949e"/>
+      <text x="18" y="32" fill="#8b949e" font-size="11">€/m²</text>
+      {% if trend_qty > 1 %}
+      <polyline points="{{ chart.median_path }}" fill="none" stroke="#58a6ff" stroke-width="3"/>
+      <polyline points="{{ chart.mean_path }}" fill="none" stroke="#d29922" stroke-width="2" stroke-dasharray="6 4"/>
+      {% endif %}
+      {% for point in chart.points %}
+      <circle cx="{{ point.x }}" cy="{{ point.median_y }}" r="5" fill="#58a6ff"><title>Mediana {{ point.date }}: {{ point.median }} €/m²</title></circle>
+      <circle cx="{{ point.x }}" cy="{{ point.mean_y }}" r="4" fill="#d29922"><title>Media {{ point.date }}: {{ point.mean }} €/m²</title></circle>
+      <text x="{{ point.x }}" y="{{ chart.bottom_y + 24 }}" fill="#e6edf3" font-size="11" text-anchor="middle">{{ point.date }}</text>
+      <text x="{{ point.x }}" y="{{ chart.bottom_y + 42 }}" fill="#8b949e" font-size="10" text-anchor="middle">N={{ point.n }}</text>
+      {% endfor %}
+      <circle cx="{{ chart.left + 8 }}" cy="18" r="4" fill="#58a6ff"/><text x="{{ chart.left + 18 }}" y="22" fill="#e6edf3" font-size="11">Mediana</text>
+      <circle cx="{{ chart.left + 100 }}" cy="18" r="4" fill="#d29922"/><text x="{{ chart.left + 110 }}" y="22" fill="#e6edf3" font-size="11">Media</text>
     </svg>
     <p style="color:var(--muted);font-size:.8rem;margin-top:.75rem;">
-      Mediana €/m² por semana. {{ trend_qty }} puntos registrados: la serie se consolida con cada scan semanal.
-      {% if trend_qty < 4 %}<b>Nota:</b> con menos de 4 semanas no se modela tendencia ni estacionalidad — se muestran los datos crudos sin curvas ajustadas.{% endif %}
+      {{ trend_qty }} punto(s) semanal(es) observado(s).{% if chart.variation %} Variación descriptiva de la mediana: {{ chart.variation }}%.{% endif %}
+      {% if trend_qty < 4 %}<b>Comparación descriptiva; no constituye una tendencia.</b>{% else %}Evolución observada sin proyección ni ajuste.{% endif %}
     </p>
     {% else %}
-    <p style="color:var(--muted);font-size:.85rem;">Aún no hay suficiente serie temporal (1 semana). El gráfico se activa al acumular el segundo scan semanal.</p>
+    <p style="color:var(--muted);font-size:.85rem;">Aún no hay observaciones semanales válidas.</p>
     {% endif %}
   </div>
 
@@ -198,7 +199,7 @@
   <div class="limits">
     <ul>
       <li><b>Fecha de Corte de Datos:</b> {{ cutoff }} — los datos analizados corresponden exactamente al snapshot capturado el {{ cutoff }}. No se han incorporado eventos posteriores.</li>
-      <li><b>Insuficiencia de Serie Temporal (1 Semana):</b> disponibilidad de una única semana de muestra ({{ week.date }} con {{ week.n }} observaciones). No es técnicamente admisible modelar tendencia o estacionalidad con este horizonte.</li>
+      <li><b>Serie Temporal ({{ trend_qty }} semana{% if trend_qty != 1 %}s{% endif %}):</b> {{ trend_qty }} punto{% if trend_qty != 1 %}s{% endif %} semanal{% if trend_qty != 1 %}es{% endif %} registrado{% if trend_qty != 1 %}s{% endif %}. {% if trend_qty < 4 %}No es técnicamente admisible modelar tendencia o estacionalidad con este horizonte.{% else %}Se muestran observaciones reales sin proyección futura.{% endif %}</li>
       <li><b>Precios de Oferta Publicados:</b> los importes reflejan precios anunciados por vendedores en portales inmobiliarios; las operaciones notariales reales suelen negociarse con descuentos adicionales.</li>
       <li><b>Muestra Acotada ({{ n_unique }} Inmuebles Únicos):</b> el análisis se circunscribe a los {{ n_unique }} registros verificados. Home-Ops es un ejercicio de ingeniería de datos y no constituye asesoramiento financiero.</li>
       <li><b>Cero Datos Inventados o Sintéticos:</b> no se publican versiones ficticias, runs inventados ni conteos de tests ficticios. Todos los números derivan estrictamente de la base de datos.</li>
