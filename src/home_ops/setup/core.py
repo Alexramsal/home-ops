@@ -362,6 +362,7 @@ def test_telegram(bot_token: str, chat_id: str, timeout: float = 5.0) -> tuple[b
 def test_llm(base_url: str, api_key: str, model: str, timeout: float = 10.0) -> tuple[bool, str]:
     """Send one tiny chat completion to the configured OpenAI-compatible endpoint."""
     import json
+    import urllib.error
     import urllib.request
 
     if not base_url or not api_key or not model:
@@ -372,20 +373,32 @@ def test_llm(base_url: str, api_key: str, model: str, timeout: float = 10.0) -> 
             "model": model,
             "messages": [{"role": "user", "content": "ping"}],
             "max_tokens": 1,
+            "stream": False,
         }
     ).encode()
     req = urllib.request.Request(
         url,
         data=body,
-        headers={"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"},
+        headers={
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "Authorization": f"Bearer {api_key}",
+        },
         method="POST",
     )
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
-            data = json.loads(resp.read().decode())
+            raw = resp.read().decode(errors="replace")
+        try:
+            data = json.loads(raw)
+        except json.JSONDecodeError:
+            return False, f"Respuesta no JSON (status 200): {raw[:120]!r}"
         if "choices" not in data:
             return False, f"Respuesta inesperada: {str(data)[:120]}"
         return True, f"LLM OK: {model} respondió."
+    except urllib.error.HTTPError as exc:
+        raw = exc.read().decode(errors="replace")
+        return False, f"HTTP {exc.code}: {raw[:120]}"
     except Exception as exc:
         return False, f"Error de red ({type(exc).__name__})."
 

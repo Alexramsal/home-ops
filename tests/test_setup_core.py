@@ -183,6 +183,66 @@ def test_llm_validator_missing_creds() -> None:
     assert ok is False
 
 
+class _FakeResp:
+    def __init__(self, body: bytes = b"", code: int = 200) -> None:
+        self.body = body
+        self.code = code
+
+    def __enter__(self) -> _FakeResp:
+        return self
+
+    def __exit__(self, *exc: object) -> None:
+        return None
+
+    def read(self, *_a: object) -> bytes:
+        return self.body
+
+
+class _FakeHTTPError(Exception):
+    def __init__(self, code: int, body: bytes) -> None:
+        super().__init__(code)
+        self.code = code
+        self.body = body
+
+    def read(self) -> bytes:
+        return self.body
+
+    def close(self) -> None:
+        return None
+
+
+def test_llm_validator_handles_non_json_and_http_errors(monkeypatch: object) -> None:
+    import json
+    import urllib.error
+
+    def fake_ok(*args: object, **kwargs: object) -> _FakeResp:
+        return _FakeResp(json.dumps({"choices": [{"text": "hi"}]}).encode())
+
+    monkeypatch.setattr("urllib.request.urlopen", fake_ok)  # type: ignore[attr-defined]
+    ok, msg = test_llm("https://example.test", "key", "model")
+    assert ok is True and "OK" in msg
+
+    def fake_html(*args: object, **kwargs: object) -> _FakeResp:
+        return _FakeResp(b"<html>not json</html>")
+
+    monkeypatch.setattr("urllib.request.urlopen", fake_html)  # type: ignore[attr-defined]
+    ok, msg = test_llm("https://example.test", "key", "model")
+    assert ok is False and "no JSON" in msg
+
+    def fake_http(*args: object, **kwargs: object) -> _FakeResp:
+        raise urllib.error.HTTPError(
+            "url",
+            500,
+            "Internal",
+            {},
+            _FakeHTTPError(500, b"oops"),  # type: ignore[arg-type]
+        )
+
+    monkeypatch.setattr("urllib.request.urlopen", fake_http)  # type: ignore[attr-defined]
+    ok, msg = test_llm("https://example.test", "key", "model")
+    assert ok is False and "HTTP 500" in msg
+
+
 def test_write_config_preserves_custom_thresholds(tmp_path: Path) -> None:
     """F1: wizard save must not reset unexposed scoring.thresholds keys."""
     cfg = tmp_path / "user_profile.yml"
