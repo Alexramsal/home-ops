@@ -93,6 +93,17 @@ def index(request: Request) -> HTMLResponse:
         latest_week = weekly[0] if weekly else (None, 0, None, None)
         n_weeks = len(weekly)
 
+        series = [
+            {
+                "date": w[0].strftime("%Y-%m-%d") if w[0] else "—",
+                "n": int(w[1]),
+                "median": f"{w[2]:,.0f}" if w[2] else "—",
+                "mean": f"{w[3]:,.0f}" if w[3] else "—",
+                "median_raw": float(w[2]) if w[2] else None,
+            }
+            for w in reversed(weekly)  # weekly viene DESC; reverse a ASC
+        ]
+
         # Fecha de corte (última observación)
         cutoff = db.conn.execute("SELECT MAX(observed_at) FROM price_history").fetchone()
         cutoff_date = cutoff[0].strftime("%Y-%m-%d") if cutoff and cutoff[0] else "—"
@@ -169,6 +180,8 @@ def index(request: Request) -> HTMLResponse:
             "n_scored": scored_70,
             "median_eur_m2": f"{median_eur_m2:,.0f}" if median_eur_m2 else "—",
             "cutoff": cutoff_date,
+            "series": series,
+            "trend_qty": len(series),
             "week": {
                 "date": latest_week[0].strftime("%Y-%m-%d") if latest_week[0] else "—",
                 "n": int(latest_week[1]),

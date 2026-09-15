@@ -81,3 +81,43 @@ def test_index_neutralizes_unsafe_url_scheme(tmp_path, monkeypatch) -> None:
     resp = client.get("/")
     assert resp.status_code == 200
     assert "javascript:" not in resp.text
+
+
+def test_index_trends_section_insufficient_weeks(tmp_path, monkeypatch) -> None:
+    db_path = str(tmp_path / "home_ops.duckdb")
+    _seed(
+        db_path,
+        [
+            "INSERT INTO price_history (content_hash, zone, price, m2, observed_at) "
+            "VALUES ('h1', 'zone1', 150000, 75, '2025-01-01 10:00:00')"
+        ],
+    )
+    monkeypatch.setattr(web_mod, "_get_db_path", lambda: db_path)
+
+    client = TestClient(web_mod.app)
+    resp = client.get("/")
+    assert resp.status_code == 200
+    assert "Tendencias Temporales" in resp.text
+    assert "<svg" not in resp.text
+    assert "gráfico se activa" in resp.text or "insuficiente" in resp.text
+
+
+def test_index_trends_section_with_two_weeks(tmp_path, monkeypatch) -> None:
+    db_path = str(tmp_path / "home_ops.duckdb")
+    _seed(
+        db_path,
+        [
+            "INSERT INTO price_history (content_hash, zone, price, m2, observed_at) "
+            "VALUES ('h1', 'zone1', 150000, 75, '2025-01-01 10:00:00')",
+            "INSERT INTO price_history (content_hash, zone, price, m2, observed_at) "
+            "VALUES ('h2', 'zone1', 160000, 80, '2025-01-15 10:00:00')",
+        ],
+    )
+    monkeypatch.setattr(web_mod, "_get_db_path", lambda: db_path)
+
+    client = TestClient(web_mod.app)
+    resp = client.get("/")
+    assert resp.status_code == 200
+    assert "Tendencias Temporales" in resp.text
+    assert "<svg" in resp.text
+    assert "Evolución semanal" in resp.text

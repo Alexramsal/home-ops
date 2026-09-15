@@ -116,6 +116,42 @@
     <div class="warn">⚠ Una semana registrada es insuficiente para proyectar tendencia temporal o estacionalidad. Se rechazan gráficos inventados.</div>
   </div>
 
+  <!-- TENDENCIAS -->
+  <div class="section-title">Tendencias Temporales</div>
+  <div class="trends weekly">
+    <h3>Evolución semanal de €/m² ({{ trend_qty }} semanas registradas)</h3>
+    {% if trend_qty >= 2 %}
+    <svg viewBox="0 0 600 240" role="img" aria-label="Evolución semanal del precio por metro cuadrado" style="width:100%;height:auto;">
+      {% set max_v = series | map(attribute='median_raw') | max %}
+      {% set min_v = series | map(attribute='median_raw') | min %}
+      {% set span = (max_v - min_v) if (max_v - min_v) > 0 else 1 %}
+      {% set step_x = 520.0 / (trend_qty - 1) %}
+      {% for s in series %}
+        {% set x = 60 + (loop.index0 * step_x) %}
+        {% set y = 210 - (((s.median_raw - min_v) / span) * 170) %}
+        {% if loop.first %}
+          <circle cx="{{ x }}" cy="{{ y }}" r="4" fill="#58a6ff"/>
+          <text x="{{ x }}" y="{{ y - 12 }}" fill="#8b949e" font-size="12" text-anchor="middle">{{ s.date }}</text>
+          <text x="{{ x }}" y="{{ y + 20 }}" fill="#58a6ff" font-size="12" text-anchor="middle">{{ s.median }} €/m²</text>
+        {% else %}
+          {% set px = 60 + ((loop.index0 - 1) * step_x) %}
+          {% set py = 210 - (((series[loop.index0 - 1].median_raw - min_v) / span) * 170) %}
+          <line x1="{{ px }}" y1="{{ py }}" x2="{{ x }}" y2="{{ y }}" stroke="#58a6ff" stroke-width="2"/>
+          <circle cx="{{ x }}" cy="{{ y }}" r="4" fill="#58a6ff"/>
+          <text x="{{ x }}" y="{{ y - 12 }}" fill="#8b949e" font-size="12" text-anchor="middle">{{ s.date }}</text>
+          <text x="{{ x }}" y="{{ y + 20 }}" fill="#58a6ff" font-size="12" text-anchor="middle">{{ s.median }} €/m²</text>
+        {% endif %}
+      {% endfor %}
+    </svg>
+    <p style="color:var(--muted);font-size:.8rem;margin-top:.75rem;">
+      Mediana €/m² por semana. {{ trend_qty }} puntos registrados: la serie se consolida con cada scan semanal.
+      {% if trend_qty < 4 %}<b>Nota:</b> con menos de 4 semanas no se modela tendencia ni estacionalidad — se muestran los datos crudos sin curvas ajustadas.{% endif %}
+    </p>
+    {% else %}
+    <p style="color:var(--muted);font-size:.85rem;">Aún no hay suficiente serie temporal (1 semana). El gráfico se activa al acumular el segundo scan semanal.</p>
+    {% endif %}
+  </div>
+
   <!-- TABLA -->
   <div class="section-title">Selección Cuantitativa Auditada</div>
   <h2 style="font-size:1.1rem;">Oportunidades Inmobiliarias Rankeadas (Score 5D ≥ 70)</h2>
