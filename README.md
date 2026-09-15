@@ -2,7 +2,7 @@
 
 # Home-Ops
 
-### Agentic real-estate scouting for Spain
+### Agentic property intelligence for Spain
 
 Scrape listings. Score opportunities. Verify signals. Get alerted before the good ones disappear.
 
