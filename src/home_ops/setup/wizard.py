@@ -24,19 +24,21 @@ from textual.widgets import (
     ListItem,
     ListView,
     Static,
+    Switch,
+    TextArea,
 )
 
 from home_ops.setup.core import load_state, test_llm, test_telegram, write_config
 
 # section -> (field id, label, key path into state, password?)
-_FIELD_SPECS: dict[str, list[tuple[str, str, tuple[str, ...], bool]]] = {
+_FIELD_SPECS: dict[str, list[tuple[str, str, tuple[str, ...], bool | str]]] = {
     "Telegram": [
         ("bot_token", "Token del bot", ("telegram", "bot_token"), True),
         ("chat_id", "Chat ID", ("telegram", "chat_id"), False),
         ("tg_test", "Test Telegram", (), True),
     ],
     "LLM": [
-        ("llm_enabled", "Activar LLM (1/0)", ("llm", "enabled"), False),
+        ("llm_enabled", "Activar LLM", ("llm", "enabled"), "boolean"),
         ("ai_base_url", "Base URL", ("env", "AI_BASE_URL"), False),
         ("ai_api_key", "API Key", ("env", "AI_API_KEY"), True),
         ("ai_model", "Model", ("env", "AI_MODEL"), False),
@@ -61,7 +63,12 @@ _FIELD_SPECS: dict[str, list[tuple[str, str, tuple[str, ...], bool]]] = {
     ],
     "Comprador": [
         ("itp", "ITP por defecto (0-1)", ("buyer_protection", "default_itp_rate"), False),
-        ("ceiling", "Esfuerzo hipotecario máx (0-1)", ("buyer_protection", "mortgage_income_ceiling"), False),
+        (
+            "ceiling",
+            "Esfuerzo hipotecario máx (0-1)",
+            ("buyer_protection", "mortgage_income_ceiling"),
+            False,
+        ),
         ("down", "Entrada (0-1)", ("buyer_protection", "down_payment_pct"), False),
         ("years", "Años hipoteca", ("buyer_protection", "mortgage_years"), False),
     ],
@@ -128,10 +135,27 @@ class SetupWizard(ModalScreen[bool]):
                         with Vertical(id=_section_id(name), classes="section"):
                             for fid, label, _path, pwd in _FIELD_SPECS[name]:
                                 value = self._initial_value(fid, label, _path)
-                                yield Label(f"[b]{label}[/b]")
-                                yield Input(
-                                    value=value, password=pwd, id=fid, placeholder=label
-                                )
+                                if not _path:
+                                    yield Button(label, id=fid)
+                                elif fid == "portals":
+                                    yield Label(f"[b]{label}[/b]")
+                                    yield TextArea(
+                                        value,
+                                        id=fid,
+                                        placeholder=label,
+                                        soft_wrap=True,
+                                    )
+                                elif pwd == "boolean":
+                                    yield Label(f"[b]{label}[/b]")
+                                    yield Switch(value=str(value).lower() in ("1", "true"), id=fid)
+                                else:
+                                    yield Label(f"[b]{label}[/b]")
+                                    yield Input(
+                                        value=value,
+                                        password=bool(pwd),
+                                        id=fid,
+                                        placeholder=label,
+                                    )
                 yield Static(id="panel-status")
         with Horizontal(classes="actions"):
             yield Button("Guardar", variant="primary", id="save")
@@ -175,7 +199,14 @@ class SetupWizard(ModalScreen[bool]):
     # -------------------------------------------------------------- persistence
 
     def _get_input(self, fid: str) -> str:
-        return self.query_one(f"#{fid}", Input).value
+        widget = self.query_one(f"#{fid}")
+        if isinstance(widget, TextArea):
+            return widget.text
+        if isinstance(widget, Switch):
+            return "1" if widget.value else "0"
+        if isinstance(widget, Input):
+            return widget.value
+        return ""
 
     def _collect_state(self) -> dict[str, Any]:
         s = self.state
@@ -228,8 +259,11 @@ class SetupWizard(ModalScreen[bool]):
     def action_save(self) -> None:
         state = self._collect_state()
         if not state["telegram"]["bot_token"]:
-            self._status("Telegram token obligatorio para alertas.", error=True)
-            return
+            self._status(
+                "Sin token de Telegram: las alertas por chat no se enviarán "
+                "(los portales, scoring y web sí funcionan).",
+                error=False,
+            )
         try:
             write_config(self.config_path, self.env_path, state)
         except Exception as exc:
