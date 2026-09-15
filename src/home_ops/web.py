@@ -26,6 +26,7 @@ app = FastAPI(title="Home-Ops")
 templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 
 _SAFE_URL_SCHEMES = {"http", "https"}
+_IDEALISTA_BASE = "https://www.idealista.com"
 _MEDIAN_EUR_M2 = 3618.0  # mediana global listings activos (verificada DuckDB)
 _WEEK = "2026-08-31"
 _WEEK_N = 150
@@ -34,14 +35,24 @@ _WEEK_MEAN = 3865.0
 
 
 def _safe_url(url: str | None) -> str:
-    """Neutralize non-http(s) schemes (e.g. javascript:) in scraped URLs."""
+    """Neutralize non-http(s) schemes (e.g. javascript:) in scraped URLs.
+
+    Idealista scraped URLs are origin-relative paths (``/inmueble/...``), so
+    a leading ``/`` is allowed and rendered as a same-origin link.
+    """
     if not url:
         return "#"
     try:
         scheme = urlparse(url).scheme.lower()
     except ValueError:
         return "#"
-    return url if scheme in _SAFE_URL_SCHEMES else "#"
+    if scheme in _SAFE_URL_SCHEMES:
+        return url
+    if url.startswith("/"):
+        # Scraper stores origin-relative paths; resolve to the absolute
+        # Idealista URL so links work from any deployment domain.
+        return f"{_IDEALISTA_BASE}{url}"
+    return "#"
 
 
 def _fmt_euro(v: float | None) -> str:
@@ -120,6 +131,7 @@ def index(request: Request) -> HTMLResponse:
                 "score": f"{score:.0f}" if score is not None else "—",
                 "risk": f"{risk:.0f}" if risk is not None else "—",
                 "portal": portal,
+                "url": _safe_url(url),
                 "hitl": "Verificado HITL" if hitl.get(rid) else "Pendiente Auditoría",
             }
         )

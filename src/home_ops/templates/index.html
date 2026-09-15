@@ -53,6 +53,8 @@
   .vsmed { color:var(--green); font-size:.78rem; }
   .hitl-pend { color:var(--yellow); }
   .hitl-ok { color:var(--green); }
+  a.portal-link { color:var(--muted); text-decoration:none; border-bottom:1px dashed var(--border); }
+  a.portal-link:hover { color:var(--accent); border-bottom-color:var(--accent); }
   .top1 { color:var(--yellow); font-size:.7rem; letter-spacing:.05em; }
   /* metodología */
   .methods { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:.75rem; margin-top:1rem; }
@@ -130,7 +132,7 @@
         <td class="vsmed">{{ r.vs_median }}</td>
         <td class="score">{{ r.score }} / 100</td>
         <td class="risk">{{ r.risk }} (Metodología)</td>
-        <td>{{ r.portal }}</td>
+        <td>{% if r.url != "#" %}<a class="portal-link" href="{{ r.url }}" target="_blank" rel="noopener">{{ r.portal }}</a>{% else %}{{ r.portal }}{% endif %}</td>
         <td class="hitl-pend">{{ r.hitl }}</td>
       </tr>
       {% endfor %}
