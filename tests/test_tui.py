@@ -339,6 +339,35 @@ async def test_tui_portals_render_and_open_exact_urls_in_listing_tabs(
 
 
 @pytest.mark.asyncio
+async def test_tui_selecting_portal_cell_opens_offer(tmp_path, monkeypatch) -> None:
+    from textual.coordinate import Coordinate
+    from textual.widgets import DataTable
+
+    db_path = str(tmp_path / "portal-click.duckdb")
+    urls = seed_portal_listings(db_path)
+    app = HomeOpsTUI(db_path)
+    opened: list[str] = []
+    monkeypatch.setattr("home_ops.tui.webbrowser.open", opened.append)
+
+    async with app.run_test() as pilot:
+        await pilot.pause()
+        app.action_tab(3)
+        await pilot.pause()
+        table = app.query_one("#ranking", DataTable)
+        coordinate = Coordinate(1, 5)
+        app.on_data_table_cell_selected(
+            DataTable.CellSelected(
+                table,
+                table.get_cell_at(coordinate),
+                coordinate,
+                table.coordinate_to_cell_key(coordinate),
+            )
+        )
+
+    assert opened == [urls[1]]
+
+
+@pytest.mark.asyncio
 async def test_tui_open_listing_security(tmp_path, monkeypatch) -> None:
     """'o' opens http/https only; javascript:/file: are rejected."""
     db_path = str(tmp_path / "home_ops.duckdb")

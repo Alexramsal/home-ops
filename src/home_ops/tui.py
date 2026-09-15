@@ -325,6 +325,13 @@ class HomeOpsTUI(App[None]):
                 self._ranking_detail(self._ranking_rows[index])
             )
 
+    def on_data_table_cell_selected(self, event: DataTable.CellSelected) -> None:
+        """Open an offer when its Portal cell is clicked or selected."""
+        if event.data_table.id not in {"pending", "ranking"} or event.coordinate.column != 5:
+            return
+        event.data_table.move_cursor(row=event.coordinate.row)
+        self.action_open_listing()
+
     # ------------------------------------------------------------------ helpers
 
     def _config_status(self) -> str:
