@@ -41,7 +41,7 @@ def compute_content_hash(
     # records whose portal does not expose an ID.
     raw = (
         f"{portal}|id|{external_id}"
-        if external_id
+        if external_id and portal != "idealista"
         else "|".join([
             portal,
             zone,
