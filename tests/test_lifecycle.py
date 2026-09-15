@@ -6,7 +6,6 @@ to avoid requiring ``curl_cffi`` at test time.
 """
 
 import logging
-import sys
 from collections.abc import Callable
 from decimal import Decimal
 from pathlib import Path
@@ -14,17 +13,14 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-# Mock scrapling at sys.modules level BEFORE importing lifecycle module.
-# The installed scrapling package requires curl_cffi which is not installed,
-# so we prevent the real import chain from running.
-_mock_scrapling = MagicMock()
-_mock_stealthy_fetcher = MagicMock()
-_mock_parser = MagicMock()
-_mock_scrapling.StealthyFetcher = lambda: _mock_stealthy_fetcher
-_mock_scrapling.parser = _mock_parser
-# scrapling.parser submodule needs its own sys.modules entry for direct imports
-sys.modules["scrapling"] = _mock_scrapling
-sys.modules["scrapling.parser"] = _mock_scrapling.parser
+# Keep the real scrapling package importable. Earlier versions replaced
+# ``scrapling.parser`` with a MagicMock in ``sys.modules``; that leaked into
+# every parser module imported afterwards and turned ``Selector`` into a no-op
+# mock. Each test patches ``_get_fetcher``, so the network fetcher is never
+# exercised here — neutralizing it is enough.
+import scrapling  # noqa: E402
+
+scrapling.StealthyFetcher = MagicMock()  # type: ignore[method-assign]
 
 from home_ops.models.data_storage import DuckDBConnection  # noqa: E402
 from home_ops.models.schema import Listing  # noqa: E402
@@ -43,6 +39,34 @@ def _no_real_sleep() -> None:
     """
     with patch("home_ops.scraper.lifecycle.time.sleep"):
         yield
+
+
+class TestPortalRouting:
+    """Portal parser and pagination contracts."""
+
+    @pytest.mark.parametrize(
+        ("url", "portal", "page_two"),
+        [
+            (
+                "https://www.tecnocasa.es/venta/piso/andalucia/cadiz.html",
+                "tecnocasa",
+                "https://www.tecnocasa.es/venta/piso/andalucia/cadiz.html/pag-2",
+            ),
+            (
+                "https://www.habitaclia.com/comprar/viviendas/cadiz-provincia/s",
+                "habitaclia",
+                "https://www.habitaclia.com/comprar/viviendas/cadiz-provincia/s/2",
+            ),
+        ],
+    )
+    def test_dispatch_and_pagination(self, url: str, portal: str, page_two: str) -> None:
+        from home_ops.scraper.lifecycle import _paginate_url, _portal_parser
+
+        selected_portal, parser = _portal_parser(url)
+        assert selected_portal == portal
+        assert parser.__module__ == f"home_ops.scraper.{portal}"
+        assert _paginate_url(url, portal, 1) == url
+        assert _paginate_url(url, portal, 2) == page_two
 
 
 class TestSnapshotDir:

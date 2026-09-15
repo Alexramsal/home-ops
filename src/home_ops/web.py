@@ -19,8 +19,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from home_ops import analytics
-from home_ops.cli.app import _get_db_path
-from home_ops.models.data_storage import get_connection
+from home_ops.models.data_storage import get_connection, get_db_path
 
 app = FastAPI(title="Home-Ops")
 templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
@@ -30,14 +29,16 @@ _PORTAL_BASES = {
     "idealista": "https://www.idealista.com",
     "fotocasa": "https://www.fotocasa.es",
     "pisos": "https://www.pisos.com",
+    "tecnocasa": "https://www.tecnocasa.es",
+    "habitaclia": "https://www.habitaclia.com",
 }
 
 
 def _safe_url(url: str | None, portal: str = "idealista") -> str:
     """Neutralize non-http(s) schemes (e.g. javascript:) in scraped URLs.
 
-    Idealista scraped URLs are origin-relative paths (``/inmueble/...``), so
-    a leading ``/`` is allowed and rendered as a same-origin link.
+    Scraped URLs may be origin-relative paths, so a leading ``/`` is resolved
+    against the matching controlled portal base.
     """
     if not url:
         return "#"
@@ -77,7 +78,7 @@ def _vs_median(price: float, m2: float, median_eur_m2: float) -> str:
 
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request) -> HTMLResponse:
-    with get_connection(_get_db_path()) as db:
+    with get_connection(get_db_path()) as db:
         db.init_db()
         # Mediana global actual
         per_m2 = analytics.price_per_m2_stats(db)
@@ -141,6 +142,24 @@ def index(request: Request) -> HTMLResponse:
                ORDER BY l.score DESC, l.price ASC
                LIMIT 10"""
         ).fetchall()
+        counts = {
+            str(portal): int(count)
+            for portal, count in db.conn.execute(
+                """SELECT portal, COUNT(*) AS count
+                   FROM listings GROUP BY portal ORDER BY count DESC"""
+            ).fetchall()
+        }
+        # Declared sources stay visible even at 0 coverage until a scan lands rows.
+        portals = [
+            {
+                "portal": name,
+                "count": counts.get(name, 0),
+                "url": _PORTAL_BASES.get(name),
+            }
+            for name in sorted(
+                {*_PORTAL_BASES, *counts}, key=lambda name: (-counts.get(name, 0), name)
+            )
+        ]
     rank = []
     for r in rows:
         rid, addr, price, m2, score, risk, url, portal = r
@@ -190,5 +209,6 @@ def index(request: Request) -> HTMLResponse:
                 "count": n_weeks,
             },
             "rank": rank,
+            "portals": portals,
         },
     )

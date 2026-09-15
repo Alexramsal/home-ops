@@ -9,6 +9,9 @@ portal:
     - "https://www.fotocasa.es/es/comprar/viviendas/cadiz-provincia/todas-las-zonas/l"
     - "https://www.pisos.com/venta/pisos-cadiz/"
     - "https://www.pisos.com/venta/casas-cadiz/"
+    - "https://www.tecnocasa.es/venta/piso/andalucia/cadiz.html"
+    - "https://www.tecnocasa.es/venta/casa/andalucia/cadiz.html"
+    - "https://www.habitaclia.com/comprar/viviendas/cadiz-provincia/s"
 
 # Multi-dimensional scoring engine configuration
 scoring:

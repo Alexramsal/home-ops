@@ -25,7 +25,7 @@ Finding a good flat in Spain is a timing problem as much as a search problem. Ho
 
 | | What it does |
 | --- | --- |
-| 🔎 **Collect** | Scan configured Idealista, Fotocasa and Pisos.com search URLs independently. |
+| 🔎 **Collect** | Scan Idealista, Fotocasa, Pisos.com, Tecnocasa and Habitaclia independently. |
 | 🧠 **Score** | Rank listings across five weighted dimensions based on your profile. |
 | 🛡️ **Enrich** | Optionally add LLM analysis and Catastro OVC cross-checks. |
 | ✅ **Approve** | Keep an optional human-in-the-loop gate before Telegram alerts. |
@@ -73,7 +73,7 @@ Every listing receives a weighted score from five dimensions. The weights live i
 ## Features
 
 ### Multi-portal collection
-Idealista, Fotocasa and Pisos.com can be scanned in one run. Each source fails independently, so a problem in one portal does not block the rest of the pipeline.
+Idealista, Fotocasa, Pisos.com, Tecnocasa and Habitaclia can be scanned in one run. Each source fails independently, so a problem in one portal does not block the rest of the pipeline.
 
 ### Content-hash deduplication
 Listings are fingerprinted by content so repeated observations do not become repeated alerts. Only genuinely new inventory is promoted through the alert path.
@@ -118,7 +118,9 @@ homeops scan
 homeops status
 ```
 
-## Dashboard
+## Dashboard and Modal deployment
+
+**Public read-only demo:** [home-ops-web on Modal](https://alejandrors21--home-ops-web-web.modal.run)
 
 Run the read-only dashboard locally with:
 
@@ -130,7 +132,9 @@ uvicorn home_ops.web:app --port 8321
 
 Then open `http://localhost:8321`.
 
-The dashboard does not provide authentication. Keep it bound to localhost or place it behind an authenticated reverse proxy / VPN before exposing it to a wider network.
+Deploy the current read-only DuckDB snapshot to Modal with `modal deploy modal_app.py`.
+
+The public deployment contains a read-only database snapshot and exposes no credentials or write routes. For private/live datasets, keep the dashboard bound to localhost or place it behind an authenticated reverse proxy / VPN.
 
 ## Configuration
 
@@ -242,25 +246,10 @@ For restore, stop the service, replace the database, preserve ownership, then st
 ## Security notes
 
 > [!WARNING]
-> The dashboard has **no login**. Do not expose it directly to an untrusted network. Use localhost, an authenticated reverse proxy, or a VPN.
+> The dashboard has **no login**. The public Modal demo is intentionally read-only and contains no secrets; private/live datasets still require an authenticated reverse proxy or VPN.
 
 > [!NOTE]
 > Telegram is optional. Without Telegram credentials, the daemon and readiness remain available and alert attempts are recorded as disabled / failed.
-
-## Roadmap
-
-- [x] Scrape, score and alert on Telegram
-- [x] Daily daemon with catch-up recovery and alert quota
-- [x] Human-in-the-loop approval gate
-- [x] Docker deployment
-- [x] Detail-page extraction for garage price and energy certificate
-- [x] Catastro OVC enrichment
-- [x] LLM description enrichment + scam second opinion
-- [x] DuckDB analytics
-- [x] Structured JSON logging
-- [x] GHCR release pipeline on version tags
-- [ ] Textual TUI for real-time pipeline monitoring
-- [ ] Expand portal coverage (including Habitaclia)
 
 ## License
 

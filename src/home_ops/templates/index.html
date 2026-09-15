@@ -177,9 +177,16 @@
   <p style="font-size:.7rem;color:var(--muted);margin-top:.5rem;">Nota metodológica: se muestran las oportunidades principales del conjunto de {{ n_scored }} inmuebles con Score ≥ 70 (de {{ n_unique }} evaluados). Todos los registros cuentan con scam_risk_score = 10 asignado por política de penalización preventiva sin imputar fraude.</p>
 
   <!-- METODOLOGÍA -->
+  <div class="section-title">Fuentes indexadas</div>
+  <div class="methods">
+    {% for p in portals %}
+    <div class="method"><h4>{% if p.url %}<a class="portal-link" href="{{ p.url }}" target="_blank" rel="noopener">{{ p.portal }}</a>{% else %}{{ p.portal }}{% endif %}</h4><p>{{ p.count }} inmuebles registrados en la base de datos.</p></div>
+    {% else %}<div class="method"><h4>Portales</h4><p>Sin datos de portales.</p></div>{% endfor %}
+  </div>
+
   <div class="section-title">Metodología Transparente</div>
   <div class="methods">
-    <div class="method"><h4>1. Ingestión &amp; Trazabilidad</h4><p>Scraping estructurado de listings en Idealista, persistiendo metadatos completos y fechas de avistamiento para trazabilidad inmutable.</p></div>
+    <div class="method"><h4>1. Ingestión &amp; Trazabilidad</h4><p>Scraping estructurado de listings en portales inmobiliarios, persistiendo metadatos completos y fechas de avistamiento para trazabilidad inmutable.</p></div>
     <div class="method"><h4>2. Tracking de Observaciones</h4><p>De las {{ n_obs_total }} capturas, se aíslan {{ n_unique }} inmuebles únicos y {{ n_repeated }} observaciones repetidas en el tiempo (seguimiento de publicación activa, no duplicados difusos).</p></div>
     <div class="method"><h4>3. Modelo de Scoring 5D</h4><p>Algoritmo multicriterio ponderado: diferencial vs. mediana zonal ({{ kpis.median }} €/m²), liquidez de zona, eficiencia de superficie, estado y tipología.</p></div>
     <div class="method"><h4>4. Gestión de Riesgo Preventivo</h4><p>Se aplica penalización metodológica base (scam_risk_score = 10) a los {{ n_unique }} registros sin categorizarlos indebidamente como fraudes confirmados.</p></div>
@@ -192,7 +199,7 @@
     <ul>
       <li><b>Fecha de Corte de Datos:</b> {{ cutoff }} — los datos analizados corresponden exactamente al snapshot capturado el {{ cutoff }}. No se han incorporado eventos posteriores.</li>
       <li><b>Insuficiencia de Serie Temporal (1 Semana):</b> disponibilidad de una única semana de muestra ({{ week.date }} con {{ week.n }} observaciones). No es técnicamente admisible modelar tendencia o estacionalidad con este horizonte.</li>
-      <li><b>Precios de Oferta Publicados:</b> los importes reflejan precios anunciados por vendedores en Idealista; las operaciones notariales reales suelen negociarse con descuentos adicionales.</li>
+      <li><b>Precios de Oferta Publicados:</b> los importes reflejan precios anunciados por vendedores en portales inmobiliarios; las operaciones notariales reales suelen negociarse con descuentos adicionales.</li>
       <li><b>Muestra Acotada ({{ n_unique }} Inmuebles Únicos):</b> el análisis se circunscribe a los {{ n_unique }} registros verificados. Home-Ops es un ejercicio de ingeniería de datos y no constituye asesoramiento financiero.</li>
       <li><b>Cero Datos Inventados o Sintéticos:</b> no se publican versiones ficticias, runs inventados ni conteos de tests ficticios. Todos los números derivan estrictamente de la base de datos.</li>
     </ul>

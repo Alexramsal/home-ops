@@ -44,6 +44,7 @@ from home_ops import analytics as analytics_mod
 from home_ops.models.data_storage import get_connection
 
 _TABLE_COLUMNS = ("ID", "Dirección", "Precio", "€/m²", "Score", "Portal")
+_OPEN_HINT = "Pulsa o para abrir"
 _TAB_IDS = ("summary-tab", "pending-tab", "ranking-tab", "trends-tab", "activity-tab")
 _URL_SCHEMES = {"http", "https"}
 
@@ -315,7 +316,9 @@ class HomeOpsTUI(App[None]):
         """Update the detail pane from the in-memory cache (no DB access)."""
         index = event.cursor_row
         if event.data_table.id == "pending" and 0 <= index < len(self._pending_details):
-            self.query_one("#pending-detail", Static).update(self._pending_details[index])
+            self.query_one("#pending-detail", Static).update(
+                f"{self._pending_details[index]} · {_OPEN_HINT}"
+            )
         elif event.data_table.id == "ranking" and 0 <= index < len(self._ranking_rows):
             self.query_one("#ranking-detail", Static).update(
                 self._ranking_detail(self._ranking_rows[index])
@@ -354,7 +357,7 @@ class HomeOpsTUI(App[None]):
         rooms = str(row["rooms"] or "—")
         m2 = str(row["m2"] or "—")
         url = escape(str(row["url"] or "sin URL"))
-        return f"{address} | {rooms} hab. | {m2} m² | {url}"
+        return f"{address} | {rooms} hab. | {m2} m² | {url} · {_OPEN_HINT}"
 
     def _render_ranking(self) -> None:
         """Repaint the ranking table from the cached top-100 by score desc."""
@@ -473,7 +476,9 @@ class HomeOpsTUI(App[None]):
                 str(row[7] or ""),
             )
         self.query_one("#pending-detail", Static).update(
-            self._pending_details[0] if self._pending_details else "Sin pendientes"
+            f"{self._pending_details[0]} · {_OPEN_HINT}"
+            if self._pending_details
+            else "Sin pendientes"
         )
 
         keys = ("id", "address", "score", "price", "m2", "rooms", "url", "portal")

@@ -16,8 +16,10 @@ from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 from home_ops.models.schema import Listing
 from home_ops.scraper.dedup import batch_known_hashes, compute_content_hash
 from home_ops.scraper.fotocasa import parse_listings as parse_fotocasa_listings
+from home_ops.scraper.habitaclia import parse_listings as parse_habitaclia_listings
 from home_ops.scraper.parse import parse_detail, parse_listings
 from home_ops.scraper.pisos import parse_listings as parse_pisos_listings
+from home_ops.scraper.tecnocasa import parse_listings as parse_tecnocasa_listings
 
 if TYPE_CHECKING:
     from home_ops.models.data_storage import DuckDBConnection
@@ -34,6 +36,10 @@ def _portal_parser(url: str) -> tuple[str, Any]:
     """Resolve (portal_name, parse_listings_fn) from a search URL."""
     if "fotocasa" in url:
         return "fotocasa", parse_fotocasa_listings
+    if "habitaclia" in url:
+        return "habitaclia", parse_habitaclia_listings
+    if "tecnocasa" in url:
+        return "tecnocasa", parse_tecnocasa_listings
     if "pisos.com" in url:
         return "pisos", parse_pisos_listings
     if "idealista" in url:
@@ -51,6 +57,11 @@ def _paginate_url(url: str, portal: str, page_num: int) -> str:
         return url
     if portal == "fotocasa":
         return f"{url.rstrip('/')}/{page_num}"
+    if portal == "habitaclia":
+        return f"{url.rstrip('/')}/{page_num}"
+    if portal == "tecnocasa":
+        base = url.removesuffix(".html")
+        return f"{base}.html/pag-{page_num}"
     if portal == "pisos":
         return f"{url.rstrip('/')}/{page_num}/"
     parsed = urlparse(url)

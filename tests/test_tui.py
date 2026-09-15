@@ -31,6 +31,29 @@ MANDATORY_IDS = (
 )
 
 
+def seed_portal_listings(db_path: str) -> tuple[str, str]:
+    tecnocasa_url = "https://www.tecnocasa.es/venta/piso/1"
+    habitaclia_url = "https://www.habitaclia.com/comprar/vivienda/2"
+    with get_connection(db_path) as db:
+        db.init_db()
+        for content_hash, url, address, score, portal in (
+            ("tc", tecnocasa_url, "Piso Tecnocasa", 90.0, "tecnocasa"),
+            ("ha", habitaclia_url, "Piso Habitaclia", 80.0, "habitaclia"),
+        ):
+            listing_id = db.conn.execute(
+                """INSERT INTO listings
+                   (content_hash, url, address, m2, price, rooms, score, portal)
+                   VALUES (?, ?, ?, 80, 150000, 3, ?, ?) RETURNING id""",
+                [content_hash, url, address, score, portal],
+            ).fetchone()[0]
+            db.conn.execute(
+                """INSERT INTO pending_approvals (listing_id, approved, score)
+                   VALUES (?, FALSE, ?)""",
+                [listing_id, score],
+            )
+    return tecnocasa_url, habitaclia_url
+
+
 def seed_dashboard(db_path: str) -> list[int]:
     """Seed enough persisted data to exercise every dashboard panel."""
     with get_connection(db_path) as db:
@@ -280,6 +303,42 @@ def test_tui_accepts_safe_listing_urls(url: str) -> None:
 
 
 @pytest.mark.asyncio
+async def test_tui_portals_render_and_open_exact_urls_in_listing_tabs(
+    tmp_path, monkeypatch
+) -> None:
+    db_path = str(tmp_path / "portals.duckdb")
+    urls = seed_portal_listings(db_path)
+    app = HomeOpsTUI(db_path)
+    opened: list[str] = []
+    monkeypatch.setattr("home_ops.tui.webbrowser.open", opened.append)
+
+    async with app.run_test() as pilot:
+        await pilot.pause()
+        pending_table = app.query_one("#pending")
+        ranking_table = app.query_one("#ranking")
+        assert [pending_table.get_row_at(row)[5] for row in range(2)] == [
+            "tecnocasa",
+            "habitaclia",
+        ]
+        assert [ranking_table.get_row_at(row)[5] for row in range(2)] == [
+            "tecnocasa",
+            "habitaclia",
+        ]
+        assert "Pulsa o para abrir" in str(app.query_one("#pending-detail").render())
+        assert "Pulsa o para abrir" in str(app.query_one("#ranking-detail").render())
+
+        for tab_number, table_id in ((2, "#pending"), (3, "#ranking")):
+            app.action_tab(tab_number)
+            await pilot.pause()
+            table = app.query_one(table_id)
+            for row in range(2):
+                table.move_cursor(row=row)
+                app.action_open_listing()
+
+    assert opened == [*urls, *urls]
+
+
+@pytest.mark.asyncio
 async def test_tui_open_listing_security(tmp_path, monkeypatch) -> None:
     """'o' opens http/https only; javascript:/file: are rejected."""
     db_path = str(tmp_path / "home_ops.duckdb")
@@ -489,7 +548,9 @@ def test_tui_ranking_detail_localizes_and_escapes_markup() -> None:
         {"address": "[red]Calle[2]", "rooms": 3, "m2": 90.0, "url": "https://x.test/[a]"}
     )
     rendered = Text.from_markup(detail)
-    assert rendered.plain == "[red]Calle[2] | 3 hab. | 90.0 m² | https://x.test/[a]"
+    assert rendered.plain == (
+        "[red]Calle[2] | 3 hab. | 90.0 m² | https://x.test/[a] · Pulsa o para abrir"
+    )
     assert not rendered.spans
 
 

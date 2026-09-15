@@ -810,7 +810,7 @@ class TestRunScanExtra:
         db.insert_listing(listing)
 
         # Insert a queued alert from yesterday
-        yesterday = datetime.now(UTC) - timedelta(days=1)
+        yesterday = datetime.now(UTC).replace(tzinfo=None) - timedelta(days=1)
         db.conn.execute(
             "INSERT INTO daily_alert_log (listing_hash, sent_at, status) VALUES (?, ?, 'queued')",
             ["queued_yesterday", yesterday],
@@ -993,7 +993,7 @@ class TestRunScanExtra:
             "VALUES (?, TRUE, FALSE)",
             [pending_id],
         )
-        yesterday = datetime.now(UTC) - timedelta(days=1)
+        yesterday = datetime.now(UTC).replace(tzinfo=None) - timedelta(days=1)
         db.conn.execute(
             "INSERT INTO daily_alert_log (listing_hash, sent_at, status) VALUES (?, ?, 'failed')",
             [pending.content_hash, yesterday],
@@ -1048,7 +1048,7 @@ class TestRunScanExtra:
         mock_load_config.return_value.alert_schedule = ScheduleConfig()
 
         # Insert queued alert for a listing that doesn't exist
-        yesterday = datetime.now(UTC) - timedelta(days=1)
+        yesterday = datetime.now(UTC).replace(tzinfo=None) - timedelta(days=1)
         db.conn.execute(
             "INSERT INTO daily_alert_log (listing_hash, sent_at, status) VALUES (?, ?, 'queued')",
             ["nonexistent_hash", yesterday],

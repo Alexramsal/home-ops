@@ -20,7 +20,7 @@ def _seed(db_path: str, listing_sql: list[str]) -> None:
 def test_index_renders_empty(tmp_path, monkeypatch) -> None:
     db_path = str(tmp_path / "home_ops.duckdb")
     _seed(db_path, [])
-    monkeypatch.setattr(web_mod, "_get_db_path", lambda: db_path)
+    monkeypatch.setattr(web_mod, "get_db_path", lambda: db_path)
 
     client = TestClient(web_mod.app)
     resp = client.get("/")
@@ -44,7 +44,7 @@ def test_index_renders_listing(tmp_path, monkeypatch) -> None:
             "VALUES ('h1', 'Calle Falsa 123', 150000, 80, 'https://example.com/1', 85)"
         ],
     )
-    monkeypatch.setattr(web_mod, "_get_db_path", lambda: db_path)
+    monkeypatch.setattr(web_mod, "get_db_path", lambda: db_path)
 
     client = TestClient(web_mod.app)
     resp = client.get("/")
@@ -59,6 +59,47 @@ def test_index_renders_listing(tmp_path, monkeypatch) -> None:
     assert "2026-09-01" not in resp.text
     # Pipeline and KPI sections present
     assert "Score ≥ 70" in resp.text
+    assert "Fuentes indexadas" in resp.text
+
+
+def test_index_renders_supported_portal_sources_and_neutralizes_unsafe_url(
+    tmp_path, monkeypatch
+) -> None:
+    db_path = str(tmp_path / "home_ops.duckdb")
+    _seed(
+        db_path,
+        [
+            "INSERT INTO listings "
+            "(content_hash, address, price, m2, url, score, portal) VALUES "
+            "('tc', 'Tecnocasa listing', 150000, 80, "
+            "'https://www.tecnocasa.es/venta/piso/1', 85, 'tecnocasa')",
+            "INSERT INTO listings "
+            "(content_hash, address, price, m2, url, score, portal) VALUES "
+            "('ha', 'Habitaclia listing', 140000, 70, "
+            "'javascript:alert(1)', 80, 'habitaclia')",
+        ],
+    )
+    monkeypatch.setattr(web_mod, "get_db_path", lambda: db_path)
+
+    resp = TestClient(web_mod.app).get("/")
+
+    assert resp.status_code == 200
+    assert "Fuentes indexadas" in resp.text
+    assert "tecnocasa" in resp.text
+    assert "habitaclia" in resp.text
+    assert 'href="https://www.tecnocasa.es"' in resp.text
+    assert 'href="https://www.habitaclia.com"' in resp.text
+    assert "javascript:" not in resp.text
+
+
+def test_safe_url_resolves_supported_portal_paths() -> None:
+    assert web_mod._safe_url("/venta/piso/1", "tecnocasa") == (
+        "https://www.tecnocasa.es/venta/piso/1"
+    )
+    assert web_mod._safe_url("/comprar/vivienda/1", "habitaclia") == (
+        "https://www.habitaclia.com/comprar/vivienda/1"
+    )
+    assert web_mod._safe_url("/listing/1", "unknown") == "#"
 
 
 def test_index_neutralizes_unsafe_url_scheme(tmp_path, monkeypatch) -> None:
@@ -75,7 +116,7 @@ def test_index_neutralizes_unsafe_url_scheme(tmp_path, monkeypatch) -> None:
             "VALUES ('h2', 'Calle Mala 1', 100000, 60, 'javascript:alert(1)', 50)"
         ],
     )
-    monkeypatch.setattr(web_mod, "_get_db_path", lambda: db_path)
+    monkeypatch.setattr(web_mod, "get_db_path", lambda: db_path)
 
     client = TestClient(web_mod.app)
     resp = client.get("/")
@@ -92,7 +133,7 @@ def test_index_trends_section_insufficient_weeks(tmp_path, monkeypatch) -> None:
             "VALUES ('h1', 'zone1', 150000, 75, '2025-01-01 10:00:00')"
         ],
     )
-    monkeypatch.setattr(web_mod, "_get_db_path", lambda: db_path)
+    monkeypatch.setattr(web_mod, "get_db_path", lambda: db_path)
 
     client = TestClient(web_mod.app)
     resp = client.get("/")
@@ -113,7 +154,7 @@ def test_index_trends_section_with_two_weeks(tmp_path, monkeypatch) -> None:
             "VALUES ('h2', 'zone1', 160000, 80, '2025-01-15 10:00:00')",
         ],
     )
-    monkeypatch.setattr(web_mod, "_get_db_path", lambda: db_path)
+    monkeypatch.setattr(web_mod, "get_db_path", lambda: db_path)
 
     client = TestClient(web_mod.app)
     resp = client.get("/")

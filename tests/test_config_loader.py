@@ -29,6 +29,19 @@ def test_load_user_profile_valid() -> None:
         tmp_path.unlink(missing_ok=True)
 
 
+def test_portal_configs_include_cadiz_integrations() -> None:
+    """Both shipped profiles retain existing URLs and add the selected portals."""
+    expected = {
+        "https://www.tecnocasa.es/venta/piso/andalucia/cadiz.html",
+        "https://www.tecnocasa.es/venta/casa/andalucia/cadiz.html",
+        "https://www.habitaclia.com/comprar/viviendas/cadiz-provincia/s",
+    }
+    for path in (Path("user_profile.yml"), Path("config/user_profile.template.yml")):
+        urls = set(load_user_profile(path)["portal"]["urls"])
+        assert expected <= urls
+        assert "https://www.idealista.com/venta-viviendas/cadiz-provincia/" in urls
+
+
 def test_load_user_profile_missing() -> None:
     """GIVEN missing user_profile.yml WHEN loaded THEN raises FileNotFoundError."""
     with pytest.raises(FileNotFoundError):
