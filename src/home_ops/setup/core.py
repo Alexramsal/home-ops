@@ -78,7 +78,7 @@ def load_state(config_path: Path, env_path: Path) -> dict[str, Any]:
         [portal["idealista_url"]] if portal.get("idealista_url") else []
     )
     scoring = yaml_data.get("scoring", {}) or {}
-    thresholds = scoring.get("thresholds", {}) or scoring.get("scoring_thresholds", {}) or {}
+    thresholds = scoring.get("thresholds", {}) or yaml_data.get("scoring_thresholds", {}) or {}
 
     schedule = yaml_data.get("alert_schedule", {}) or {}
     buyer = yaml_data.get("buyer_protection", {}) or {}
@@ -226,7 +226,7 @@ def build_yaml(state: dict[str, Any], existing: dict[str, Any] | None = None) ->
 
     merged["portal"] = _portal_block(state)
     merged["scoring"] = _scoring_block(state)
-    merged["scoring_thresholds"] = {"min_score_to_alert": state["scoring"]["min_score_to_alert"]}
+    merged.pop("scoring_thresholds", None)
     merged["hitl_approval_required"] = state.get("hitl_approval_required", True)
     merged["euribor_rate"] = state.get("euribor_rate", 3.5)
     merged["alert_schedule"] = _schedule_block(state)
@@ -356,7 +356,7 @@ def test_telegram(bot_token: str, chat_id: str, timeout: float = 5.0) -> tuple[b
         chat_title = data["result"].get("title") or data["result"].get("username") or "?"
         return True, f"Bot @{bot_name} → chat '{chat_title}' OK."
     except Exception as exc:
-        return False, f"Error de red: {exc}"
+        return False, f"Error de red ({type(exc).__name__})."
 
 
 def test_llm(base_url: str, api_key: str, model: str, timeout: float = 10.0) -> tuple[bool, str]:
@@ -387,7 +387,7 @@ def test_llm(base_url: str, api_key: str, model: str, timeout: float = 10.0) -> 
             return False, f"Respuesta inesperada: {str(data)[:120]}"
         return True, f"LLM OK: {model} respondió."
     except Exception as exc:
-        return False, f"Error de red: {exc}"
+        return False, f"Error de red ({type(exc).__name__})."
 
 
 # Tell pytest not to collect these validator functions as test cases.

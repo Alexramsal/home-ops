@@ -129,6 +129,23 @@ def test_write_config_roundtrip_preserves_sections_and_keys(tmp_path: Path) -> N
     assert cfg2.llm.enabled is True
 
 
+def test_legacy_top_level_thresholds_migrate_to_scoring(tmp_path: Path) -> None:
+    import yaml
+
+    cfg = tmp_path / "user_profile.yml"
+    env = tmp_path / ".env"
+    cfg.write_text("scoring_thresholds:\n  min_score_to_alert: 82\n")
+    env.write_text("")
+
+    state = load_state(cfg, env)
+    assert state["scoring"]["min_score_to_alert"] == 82
+
+    write_config(cfg, env, state)
+    written = yaml.safe_load(cfg.read_text())
+    assert "scoring_thresholds" not in written
+    assert written["scoring"]["thresholds"]["min_score_to_alert"] == 82
+
+
 def test_load_state_missing_files_defaults(tmp_path: Path) -> None:
     state = load_state(tmp_path / "nope.yml", tmp_path / "no.env")
     assert state["telegram"]["bot_token"] == ""
@@ -141,6 +158,22 @@ def test_telegram_validator_missing_creds() -> None:
     assert ok is False
     ok, _ = test_telegram("tok", "")
     assert ok is False
+
+
+def test_network_validator_errors_do_not_leak_secrets(monkeypatch: object) -> None:
+    def raise_secret(*args: object, **kwargs: object) -> None:
+        raise Exception("super-secret-token https://secret.example/path")
+
+    monkeypatch.setattr("urllib.request.urlopen", raise_secret)  # type: ignore[attr-defined]
+    ok, msg = test_telegram("super-secret-token", "123")
+    assert ok is False
+    assert "super-secret-token" not in msg
+    assert "https://secret.example/path" not in msg
+
+    ok, msg = test_llm("https://secret.example", "super-secret-token", "model")
+    assert ok is False
+    assert "super-secret-token" not in msg
+    assert "https://secret.example" not in msg
 
 
 def test_llm_validator_missing_creds() -> None:
