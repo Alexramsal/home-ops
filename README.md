@@ -1,6 +1,10 @@
 # Home-Ops
 
-Real estate agentic pipeline: scrape Idealista, score every listing across 5 dimensions, alert via Telegram.
+<p align="center">
+  <img src="assets/banner-home-ops.png" alt="Home-Ops banner" width="100%">
+</p>
+
+Real estate agentic pipeline: scrape Idealista, Fotocasa & Pisos.com, score every listing across 5 dimensions, alert via Telegram.
 
 [![CI](https://img.shields.io/github/actions/workflow/status/alexramsal/home-ops/ci.yml?branch=main&label=CI)](https://github.com/alexramsal/home-ops/actions)
 [![Python](https://img.shields.io/badge/python-3.11%2B-3776AB)](https://github.com/alexramsal/home-ops)
@@ -11,10 +15,12 @@ Real estate agentic pipeline: scrape Idealista, score every listing across 5 dim
 
 Finding a flat in Spain is a race. By the time a listing appears on Idealista and you open the app, the good ones are already gone. Home-Ops checks your Idealista search every morning at 09:00 (Europe/Madrid), scores each new listing against your personal criteria, and pushes the best matches to your phone before you finish breakfast.
 
-No dashboards to check. No daily "I should look at Idealista" mental load. Just a Telegram ping when something worth seeing appears.
+No daily "I should look at Idealista" mental load. Just a Telegram ping when something worth seeing appears — plus an optional public audit dashboard when you want the raw numbers.
 
 ## Features
 
+- **Multi-portal scraping** — Idealista, Fotocasa and Pisos.com feeds in one scan; each portal fails independently without blocking the rest.
+- **Public results dashboard** — a FastAPI web dashboard (dark audit console) exposes real DuckDB KPIs, the weekly snapshot and the ranked opportunity table, without login.
 - **5-dimension weighted scoring** — every listing is scored against your own priorities: price, size, energy certificate, garage, and Euribor-based affordability. Weights are yours to configure.
 - **Content-hash deduplication** — identical listings are detected by content hash, so only genuinely new inventory triggers an alert.
 - **Human-in-the-loop approval gate** — optional manual approval before any alert is sent, so nothing reaches your phone without your sign-off.
@@ -40,7 +46,9 @@ Scoring dimensions and default weights:
 
 ```mermaid
 flowchart LR
-    Portal[Idealista] --> LS[scraper/lifecycle.py]
+    P1[Idealista] --> LS[scraper/lifecycle.py]
+    P2[Fotocasa] --> LS
+    P3[Pisos.com] --> LS
     LS --> P[scraper/parse.py]
     P --> D[scraper/dedup.py]
     D --> R[scorer/rules.py]
@@ -50,9 +58,10 @@ flowchart LR
     D --> DB
     R --> DB
     H --> DB
+    DB --> W[web.py public dashboard]
 ```
 
-The pipeline scrapes Idealista, parses and deduplicates listings, scores each one with the rules engine, gates alerts behind manual approval when enabled, and notifies you via Telegram. DuckDB records every stage.
+The pipeline scrapes Idealista, Fotocasa and Pisos.com, parses and deduplicates listings, scores each one with the rules engine, gates alerts behind manual approval when enabled, and notifies you via Telegram. DuckDB records every stage, and the public web dashboard renders the real stored metrics.
 
 ## Quick start
 
@@ -78,6 +87,16 @@ homeops scan       # run one full pipeline cycle now
 homeops status     # inspect pipeline state
 ```
 
+## Dashboard
+
+Home-Ops ships a read-only public dashboard that renders the real DuckDB metrics: KPIs (unique listings, observations, repeated tracking, current €/m² median, opportunities ≥ 70, risk penalty), the latest weekly snapshot, and the ranked opportunity table with direct links to each portal listing.
+
+```bash
+homeops web            # or: uvicorn home_ops.web:app --port 8321
+```
+
+Open http://localhost:8321 . The dashboard requires no login, so bind it only to localhost or put it behind an authenticated reverse proxy (see Deployment).
+
 ## Configuration
 
 Configuration is split across two files: `.env` holds secrets, `user_profile.yml` holds your preferences. An optional `HOME_OPS_CONFIG` environment variable overrides the profile path.
@@ -95,7 +114,7 @@ Configuration is split across two files: `.env` holds secrets, `user_profile.yml
 
 | Key | Default | Purpose |
 |-----|---------|---------|
-| `portal.idealista_url` | — | Your Idealista search URL. |
+| `portal.urls` | `[idealista_url]` | Full scan list. One entry per portal search URL (Idealista, Fotocasa, Pisos.com). Each is scanned and fails independently. |
 | `scoring.thresholds.min_score_to_alert` | `70` | Minimum score before a listing is considered for alerting. |
 | `scoring.thresholds.weights` | see table above | Per-dimension scoring weights. |
 | `hitl_approval_required` | `true` | Require manual approval before alerts are sent. |
