@@ -8,6 +8,7 @@ portal:
     - "https://www.idealista.com/venta-viviendas/cadiz-provincia/"
     - "https://www.fotocasa.es/es/comprar/viviendas/cadiz-provincia/todas-las-zonas/l"
     - "https://www.pisos.com/venta/pisos-cadiz/"
+    - "https://www.pisos.com/venta/casas-cadiz/"
 
 # Multi-dimensional scoring engine configuration
 scoring:
