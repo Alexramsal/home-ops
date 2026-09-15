@@ -488,12 +488,12 @@ async def test_tui_help_binding_notifies(tmp_path, monkeypatch) -> None:
 
 @pytest.mark.asyncio
 async def test_tui_footer_shows_only_primary_bindings(tmp_path) -> None:
-    """Secondary bindings (a/x/f/o/1-5) stay hidden; primary s/r/c/?/q shown."""
+    """Footer shows the primary controls, including opening the selected offer."""
     app = HomeOpsTUI(str(tmp_path / "footer.duckdb"))
     async with app.run_test() as pilot:
         await pilot.pause()
         shown = [b.key for b in app._bindings.shown_keys]
-        assert shown == ["s", "r", "c", "question_mark", "q"]
+        assert shown == ["s", "r", "o", "c", "question_mark", "q"]
 
 
 @pytest.mark.asyncio

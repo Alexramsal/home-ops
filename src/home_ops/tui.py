@@ -73,13 +73,14 @@ class HomeOpsTUI(App[None]):
     BINDINGS = [
         Binding("s", "scan", "Escanear"),
         Binding("r", "refresh", "Actualizar"),
+        Binding("o", "open_listing", "Abrir oferta"),
         Binding("c", "config", "Configurar"),
         Binding("?", "help", "Ayuda"),
         Binding("q", "quit", "Salir"),
         Binding("a", "approve", "Aprobar", show=False),
         Binding("x", "reset_snapshots", "Reiniciar", show=False),
         Binding("f", "filter_ranking", "Filtrar", show=False),
-        Binding("o", "open_listing", "Abrir", show=False),
+
         *[
             Binding(str(n), f"tab({n})", title, show=False)
             for n, title in enumerate(
