@@ -44,7 +44,7 @@ from home_ops import analytics as analytics_mod
 from home_ops.models.data_storage import get_connection
 
 _TABLE_COLUMNS = ("ID", "Dirección", "Precio", "€/m²", "Score", "Portal")
-_OPEN_HINT = "Pulsa o para abrir"
+_OPEN_HINT = "Atajo: o — abrir anuncio en el navegador"
 _TAB_IDS = ("summary-tab", "pending-tab", "ranking-tab", "trends-tab", "activity-tab")
 _URL_SCHEMES = {"http", "https"}
 

@@ -324,8 +324,8 @@ async def test_tui_portals_render_and_open_exact_urls_in_listing_tabs(
             "tecnocasa",
             "habitaclia",
         ]
-        assert "Pulsa o para abrir" in str(app.query_one("#pending-detail").render())
-        assert "Pulsa o para abrir" in str(app.query_one("#ranking-detail").render())
+        assert "Atajo: o — abrir anuncio en el navegador" in str(app.query_one("#pending-detail").render())
+        assert "Atajo: o — abrir anuncio en el navegador" in str(app.query_one("#ranking-detail").render())
 
         for tab_number, table_id in ((2, "#pending"), (3, "#ranking")):
             app.action_tab(tab_number)
@@ -549,7 +549,7 @@ def test_tui_ranking_detail_localizes_and_escapes_markup() -> None:
     )
     rendered = Text.from_markup(detail)
     assert rendered.plain == (
-        "[red]Calle[2] | 3 hab. | 90.0 m² | https://x.test/[a] · Pulsa o para abrir"
+        "[red]Calle[2] | 3 hab. | 90.0 m² | https://x.test/[a] · Atajo: o — abrir anuncio en el navegador"
     )
     assert not rendered.spans
 
