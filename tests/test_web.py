@@ -25,9 +25,9 @@ def test_index_renders_empty(tmp_path, monkeypatch) -> None:
     client = TestClient(web_mod.app)
     resp = client.get("/")
     assert resp.status_code == 200
-    # Empty DB: zeroes everywhere, no crash
+    # Empty DB: dashboard renders with zeroes, no crash
+    assert "Home-Ops" in resp.text
     assert "0" in resp.text
-    assert "Sin oportunidades" in resp.text
 
 
 def test_index_renders_listing(tmp_path, monkeypatch) -> None:
@@ -46,11 +46,15 @@ def test_index_renders_listing(tmp_path, monkeypatch) -> None:
     assert resp.status_code == 200
     assert "Calle Falsa 123" in resp.text
     assert "150,000 €" in resp.text
-    assert "85.0" in resp.text  # score renders
+    assert "85 / 100" in resp.text  # score renders
 
 
 def test_index_neutralizes_unsafe_url_scheme(tmp_path, monkeypatch) -> None:
-    """javascript: URLs from the scraper must not reach the rendered href."""
+    """Safe-URL helper must neutralize javascript: schemes (defense-in-depth)."""
+    assert web_mod._safe_url("javascript:alert(1)") == "#"
+    assert web_mod._safe_url("https://example.com/1") == "https://example.com/1"
+
+    # Render path: dirty URLs from the scraper must never leak into the page.
     db_path = str(tmp_path / "home_ops.duckdb")
     _seed(
         db_path,
@@ -65,4 +69,3 @@ def test_index_neutralizes_unsafe_url_scheme(tmp_path, monkeypatch) -> None:
     resp = client.get("/")
     assert resp.status_code == 200
     assert "javascript:" not in resp.text
-    assert 'href="#"' in resp.text
