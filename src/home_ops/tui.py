@@ -34,7 +34,6 @@ from textual.widgets import (
     Footer,
     Header,
     RichLog,
-    Sparkline,
     Static,
     TabbedContent,
     TabPane,
@@ -61,6 +60,32 @@ _PORTAL_BASES = {
     "tecnocasa": "https://www.tecnocasa.es",
     "habitaclia": "https://www.habitaclia.com",
 }
+
+
+def _render_evolution_bars(evolution: list[dict[str, Any]]) -> str:
+    """Human-readable bar chart for weekly €/m² (median + mean)."""
+    if not evolution:
+        return ""
+    values = [
+        (w["p50_eur_m2"], w["mean_eur_m2"], w["week"][:10], w["n"])
+        for w in evolution
+        if w.get("p50_eur_m2") and w.get("mean_eur_m2")
+    ]
+    if not values:
+        return ""
+    max_v = max(max(p50, mean) for p50, mean, _, _ in values)
+    width = 24
+    lines = []
+    for p50, mean, week, n in values:
+        p50_len = max(1, int(round(p50 / max_v * width)))
+        mean_len = max(1, int(round(mean / max_v * width)))
+        scale = f"{p50:,.0f}€".rjust(8)
+        lines.append(
+            f"[bold]{week}[/bold]  N={n:<4} {scale} "
+            f"[#58a6ff]{'█' * p50_len}[/#58a6ff] "
+            f"[#f0b429]{'█' * mean_len}[/#f0b429]"
+        )
+    return "\n".join(lines)
 
 
 def _is_safe_listing_url(url: str) -> bool:
@@ -142,7 +167,7 @@ class HomeOpsTUI(App[None]):
     #config-health { border: solid $warning; }
     #recent-activity { border: solid $success; }
     #pending-detail, #ranking-detail, #trend-message { color: $text-muted; }
-    #trend-spark { height: 3; }
+    #trend-spark { height: auto; min-height: 1; padding: 0 1; }
     #log { height: 1fr; min-height: 3; }
     """
 
@@ -182,7 +207,7 @@ class HomeOpsTUI(App[None]):
                 yield Static(id="ranking-detail")
             with TabPane("Tendencias", id="trends-tab"):
                 yield Static(id="trend-message")
-                yield Sparkline([], id="trend-spark")
+                yield Static("", id="trend-spark")
                 yield DataTable(id="evolution")
             with TabPane("Actividad", id="activity-tab"):
                 yield DataTable(id="runs")
@@ -528,14 +553,12 @@ class HomeOpsTUI(App[None]):
                 f"{week_row['p50_eur_m2']:.0f}",
             )
         has_trend = len(evolution) >= 2
-        self.query_one("#trend-spark", Sparkline).data = (
-            [float(week_row["p50_eur_m2"]) for week_row in evolution] if has_trend else []
-        )
         self.query_one("#trend-message", Static).update(
-            "Histórico semanal €/m² (p50)"
+            "Histórico semanal €/m² — azul ⟶ mediana (p50), ámbar ⟶ media"
             if has_trend
             else "Datos insuficientes: hacen falta al menos 2 semanas de histórico"
         )
+        self.query_one("#trend-spark", Static).update(_render_evolution_bars(evolution))
 
         run_table = self.query_one("#runs", DataTable)
         run_table.clear()

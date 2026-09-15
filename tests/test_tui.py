@@ -12,7 +12,12 @@ from rich.text import Text
 pytest.importorskip("textual")
 
 from home_ops.models.data_storage import get_connection  # noqa: E402
-from home_ops.tui import HomeOpsTUI, _is_safe_listing_url, _resolve_listing_url  # noqa: E402
+from home_ops.tui import (
+    HomeOpsTUI,
+    _is_safe_listing_url,
+    _render_evolution_bars,
+    _resolve_listing_url,
+)  # noqa: E402
 
 MANDATORY_IDS = (
     "#top-status",
@@ -129,7 +134,8 @@ async def test_tui_seeded_data(tmp_path) -> None:
         assert [row["score"] for row in app._ranking_rows] == [90.0, 80.0, 65.0]
         assert app.query_one("#evolution").row_count == 2
         assert app.query_one("#runs").row_count == 1
-        assert list(app.query_one("#trend-spark").data) == [1000.0, 1200.0]
+        trend = str(app.query_one("#trend-spark").render())
+        assert "█" in trend and "N=" in trend
 
 
 @pytest.mark.asyncio
@@ -321,6 +327,18 @@ def test_tui_accepts_safe_listing_urls(url: str) -> None:
 )
 def test_tui_resolves_portal_relative_urls(url: str, portal: str, expected: str) -> None:
     assert _resolve_listing_url(url, portal) == expected
+
+
+def test_tui_renders_evolution_bars() -> None:
+    out = _render_evolution_bars(
+        [
+            {"week": "2026-08-31", "n": 150, "p50_eur_m2": 3702.41, "mean_eur_m2": 3865.12},
+            {"week": "2026-09-14", "n": 721, "p50_eur_m2": 2339.45, "mean_eur_m2": 3893.72},
+        ]
+    )
+    assert "2026-08-31" in out and "2026-09-14" in out
+    assert "█" in out and "N=150" in out and "N=721" in out
+    assert _render_evolution_bars([]) == ""
 
 
 @pytest.mark.asyncio
