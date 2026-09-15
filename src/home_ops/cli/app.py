@@ -442,6 +442,35 @@ def analytics() -> None:
 
 
 @app.command()
+def setup(
+    config_path: Annotated[
+        Path | None,
+        typer.Option(
+            "--config",
+            "-c",
+            help="Path to user_profile.yml (default: auto-discover / ./user_profile.yml)",
+            dir_okay=False,
+        ),
+    ] = None,
+) -> None:
+    """Interactive setup wizard: configure portal, scoring, Telegram, LLM.
+
+    Edits user_profile.yml + .env in place; secrets stay in .env.
+    Requires the 'tui' extra (`uv pip install '.[tui]'`).
+    """
+    try:
+        from home_ops.setup.wizard import run as run_wizard
+    except ImportError as exc:
+        console.print("[bold red]Setup needs the 'tui' extra:[/bold red] uv pip install '.[tui]'")
+        raise typer.Exit(code=1) from exc
+
+    if config_path is None:
+        config_path = Path.cwd() / "user_profile.yml"
+    env_path = Path.cwd() / ".env"
+    run_wizard(config_path, env_path)
+
+
+@app.command()
 def tui(config_path: ConfigPathArg = None) -> None:
     """Launch the interactive control panel: scan, approve, reset, monitor."""
     try:

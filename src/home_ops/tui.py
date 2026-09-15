@@ -35,6 +35,7 @@ class HomeOpsTUI(App[None]):
         ("s", "scan", "Scan"),
         ("r", "refresh", "Refresh"),
         ("a", "approve", "Approve"),
+        ("c", "config", "Config"),
         ("x", "reset_snapshots", "Reset snapshots"),
         ("q", "quit", "Quit"),
     ]
@@ -114,6 +115,22 @@ class HomeOpsTUI(App[None]):
             )
         self.query_one("#log", RichLog).write(f"[green]Listing {listing_id} approved.[/green]")
         self.action_refresh()
+
+    # ---------------------------------------------------------------- config
+
+    def action_config(self) -> None:
+        """Open the setup wizard as a modal screen (Config tab)."""
+        from home_ops.setup.wizard import SetupWizard
+
+        config_path = self.config_path or Path.cwd() / "user_profile.yml"
+        env_path = config_path.parent / ".env"
+        self.push_screen(SetupWizard(config_path, env_path), self._config_closed)
+
+    def _config_closed(self, saved: bool | None) -> None:
+        """Refresh the panels when the wizard reports a successful save."""
+        if saved:
+            self.action_refresh()
+            self.notify("Configuración actualizada. Pulsa s para re-escanear.")
 
     # --------------------------------------------------------------- reset
 
