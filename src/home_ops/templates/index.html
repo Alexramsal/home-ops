@@ -3,13 +3,20 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Home-Ops — Pisos en Cádiz</title>
+  <title>Home-Ops — Resultados en Cádiz</title>
   <style>
-    body { font-family: system-ui, sans-serif; max-width: 900px; margin: 2rem auto; padding: 0 1rem; color: #222; }
-    h1 { font-size: 1.4rem; }
-    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    body { font-family: system-ui, sans-serif; max-width: 960px; margin: 2rem auto; padding: 0 1rem; color: #222; }
+    h1 { font-size: 1.4rem; margin-bottom: .2rem; }
+    .sub { color: #666; font-size: .9rem; margin-top: 0; }
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: .75rem; margin: 1.5rem 0; }
+    .kpi { background: #f4f4f4; border-radius: 8px; padding: .8rem 1rem; }
+    .kpi .num { font-size: 1.5rem; font-weight: 700; }
+    .kpi .lbl { font-size: .75rem; text-transform: uppercase; color: #666; }
+    h2 { font-size: 1.1rem; margin-top: 2rem; }
+    table { width: 100%; border-collapse: collapse; margin-top: .75rem; }
     th, td { text-align: left; padding: .5rem; border-bottom: 1px solid #ddd; }
-    th { font-size: .8rem; text-transform: uppercase; color: #666; }
+    th { font-size: .75rem; text-transform: uppercase; color: #666; }
+    td.price, td.m2 { white-space: nowrap; }
     tr:hover { background: #f7f7f7; }
     a { color: #0a58ca; text-decoration: none; }
     .score { font-weight: 600; }
@@ -18,25 +25,35 @@
 </head>
 <body>
   <h1>Home-Ops — pipeline agéntico inmobiliario (Cádiz)</h1>
-  <p>Listings scrapeados, deduplicados y scoreados automáticamente. Solo lectura.</p>
+  <p class="sub">Scrape → dedup → scoring 5D → HITL. Datos reales de la base, sin login.</p>
+
+  <div class="kpis">
+    <div class="kpi"><div class="num">{{ unique_listings }}</div><div class="lbl">Inmuebles únicos</div></div>
+    <div class="kpi"><div class="num">{{ observations }}</div><div class="lbl">Observaciones de precio</div></div>
+    <div class="kpi"><div class="num">{{ "%.0f"|format(median_eur_m2 or 0) }} €/m²</div><div class="lbl">Mediana por zona</div></div>
+    <div class="kpi"><div class="num">{{ scored_70 }}</div><div class="lbl">Score ≥ 70 (oportunidades)</div></div>
+  </div>
+
+  <h2>Oportunidades rankeadas (score 5D)</h2>
   <table>
     <thead>
       <tr><th>Dirección</th><th>Precio</th><th>m²</th><th>Score</th><th>Portal</th></tr>
     </thead>
     <tbody>
-      {% for l in listings %}
+      {% for o in top_opportunities %}
       <tr>
-        <td><a href="{{ l.url }}" target="_blank" rel="noopener">{{ l.address }}</a></td>
-        <td>{{ l.price }}</td>
-        <td>{{ l.m2 }}</td>
-        <td class="score">{{ l.score }}</td>
-        <td>{{ l.portal }}</td>
+        <td><a href="{{ o.url }}" target="_blank" rel="noopener">{{ o.address }}</a></td>
+        <td class="price">{{ o.price }}</td>
+        <td class="m2">{{ o.m2 }}</td>
+        <td class="score">{{ o.score }}</td>
+        <td>{{ o.portal }}</td>
       </tr>
       {% else %}
-      <tr><td colspan="5">Sin listings todavía — corre <code>homeops scan</code>.</td></tr>
+      <tr><td colspan="5">Sin oportunidades todavía — corre <code>homeops scan</code>.</td></tr>
       {% endfor %}
     </tbody>
   </table>
-  <footer>Home-Ops · <a href="https://github.com/AlejandroRS21/home-ops">código fuente</a></footer>
+
+  <footer>Home-Ops · <a href="https://github.com/alexramsal/home-ops">código fuente</a> · mediana zonal calculada sobre la ventana de 90 días</footer>
 </body>
 </html>
