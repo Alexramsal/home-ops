@@ -3,7 +3,7 @@
 One screen, five tabs:
 
 - ``s``  scan    — run one pipeline cycle in a worker thread; its output streams
-                   into the log pane (Resumen tab).
+                   into the log pane (Actividad tab).
 - ``r``  refresh — re-read DuckDB once and repaint every panel.
 - ``a``  approve — approve the selected pending listing (HITL gate).
 - ``c``  config  — open the setup wizard modal.
@@ -24,7 +24,11 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
+from rich.markup import escape
+from rich.text import Text
 from textual.app import App, ComposeResult
+from textual.binding import Binding
+from textual.containers import Horizontal
 from textual.widgets import (
     DataTable,
     Footer,
@@ -63,32 +67,58 @@ def _is_safe_listing_url(url: str) -> bool:
 class HomeOpsTUI(App[None]):
     """Pipeline control panel: scan/approve/reset + analytics dashboard."""
 
+    TITLE = "Home-Ops"
+    SUB_TITLE = "Radar inmobiliario"
     BINDINGS = [
-        ("s", "scan", "Scan"),
-        ("r", "refresh", "Refresh"),
-        ("a", "approve", "Approve"),
-        ("c", "config", "Config"),
-        ("x", "reset_snapshots", "Reset"),
-        ("f", "filter_ranking", "Filter"),
-        ("o", "open_listing", "Open"),
-        ("1", "tab(1)", "Resumen"),
-        ("2", "tab(2)", "Pendientes"),
-        ("3", "tab(3)", "Ranking"),
-        ("4", "tab(4)", "Tendencias"),
-        ("5", "tab(5)", "Actividad"),
-        ("q", "quit", "Quit"),
+        Binding("s", "scan", "Escanear"),
+        Binding("r", "refresh", "Actualizar"),
+        Binding("c", "config", "Configurar"),
+        Binding("?", "help", "Ayuda"),
+        Binding("q", "quit", "Salir"),
+        Binding("a", "approve", "Aprobar", show=False),
+        Binding("x", "reset_snapshots", "Reiniciar", show=False),
+        Binding("f", "filter_ranking", "Filtrar", show=False),
+        Binding("o", "open_listing", "Abrir", show=False),
+        *[
+            Binding(str(n), f"tab({n})", title, show=False)
+            for n, title in enumerate(
+                ("Resumen", "Pendientes", "Ranking", "Tendencias", "Actividad"), 1
+            )
+        ],
     ]
     CSS = """
     #top-status { height: 1; padding: 0 1; background: $panel; }
     TabbedContent { height: 1fr; }
     TabbedContent > ContentSwitcher { height: 1fr; }
     DataTable { height: 1fr; min-height: 3; }
-    Static, Sparkline, RichLog { margin: 0 1; }
-    #summary-kpis, #portal-counts, #config-health,
-    #pending-detail, #ranking-filter, #ranking-detail, #trend-message {
+    #summary-kpis {
+        height: auto;
+        min-height: 1;
+        padding: 0 1;
+    }
+    #summary-kpis Horizontal {
         height: auto;
         min-height: 1;
     }
+    .kpi-card {
+        height: auto;
+        min-height: 1;
+        width: 1fr;
+        padding: 1 2;
+        margin: 0 1;
+        border: solid $primary;
+        text-align: center;
+        content-align: center middle;
+    }
+    #portal-counts, #config-health, #recent-activity,
+    #pending-detail, #ranking-filter, #ranking-detail, #trend-message {
+        height: auto;
+        min-height: 1;
+        padding: 0 1;
+    }
+    #portal-counts { border: solid $secondary; }
+    #config-health { border: solid $warning; }
+    #recent-activity { border: solid $success; }
     #pending-detail, #ranking-detail, #trend-message { color: $text-muted; }
     #trend-spark { height: 3; }
     #log { height: 1fr; min-height: 3; }
@@ -110,13 +140,16 @@ class HomeOpsTUI(App[None]):
 
     def compose(self) -> ComposeResult:
         yield Header()
-        yield Static("Ready", id="top-status")
+        yield Static("En reposo", id="top-status")
         with TabbedContent(id="tabs"):
             with TabPane("Resumen", id="summary-tab"):
-                yield Static(id="summary-kpis")
-                yield Static(id="portal-counts")
-                yield Static(id="config-health")
-                yield RichLog(id="log", highlight=True, markup=True)
+                with Horizontal(id="summary-kpis"):
+                    yield Static("TOTAL\n0", id="kpi-total", classes="kpi-card")
+                    yield Static("OPORTUNIDADES\n0", id="kpi-opportunities", classes="kpi-card")
+                    yield Static("MEDIANA €/m²\n—", id="kpi-median", classes="kpi-card")
+                    yield Static("PENDIENTES\n0", id="kpi-pending", classes="kpi-card")
+                yield Static("Portales: ninguno", id="portal-counts")
+                yield Static("Configuración no disponible", id="config-health")
             with TabPane("Pendientes", id="pending-tab"):
                 yield DataTable(id="pending")
                 yield Static(id="pending-detail")
@@ -130,7 +163,9 @@ class HomeOpsTUI(App[None]):
                 yield DataTable(id="evolution")
             with TabPane("Actividad", id="activity-tab"):
                 yield DataTable(id="runs")
-        yield Footer()
+                yield Static("Sin ejecuciones todavía", id="recent-activity")
+                yield RichLog(id="log", markup=False, highlight=False, wrap=True, max_lines=1000)
+        yield Footer(compact=True, show_command_palette=False)
 
     def on_mount(self) -> None:
         self.query_one("#pending", DataTable).add_columns(*_TABLE_COLUMNS)
@@ -141,40 +176,47 @@ class HomeOpsTUI(App[None]):
         self.query_one("#runs", DataTable).add_columns(
             "Día", "Encontrados", "Nuevos", "Alertas"
         )
-        self.query_one("#log", RichLog).write(
-            "[b]Ready.[/b] Press s to scan, a to approve."
-        )
+        self.query_one("#log", RichLog).write("Listo. Pulsa s para escanear, a para aprobar.")
         self.action_refresh()
 
     # -------------------------------------------------------------------- scan
 
     def action_scan(self) -> None:
         if self._scanning:
-            self.notify("Scan already running", severity="warning")
+            self.notify("Ya hay un escaneo en curso", severity="warning")
             return
         self._scanning = True
-        self.query_one("#log", RichLog).write("[b]Scanning portal...[/b]")
+        self.query_one("#top-status", Static).update("ESCANEANDO")
+        self.query_one("#log", RichLog).write("Escaneando portales…")
         self.run_worker(self._scan_task, thread=True, exclusive=True)
 
     def _scan_task(self) -> None:
         """Run one pipeline cycle off the event loop; capture its output."""
-        from home_ops.cli import app as cli_app
-
         buf = io.StringIO()
-        old_file = cli_app.console.file
-        cli_app.console.file = buf
+        restored = False
         try:
-            with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(buf):
-                cli_app._run_scan(self.config_path)
-        except Exception as exc:  # surface scraper/parse failures in the log
-            buf.write(f"\n[red]Scan failed: {exc}[/red]\n")
+            try:
+                from home_ops.cli import app as cli_app
+
+                old_file = cli_app.console.file
+                cli_app.console.file = buf
+                try:
+                    with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(buf):
+                        cli_app._run_scan(self.config_path)
+                finally:
+                    cli_app.console.file = old_file
+            except Exception as exc:  # surface scraper/parse failures in the log
+                buf.write(f"\nEscaneo falló: {exc}\n")
+            self.call_from_thread(self._scan_finished, buf.getvalue())
+            restored = True
         finally:
-            cli_app.console.file = old_file
-        self.call_from_thread(self._scan_finished, buf.getvalue())
+            if not restored:
+                self._scanning = False
 
     def _scan_finished(self, output: str) -> None:
         self._scanning = False
-        self.query_one("#log", RichLog).write(output)
+        self.query_one("#top-status", Static).update("EN REPOSO")
+        self.query_one("#log", RichLog).write(Text.from_ansi(output))
         self.action_refresh()
 
     # ----------------------------------------------------------------- approve
@@ -182,10 +224,10 @@ class HomeOpsTUI(App[None]):
     def action_approve(self) -> None:
         table = self.query_one("#pending", DataTable)
         if not self._pending_ids:
-            self.notify("No pending approvals", severity="warning")
+            self.notify("No hay aprobaciones pendientes", severity="warning")
             return
         if not 0 <= table.cursor_row < len(self._pending_ids):
-            self.notify("No listing selected", severity="warning")
+            self.notify("No hay listing seleccionado", severity="warning")
             return
         listing_id = self._pending_ids[table.cursor_row]
         now = datetime.now(UTC)
@@ -198,9 +240,7 @@ class HomeOpsTUI(App[None]):
                    SET approved = TRUE, approved_at = ?""",
                 [listing_id, now, now],
             )
-        self.query_one("#log", RichLog).write(
-            f"[green]Listing {listing_id} approved.[/green]"
-        )
+        self.query_one("#log", RichLog).write(f"Listing {listing_id} aprobado.")
         self.action_refresh()
 
     # ------------------------------------------------------------------ config
@@ -225,10 +265,17 @@ class HomeOpsTUI(App[None]):
 
         invalidate_snapshots()
         self.query_one("#log", RichLog).write(
-            "[green]Snapshots invalidated — next scan cold-starts.[/green]"
+            "Snapshots invalidados — próximo escaneo arranca en frío."
         )
 
     # ------------------------------------------------------- tab / filter / url
+
+    def action_help(self) -> None:
+        self.notify(
+            "s escanear · r actualizar · a aprobar · f filtrar · o abrir · x reiniciar · 1–5 pestañas · q salir",
+            title="Atajos",
+            timeout=8,
+        )
 
     def action_tab(self, number: int) -> None:
         self.query_one("#tabs", TabbedContent).active = _TAB_IDS[number - 1]
@@ -248,17 +295,17 @@ class HomeOpsTUI(App[None]):
             table = self.query_one("#ranking", DataTable)
             urls = [str(row.get("url") or "") for row in self._ranking_rows]
         else:
-            self.notify("Open is only available for listings", severity="warning")
+            self.notify("Abrir solo está disponible para listings", severity="warning")
             return
         if not urls:
-            self.notify("No listing selected", severity="warning")
+            self.notify("No hay listing seleccionado", severity="warning")
             return
         if not 0 <= table.cursor_row < len(urls):
-            self.notify("No listing selected", severity="warning")
+            self.notify("No hay listing seleccionado", severity="warning")
             return
         url = urls[table.cursor_row]
         if not _is_safe_listing_url(url):
-            self.notify("Unsafe or missing listing URL", severity="warning")
+            self.notify("URL de listing insegura o faltante", severity="warning")
             return
         webbrowser.open(url)
 
@@ -283,13 +330,13 @@ class HomeOpsTUI(App[None]):
 
             config = load_config(self.config_path)
             telegram = bool(config.telegram_bot_token and config.telegram_chat_id)
-            llm = config.llm.model if config.llm.enabled and config.llm.model else "No"
+            llm = escape(str(config.llm.model)) if config.llm.enabled and config.llm.model else "No"
             return (
                 f"Telegram: {'Sí' if telegram else 'No'}   "
                 f"LLM: {llm}   Portales: {len(config.portal_urls)}"
             )
         except Exception:
-            return "Configuración no disponible — config Health sin secretos"
+            return "Configuración no disponible"
 
     @staticmethod
     def _price(value: Any) -> str:
@@ -303,10 +350,11 @@ class HomeOpsTUI(App[None]):
 
     @staticmethod
     def _ranking_detail(row: dict[str, Any]) -> str:
-        return (
-            f"{row['address'] or ''} | {row['rooms'] or '—'} rooms | "
-            f"{row['m2'] or '—'} m² | {row['url'] or 'sin URL'}"
-        )
+        address = escape(str(row["address"] or ""))
+        rooms = str(row["rooms"] or "—")
+        m2 = str(row["m2"] or "—")
+        url = escape(str(row["url"] or "sin URL"))
+        return f"{address} | {rooms} hab. | {m2} m² | {url}"
 
     def _render_ranking(self) -> None:
         """Repaint the ranking table from the cached top-100 by score desc."""
@@ -373,22 +421,34 @@ class HomeOpsTUI(App[None]):
             evolution = analytics_mod.price_evolution_by_week(db)
             runs = analytics_mod.runs_timeseries(db)
 
-        self.query_one("#top-status", Static).update(
-            f"Listings: {total}   Last scan: {last_scan or 'never'}   "
-            f"Pending: {len(pending)}"
+        status_text = (
+            f"Propiedades: {total}   Último escaneo: {escape(str(last_scan or 'nunca'))}   "
+            f"Pendientes: {len(pending)}"
         )
+        self.query_one("#top-status", Static).update(status_text)
 
         median = price_m2["p50"]
         median_text = f"{float(median):.0f}" if median is not None else "—"
-        self.query_one("#summary-kpis", Static).update(
-            f"Total listings: {total}   Score >= 70: {high_score}   "
-            f"Mediana €/m²: {median_text}   Pendientes: {len(pending)}"
-        )
-        portal_text = ", ".join(f"{portal}: {count}" for portal, count in portals)
+        self.query_one("#kpi-total", Static).update(f"TOTAL\n{total}")
+        self.query_one("#kpi-opportunities", Static).update(f"OPORTUNIDADES\n{high_score}")
+        self.query_one("#kpi-median", Static).update(f"MEDIANA €/m²\n{median_text}")
+        self.query_one("#kpi-pending", Static).update(f"PENDIENTES\n{len(pending)}")
+        portal_text = ", ".join(f"{escape(str(portal))}: {count}" for portal, count in portals)
         self.query_one("#portal-counts", Static).update(
             f"Portales: {portal_text or 'ninguno'}"
         )
         self.query_one("#config-health", Static).update(self._config_status())
+
+        # recent-activity: last run day or placeholder
+        if runs:
+            last = runs[-1]
+            act = (
+                f"{escape(str(last['day']))} — {last['listings_found']} encontrados, "
+                f"{last['listings_new']} nuevos, {last['alerts_sent']} alertas"
+            )
+        else:
+            act = "Sin ejecuciones todavía"
+        self.query_one("#recent-activity", Static).update(act)
 
         pending_table = self.query_one("#pending", DataTable)
         pending_table.clear()
@@ -398,9 +458,11 @@ class HomeOpsTUI(App[None]):
         for row in pending:
             self._pending_ids.append(int(row[0]))
             self._pending_urls.append(str(row[6] or ""))
+            addr = escape(str(row[1] or ""))
+            url_str = escape(str(row[6] or "sin URL"))
             self._pending_details.append(
-                f"{row[1] or ''} | {self._price(row[3])} | "
-                f"{row[4] or '—'} m² | {row[5] or '—'} rooms | {row[6] or 'sin URL'}"
+                f"{addr} | {self._price(row[3])} | "
+                f"{row[4] or '—'} m² | {row[5] or '—'} hab. | {url_str}"
             )
             pending_table.add_row(
                 str(row[0]),

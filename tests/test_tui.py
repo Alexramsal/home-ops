@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import sys
 from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 
 import pytest
+from rich.text import Text
 
 pytest.importorskip("textual")
 
@@ -80,8 +82,8 @@ async def test_tui_empty_mount_and_tabs(tmp_path) -> None:
         assert len(app.query("TabPane")) == 5
         for widget_id in MANDATORY_IDS:
             assert app.query_one(widget_id)
-        assert "Listings: 0" in str(app.query_one("#top-status").render())
-        assert "Total listings: 0" in str(app.query_one("#summary-kpis").render())
+        assert "Propiedades: 0" in str(app.query_one("#top-status").render())
+        assert "TOTAL\n0" in str(app.query_one("#kpi-total").render())
         assert "Datos insuficientes" in str(app.query_one("#trend-message").render())
 
 
@@ -93,11 +95,12 @@ async def test_tui_seeded_data(tmp_path) -> None:
     app = HomeOpsTUI(db_path)
     async with app.run_test() as pilot:
         await pilot.pause()
-        kpis = str(app.query_one("#summary-kpis").render())
-        assert "Total listings: 3" in kpis
-        assert "Score >= 70: 2" in kpis
-        assert "Mediana €/m²: 1200" in kpis
-        assert "Pendientes: 2" in kpis
+        kpis = str(app.query_one("#kpi-total").render())
+        assert "TOTAL\n3" in kpis
+        assert "OPORTUNIDADES\n2" in str(app.query_one("#kpi-opportunities").render())
+        assert "MEDIANA €/m²\n1200" in str(app.query_one("#kpi-median").render())
+        assert "PENDIENTES\n2" in str(app.query_one("#kpi-pending").render())
+        assert "Sin ejecuciones" not in str(app.query_one("#recent-activity").render())
         assert app.query_one("#pending").row_count == 2
         assert app.query_one("#ranking").row_count == 3
         assert [row["score"] for row in app._ranking_rows] == [90.0, 80.0, 65.0]
@@ -160,7 +163,7 @@ async def test_tui_approve_negative_cursor_does_nothing(tmp_path, monkeypatch) -
             "SELECT approved FROM pending_approvals WHERE listing_id = ?", [ids[0]]
         ).fetchone()[0]
     assert approved is False
-    assert warnings == ["No listing selected"]
+    assert warnings == ["No hay listing seleccionado"]
 
 
 @pytest.mark.asyncio
@@ -183,7 +186,7 @@ async def test_tui_approve_cursor_past_cache_does_nothing(tmp_path, monkeypatch)
             "SELECT approved FROM pending_approvals WHERE listing_id = ?", [ids[0]]
         ).fetchone()[0]
     assert approved is False
-    assert warnings == ["No listing selected"]
+    assert warnings == ["No hay listing seleccionado"]
 
 
 @pytest.mark.asyncio
@@ -203,7 +206,7 @@ async def test_tui_open_negative_cursor_does_nothing(tmp_path, monkeypatch) -> N
         monkeypatch.setattr(type(table), "cursor_row", property(lambda self: -1))
         app.action_open_listing()
     assert opened == []
-    assert warnings == ["No listing selected"]
+    assert warnings == ["No hay listing seleccionado"]
 
 
 @pytest.mark.asyncio
@@ -225,7 +228,7 @@ async def test_tui_open_cursor_past_cache_does_nothing(tmp_path, monkeypatch) ->
         )
         app.action_open_listing()
     assert opened == []
-    assert warnings == ["No listing selected"]
+    assert warnings == ["No hay listing seleccionado"]
 
 
 @pytest.mark.asyncio
@@ -299,7 +302,7 @@ async def test_tui_open_listing_security(tmp_path, monkeypatch) -> None:
         await pilot.pause()
         app.action_open_listing()
     assert opened == ["https://example.test/one"]
-    assert sum("Unsafe" in message for message in warnings) == 2
+    assert sum("insegura" in message for message in warnings) == 2
 
 
 @pytest.mark.asyncio
@@ -356,8 +359,82 @@ async def test_tui_80x24_terminal(tmp_path) -> None:
     app = HomeOpsTUI(str(tmp_path / "small.duckdb"))
     async with app.run_test(size=(80, 24)) as pilot:
         await pilot.pause()
-        assert "Listings: 0" in str(app.query_one("#top-status").render())
+        assert "Propiedades: 0" in str(app.query_one("#top-status").render())
         assert app.query_one("#ranking").row_count == 0
+
+
+@pytest.mark.asyncio
+async def test_tui_log_lives_in_activity_tab(tmp_path) -> None:
+    """#log must be inside the Actividad pane, not Resumen."""
+    app = HomeOpsTUI(str(tmp_path / "log.duckdb"))
+    async with app.run_test() as pilot:
+        await pilot.pause()
+        log = app.query_one("#log")
+        ancestors = [w.id for w in log.ancestors]
+        assert "activity-tab" in ancestors
+        assert "summary-tab" not in ancestors
+
+
+@pytest.mark.asyncio
+async def test_tui_scan_finished_strips_ansi(tmp_path, monkeypatch) -> None:
+    """_scan_finished must convert ANSI via Text.from_ansi (no raw escapes)."""
+    app = HomeOpsTUI(str(tmp_path / "ansi.duckdb"))
+    async with app.run_test() as pilot:
+        await pilot.pause()
+        written: list[str] = []
+        monkeypatch.setattr(app, "action_refresh", lambda: None)
+        monkeypatch.setattr(
+            app.query_one("#log"),
+            "write",
+            lambda content: written.append(content.plain),
+        )
+        app._scan_finished("\x1b[1;32mPipeline scan complete.\x1b[0m\n")
+        await pilot.pause()
+        assert written and "Pipeline scan complete" in written[0]
+
+
+@pytest.mark.asyncio
+async def test_tui_empty_recent_activity(tmp_path) -> None:
+    """Empty DB shows the recent-activity placeholder."""
+    app = HomeOpsTUI(str(tmp_path / "empty.duckdb"))
+    async with app.run_test() as pilot:
+        await pilot.pause()
+        assert "Sin ejecuciones todavía" in str(
+            app.query_one("#recent-activity").render()
+        )
+
+
+@pytest.mark.asyncio
+async def test_tui_title_and_subtitle(tmp_path) -> None:
+    """Header exposes the Home-Ops brand and the radar subtitle."""
+    app = HomeOpsTUI(str(tmp_path / "brand.duckdb"))
+    async with app.run_test() as pilot:
+        await pilot.pause()
+        assert app.TITLE == "Home-Ops"
+        assert app.SUB_TITLE == "Radar inmobiliario"
+
+
+@pytest.mark.asyncio
+async def test_tui_help_binding_notifies(tmp_path, monkeypatch) -> None:
+    """'?' action surfaces the shortcut cheat-sheet via notify."""
+    app = HomeOpsTUI(str(tmp_path / "help.duckdb"))
+    notices: list[str] = []
+    monkeypatch.setattr(app, "notify", lambda message, **kw: notices.append(str(message)))
+    async with app.run_test() as pilot:
+        await pilot.pause()
+        app.action_help()
+        await pilot.pause()
+    assert notices and "escanear" in notices[0]
+
+
+@pytest.mark.asyncio
+async def test_tui_footer_shows_only_primary_bindings(tmp_path) -> None:
+    """Secondary bindings (a/x/f/o/1-5) stay hidden; primary s/r/c/?/q shown."""
+    app = HomeOpsTUI(str(tmp_path / "footer.duckdb"))
+    async with app.run_test() as pilot:
+        await pilot.pause()
+        shown = [b.key for b in app._bindings.shown_keys]
+        assert shown == ["s", "r", "c", "question_mark", "q"]
 
 
 @pytest.mark.asyncio
@@ -403,4 +480,49 @@ async def test_tui_config_save_refreshes_and_returns(tmp_path) -> None:
 
         assert not isinstance(app.screen, SetupWizard)
         assert "TELEGRAM_BOT_TOKEN=new_tok" in env.read_text()
-        assert "Listings: 0" in str(app.query_one("#top-status").render())
+        assert "Propiedades: 0" in str(app.query_one("#top-status").render())
+
+
+def test_tui_ranking_detail_localizes_and_escapes_markup() -> None:
+    """Detail text uses Spanish units and neutralizes external Rich markup."""
+    detail = HomeOpsTUI._ranking_detail(
+        {"address": "[red]Calle[2]", "rooms": 3, "m2": 90.0, "url": "https://x.test/[a]"}
+    )
+    rendered = Text.from_markup(detail)
+    assert rendered.plain == "[red]Calle[2] | 3 hab. | 90.0 m² | https://x.test/[a]"
+    assert not rendered.spans
+
+
+@pytest.mark.asyncio
+async def test_tui_panels_escape_external_markup(tmp_path) -> None:
+    """External brackets render literally in the detail and portal panels."""
+    db_path = str(tmp_path / "markup.duckdb")
+    with get_connection(db_path) as db:
+        db.init_db()
+        db.conn.execute(
+            """INSERT INTO listings
+               (content_hash, url, address, m2, price, rooms, score, portal)
+               VALUES ('m1', 'https://e.test/[a]', '[b]Calle[/b]', 50.0, 50000.0, 2,
+                       75.0, '[i]portal[/i]')"""
+        )
+    app = HomeOpsTUI(db_path)
+    async with app.run_test() as pilot:
+        await pilot.pause()
+        assert "[b]Calle[/b]" in str(app.query_one("#ranking-detail").render())
+        assert "[i]portal[/i]" in str(app.query_one("#portal-counts").render())
+
+
+@pytest.mark.asyncio
+async def test_tui_scan_task_clears_scanning_when_cli_import_fails(
+    tmp_path, monkeypatch
+) -> None:
+    """A failed cli_app import must never leave _scanning stuck at True."""
+    app = HomeOpsTUI(str(tmp_path / "scan.duckdb"))
+    async with app.run_test() as pilot:
+        await pilot.pause()
+        monkeypatch.setattr(app, "call_from_thread", lambda fn, value: fn(value))
+        monkeypatch.setitem(sys.modules, "home_ops.cli", None)
+        app._scanning = True
+        app._scan_task()
+        await pilot.pause()
+        assert app._scanning is False
