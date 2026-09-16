@@ -40,6 +40,7 @@ from textual.widgets import (
 )
 
 from home_ops import analytics as analytics_mod
+from home_ops.i18n import resolve_locale, t
 from home_ops.models.data_storage import get_connection
 
 _TABLE_COLUMNS = ("ID", "Dirección", "Precio", "€/m²", "Score", "Portal")
@@ -110,13 +111,13 @@ def _resolve_listing_url(url: str, portal: str) -> str:
     return candidate if _is_safe_listing_url(candidate) else ""
 
 
-def _format_llm(row: Any) -> str:
+def _format_llm(row: Any, locale: str = "es") -> str:
     """Format the four persisted IA fields for a detail panel."""
     estado, orientacion, ruido, flags = row[-4:] if row else (None, None, None, None)
     parts = [escape(str(value)) for value in (estado, orientacion, ruido) if value]
     if flags:
-        parts.append("Flags: " + ", ".join(escape(str(flag)) for flag in flags))
-    return "IA: " + " · ".join(parts) if parts else "IA: sin analizar"
+        parts.append(t("tui.flags.prefix", locale) + ", ".join(escape(str(flag)) for flag in flags))
+    return t("tui.llm.prefix", locale) + " · ".join(parts) if parts else t("tui.llm.none", locale)
 
 
 class HomeOpsTUI(App[None]):
@@ -124,6 +125,7 @@ class HomeOpsTUI(App[None]):
 
     TITLE = "Home-Ops"
     SUB_TITLE = "Radar inmobiliario"
+
     BINDINGS = [
         Binding("s", "scan", "Escanear"),
         Binding("r", "refresh", "Actualizar"),
@@ -184,6 +186,9 @@ class HomeOpsTUI(App[None]):
         super().__init__()
         self.db_path = db_path
         self.config_path = config_path
+        import os
+        self.locale = resolve_locale(os.environ.get("HOME_OPS_LANG"))
+        type(self).SUB_TITLE = t("tui.subtitle", self.locale)
         self._scanning = False
         self._pending_ids: list[int] = []
         self._pending_details: list[str] = []
@@ -197,43 +202,51 @@ class HomeOpsTUI(App[None]):
 
     def compose(self) -> ComposeResult:
         yield Header()
-        yield Static("En reposo", id="top-status")
+        yield Static(t("tui.status.idle", self.locale), id="top-status")
         with TabbedContent(id="tabs"):
-            with TabPane("Resumen", id="summary-tab"):
+            with TabPane(t("tui.tab.summary", self.locale), id="summary-tab"):
                 with Horizontal(id="summary-kpis"):
-                    yield Static("TOTAL\n0", id="kpi-total", classes="kpi-card")
-                    yield Static("OPORTUNIDADES\n0", id="kpi-opportunities", classes="kpi-card")
-                    yield Static("MEDIANA €/m²\n—", id="kpi-median", classes="kpi-card")
-                    yield Static("PENDIENTES\n0", id="kpi-pending", classes="kpi-card")
-                yield Static("Portales: ninguno", id="portal-counts")
-                yield Static("Configuración no disponible", id="config-health")
-            with TabPane("Pendientes", id="pending-tab"):
+                    yield Static(t("tui.kpi.total", self.locale) + "\n0", id="kpi-total", classes="kpi-card")
+                    yield Static(t("tui.kpi.opportunities", self.locale) + "\n0", id="kpi-opportunities", classes="kpi-card")
+                    yield Static(t("tui.kpi.median", self.locale) + "\n—", id="kpi-median", classes="kpi-card")
+                    yield Static(t("tui.kpi.pending", self.locale) + "\n0", id="kpi-pending", classes="kpi-card")
+                yield Static(t("tui.portal.counts", self.locale, text="ninguno"), id="portal-counts")
+                yield Static(t("tui.config.unavailable", self.locale), id="config-health")
+            with TabPane(t("tui.tab.pending", self.locale), id="pending-tab"):
                 yield DataTable(id="pending")
                 yield Static(id="pending-detail")
-            with TabPane("Ranking", id="ranking-tab"):
+            with TabPane(t("tui.tab.ranking", self.locale), id="ranking-tab"):
                 yield Static(id="ranking-filter")
                 yield DataTable(id="ranking")
                 yield Static(id="ranking-detail")
-            with TabPane("Tendencias", id="trends-tab"):
+            with TabPane(t("tui.tab.trends", self.locale), id="trends-tab"):
                 yield Static(id="trend-message")
                 yield Static("", id="trend-spark")
                 yield DataTable(id="evolution")
-            with TabPane("Actividad", id="activity-tab"):
+            with TabPane(t("tui.tab.activity", self.locale), id="activity-tab"):
                 yield DataTable(id="runs")
-                yield Static("Sin ejecuciones todavía", id="recent-activity")
+                yield Static(t("tui.recent.empty", self.locale), id="recent-activity")
                 yield RichLog(id="log", markup=False, highlight=False, wrap=True, max_lines=1000)
         yield Footer(compact=True, show_command_palette=False)
 
     def on_mount(self) -> None:
-        self.query_one("#pending", DataTable).add_columns(*_TABLE_COLUMNS)
-        self.query_one("#ranking", DataTable).add_columns(*_TABLE_COLUMNS)
+        cols = (
+            t("tui.col.id", self.locale),
+            t("tui.col.address", self.locale),
+            t("tui.col.price", self.locale),
+            "€/m²",
+            t("tui.col.score", self.locale),
+            t("tui.col.portal", self.locale),
+        )
+        self.query_one("#pending", DataTable).add_columns(*cols)
+        self.query_one("#ranking", DataTable).add_columns(*cols)
         self.query_one("#evolution", DataTable).add_columns(
-            "Semana", "N", "Media €/m²", "P50 €/m²"
+            t("tui.evo.cols", self.locale), "N", t("tui.evo.mean", self.locale), t("tui.evo.p50", self.locale)
         )
         self.query_one("#runs", DataTable).add_columns(
-            "Día", "Encontrados", "Nuevos", "Alertas"
+            t("tui.runs.day", self.locale), t("tui.runs.found", self.locale), t("tui.runs.new", self.locale), t("tui.runs.alerts", self.locale)
         )
-        self.query_one("#log", RichLog).write("Listo. Pulsa s para escanear, a para aprobar.")
+        self.query_one("#log", RichLog).write(t("tui.log.ready", self.locale))
         self.action_refresh()
 
     # -------------------------------------------------------------------- scan
@@ -494,18 +507,21 @@ class HomeOpsTUI(App[None]):
             evolution = analytics_mod.price_evolution_by_week(db)
             runs = analytics_mod.runs_timeseries(db)
 
-        status_text = (
-            f"Propiedades: {total}   Último escaneo: {escape(str(last_scan or 'nunca'))}   "
-            f"Pendientes: {len(pending)}"
+        status_text = t(
+            "tui.top.status",
+            self.locale,
+            total=total,
+            last=escape(str(last_scan or t("tui.last_never", self.locale))),
+            pending=len(pending),
         )
         self.query_one("#top-status", Static).update(status_text)
 
         median = price_m2["p50"]
         median_text = f"{float(median):.0f}" if median is not None else "—"
-        self.query_one("#kpi-total", Static).update(f"TOTAL\n{total}")
-        self.query_one("#kpi-opportunities", Static).update(f"OPORTUNIDADES\n{high_score}")
-        self.query_one("#kpi-median", Static).update(f"MEDIANA €/m²\n{median_text}")
-        self.query_one("#kpi-pending", Static).update(f"PENDIENTES\n{len(pending)}")
+        self.query_one("#kpi-total", Static).update(f"{t('tui.kpi.total', self.locale)}\n{total}")
+        self.query_one("#kpi-opportunities", Static).update(f"{t('tui.kpi.opportunities', self.locale)}\n{high_score}")
+        self.query_one("#kpi-median", Static).update(f"{t('tui.kpi.median', self.locale)}\n{median_text}")
+        self.query_one("#kpi-pending", Static).update(f"{t('tui.kpi.pending', self.locale)}\n{len(pending)}")
         portal_text = ", ".join(f"{escape(str(portal))}: {count}" for portal, count in portals)
         self.query_one("#portal-counts", Static).update(
             f"Portales: {portal_text or 'ninguno'}"

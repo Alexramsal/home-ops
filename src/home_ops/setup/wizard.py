@@ -23,15 +23,18 @@ from textual.widgets import (
     Label,
     ListItem,
     ListView,
+    Select,
     Static,
     Switch,
     TextArea,
 )
 
+from home_ops.i18n import resolve_locale, t
 from home_ops.setup.core import load_state, test_llm, test_telegram, write_config
 
 # section -> (field id, label, key path into state, password?)
 _FIELD_SPECS: dict[str, list[tuple[str, str, tuple[str, ...], bool | str]]] = {
+    "General": [("language", "Idioma de la interfaz (se aplica al reiniciar)", ("language",), False)],
     "Telegram": [
         ("bot_token", "Token del bot", ("telegram", "bot_token"), True),
         ("chat_id", "Chat ID", ("telegram", "chat_id"), False),
@@ -75,14 +78,75 @@ _FIELD_SPECS: dict[str, list[tuple[str, str, tuple[str, ...], bool | str]]] = {
 }
 
 _DESCRIPTIONS = {
-    "Telegram": "Token del bot y chat donde llegarán las alertas. "
-    "Crea un bot con @BotFather y obtén el chat_id con @userinfobot.",
-    "LLM": "Endpoint compatible OpenAI para enriquecer descripciones "
-    "y detectar señales de estafa. Deja vacío para usar solo reglas.",
-    "Portal": "URLs de búsqueda a escanear (una por línea).",
-    "Scoring": "Pesos y umbrales del scoring 5 dimensiones.",
-    "Alertas": "Cuándo corre el escáner y cuántas alertas máximas por día.",
-    "Comprador": "Protección al comprador: ITP, esfuerzo hipotecario.",
+    "General": {
+        "es": "Preferencias generales de la interfaz (idioma).",
+        "en": "General interface preferences (language).",
+    },
+    "Telegram": {
+        "es": "Token del bot y chat donde llegarán las alertas. "
+        "Crea un bot con @BotFather y obtén el chat_id con @userinfobot.",
+        "en": "Bot token and chat where alerts arrive. "
+        "Create a bot with @BotFather and get chat_id with @userinfobot.",
+    },
+    "LLM": {
+        "es": "Endpoint compatible OpenAI para enriquecer descripciones "
+        "y detectar señales de estafa. Deja vacío para usar solo reglas.",
+        "en": "OpenAI-compatible endpoint to enrich descriptions "
+        "and detect scam signals. Leave empty to use rules only.",
+    },
+    "Portal": {
+        "es": "URLs de búsqueda a escanear (una por línea).",
+        "en": "Search URLs to scan (one per line).",
+    },
+    "Scoring": {
+        "es": "Pesos y umbrales del scoring 5 dimensiones.",
+        "en": "Weights and thresholds for 5-dimension scoring.",
+    },
+    "Alertas": {
+        "es": "Cuándo corre el escáner y cuántas alertas máximas por día.",
+        "en": "When the scanner runs and max alerts per day.",
+    },
+    "Comprador": {
+        "es": "Protección al comprador: ITP, esfuerzo hipotecario.",
+        "en": "Buyer Protection: ITP, mortgage effort.",
+    },
+}
+
+_SECTION_LABELS = {
+    "General": {"es": "General", "en": "Language"},
+    "Telegram": {"es": "Telegram", "en": "Telegram"},
+    "LLM": {"es": "LLM", "en": "LLM"},
+    "Portal": {"es": "Portal", "en": "Portal"},
+    "Scoring": {"es": "Scoring", "en": "Scoring"},
+    "Alertas": {"es": "Alertas", "en": "Alerts"},
+    "Comprador": {"es": "Comprador", "en": "Buyer"},
+}
+
+_LABELS = {
+    "language": {"es": "Idioma de la interfaz (se aplica al reiniciar)", "en": "Interface language (applies after restart)"},
+    "bot_token": {"es": "Token del bot", "en": "Bot token"},
+    "chat_id": {"es": "Chat ID", "en": "Chat ID"},
+    "tg_test": {"es": "Test Telegram", "en": "Test Telegram"},
+    "llm_enabled": {"es": "Activar LLM", "en": "Enable LLM"},
+    "ai_base_url": {"es": "Base URL", "en": "Base URL"},
+    "ai_api_key": {"es": "API Key", "en": "API Key"},
+    "ai_model": {"es": "Model", "en": "Model"},
+    "llm_test": {"es": "Test LLM", "en": "Test LLM"},
+    "portals": {"es": "URLs (una por línea)", "en": "URLs (one per line)"},
+    "min_score": {"es": "Alerta mínima (0-100)", "en": "Minimum alert (0-100)"},
+    "price_median": {"es": "Mediana precio (€)", "en": "Price median (€)"},
+    "m2_threshold": {"es": "m² mínimo", "en": "Min area (m²)"},
+    "m2_large": {"es": "m² grande", "en": "Large area (m²)"},
+    "salary": {"es": "Salario provincia (€)", "en": "Province salary (€)"},
+    "mode": {"es": "Modo (daily|interval)", "en": "Mode (daily|interval)"},
+    "daily_time": {"es": "Hora diaria (HH:MM)", "en": "Daily time (HH:MM)"},
+    "interval_hours": {"es": "Intervalo (horas)", "en": "Interval (hours)"},
+    "timezone": {"es": "Zona horaria", "en": "Timezone"},
+    "max_alerts": {"es": "Máx alertas/día", "en": "Max alerts/day"},
+    "itp": {"es": "ITP por defecto (0-1)", "en": "Default ITP (0-1)"},
+    "ceiling": {"es": "Esfuerzo hipotecario máx (0-1)", "en": "Max mortgage effort (0-1)"},
+    "down": {"es": "Entrada (0-1)", "en": "Down payment (0-1)"},
+    "years": {"es": "Años hipoteca", "en": "Mortgage years"},
 }
 
 
@@ -98,7 +162,6 @@ class SetupWizard(ModalScreen[bool]):
     """
 
     TITLE = "Home-Ops Setup"
-    SUB_TITLE = "Configura portal, scoring, alertas, Telegram y LLM"
 
     BINDINGS = [
         ("ctrl+s", "save", "Guardar"),
@@ -120,23 +183,29 @@ class SetupWizard(ModalScreen[bool]):
         self.config_path = config_path
         self.env_path = env_path
         self.state = load_state(config_path, env_path)
+        self.locale = resolve_locale(self.state.get("language"))
         self._sections: list[str] = list(_FIELD_SPECS.keys())
+        type(self).SUB_TITLE = t("wizard.subtitle", self.locale)
 
     def compose(self) -> ComposeResult:
         yield Header()
         with Grid(classes="wizard-grid"):
             with Vertical(id="nav"):
-                yield ListView(*[ListItem(Label(name)) for name in self._sections])
+                yield ListView(*[ListItem(Label(_SECTION_LABELS.get(name, {}).get(self.locale, name))) for name in self._sections])
             with VerticalScroll(id="panel"):
                 yield Static(id="panel-title")
                 yield Static(id="panel-desc")
                 with Vertical(id="fields"):
                     for name in self._sections:
                         with Vertical(id=_section_id(name), classes="section"):
-                            for fid, label, _path, pwd in _FIELD_SPECS[name]:
-                                value = self._initial_value(fid, label, _path)
+                            for fid, _label, _path, pwd in _FIELD_SPECS[name]:
+                                label = _LABELS.get(fid, {}).get(self.locale, _label)
+                                value = self._initial_value(fid, _label, _path)
                                 if not _path:
                                     yield Button(label, id=fid)
+                                elif fid == "language":
+                                    yield Label(f"[b]{label}[/b]")
+                                    yield Select((("Español", "es"), ("English", "en")), value=value, id=fid)
                                 elif fid == "portals":
                                     yield Label(f"[b]{label}[/b]")
                                     yield TextArea(
@@ -158,8 +227,8 @@ class SetupWizard(ModalScreen[bool]):
                                     )
                 yield Static(id="panel-status")
         with Horizontal(classes="actions"):
-            yield Button("Guardar", variant="primary", id="save")
-            yield Button("Cancelar", id="cancel")
+            yield Button(t("wizard.save", self.locale), variant="primary", id="save")
+            yield Button(t("wizard.cancel", self.locale), id="cancel")
         yield Footer()
 
     def _initial_value(self, fid: str, label: str, path: tuple[str, ...]) -> str:
@@ -182,8 +251,10 @@ class SetupWizard(ModalScreen[bool]):
 
     def _render_section(self, index: int) -> None:
         name = self._sections[index]
-        self.query_one("#panel-title", Static).update(f"[b]{name}[/b]")
-        self.query_one("#panel-desc", Static).update(_DESCRIPTIONS[name])
+        label = _SECTION_LABELS.get(name, {}).get(self.locale, name)
+        desc = _DESCRIPTIONS.get(name, {}).get(self.locale, "")
+        self.query_one("#panel-title", Static).update(f"[b]{label}[/b]")
+        self.query_one("#panel-desc", Static).update(desc)
         for other in self._sections:
             self.query_one(f"#{_section_id(other)}", Vertical).display = other == name
         self.query_one("#panel-status", Static).update("")
@@ -210,6 +281,8 @@ class SetupWizard(ModalScreen[bool]):
 
     def _collect_state(self) -> dict[str, Any]:
         s = self.state
+        language = self.query_one("#language", Select).value
+        s["language"] = language if language in ("es", "en") else "es"
         s["telegram"]["bot_token"] = self._get_input("bot_token").strip()
         s["telegram"]["chat_id"] = self._get_input("chat_id").strip()
 
@@ -249,7 +322,7 @@ class SetupWizard(ModalScreen[bool]):
         try:
             return float(self._get_input(fid).strip() or default)
         except ValueError:
-            self._status(f"Valor inválido en '{fid}', usando {default}.", error=True)
+            self._status(t("wizard.invalid_value", self.locale, fid=fid, default=default), error=True)
             return float(default)
 
     def _status(self, text: str, error: bool = False) -> None:
@@ -260,16 +333,15 @@ class SetupWizard(ModalScreen[bool]):
         state = self._collect_state()
         if not state["telegram"]["bot_token"]:
             self._status(
-                "Sin token de Telegram: las alertas por chat no se enviarán "
-                "(los portales, scoring y web sí funcionan).",
+                t("wizard.no_telegram_token", self.locale),
                 error=False,
             )
         try:
             write_config(self.config_path, self.env_path, state)
         except Exception as exc:
-            self._status(f"Error al guardar: {exc}", error=True)
+            self._status(t("wizard.save_error", self.locale, exc=exc), error=True)
             return
-        self.notify("Configuración guardada.")
+        self.notify(t("wizard.saved", self.locale))
         self.dismiss(True)
 
     # ------------------------------------------------------------------- tests
@@ -280,7 +352,7 @@ class SetupWizard(ModalScreen[bool]):
         # a run_worker + asyncio.to_thread si la UI llega a congelarse.
         ok, msg = test_telegram(
             self._get_input("bot_token").strip(),
-            self._get_input("chat_id").strip(),
+            self._get_input("chat_id").strip(), locale=self.locale,
         )
         self._status(msg, error=not ok)
 
@@ -289,7 +361,7 @@ class SetupWizard(ModalScreen[bool]):
         ok, msg = test_llm(
             self._get_input("ai_base_url").strip(),
             self._get_input("ai_api_key").strip(),
-            self._get_input("ai_model").strip(),
+            self._get_input("ai_model").strip(), locale=self.locale,
         )
         self._status(msg, error=not ok)
 

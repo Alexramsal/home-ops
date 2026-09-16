@@ -216,3 +216,103 @@ def test_index_shows_llm_analysis_column(tmp_path, monkeypatch) -> None:
     assert "Sin analizar" in resp.text
     # Jinja escapes LLM-provided text (no raw HTML execution)
     assert "<script>alert(1)</script>" not in resp.text
+
+
+def test_index_defaults_to_spanish(tmp_path, monkeypatch) -> None:
+    monkeypatch.delenv("HOME_OPS_LANG", raising=False)
+    db_path = str(tmp_path / "home_ops.duckdb")
+    _seed(db_path, [])
+    monkeypatch.setattr(web_mod, "get_db_path", lambda: db_path)
+
+    resp = TestClient(web_mod.app).get("/")
+
+    assert resp.status_code == 200
+    assert '<html lang="es">' in resp.text
+    assert "Selección Cuantitativa Auditada" in resp.text
+    assert "Capturas brutas registradas" in resp.text
+
+
+def test_index_english_via_query(tmp_path, monkeypatch) -> None:
+    monkeypatch.delenv("HOME_OPS_LANG", raising=False)
+    db_path = str(tmp_path / "home_ops.duckdb")
+    _seed(db_path, [])
+    monkeypatch.setattr(web_mod, "get_db_path", lambda: db_path)
+
+    resp = TestClient(web_mod.app).get("/?lang=en")
+
+    assert resp.status_code == 200
+    assert '<html lang="en">' in resp.text
+    assert "Audited Quantitative Selection" in resp.text
+    assert "Raw captures recorded" in resp.text
+    assert "Indexed sources" in resp.text
+    assert "Selección Cuantitativa Auditada" not in resp.text
+
+
+def test_index_english_via_accept_language(tmp_path, monkeypatch) -> None:
+    monkeypatch.delenv("HOME_OPS_LANG", raising=False)
+    db_path = str(tmp_path / "home_ops.duckdb")
+    _seed(db_path, [])
+    monkeypatch.setattr(web_mod, "get_db_path", lambda: db_path)
+
+    resp = TestClient(web_mod.app).get("/", headers={"accept-language": "en-US,en;q=0.9"})
+
+    assert resp.status_code == 200
+    assert '<html lang="en">' in resp.text
+    assert "Audited Quantitative Selection" in resp.text
+
+
+def test_index_query_beats_accept_language(tmp_path, monkeypatch) -> None:
+    monkeypatch.delenv("HOME_OPS_LANG", raising=False)
+    db_path = str(tmp_path / "home_ops.duckdb")
+    _seed(db_path, [])
+    monkeypatch.setattr(web_mod, "get_db_path", lambda: db_path)
+
+    resp = TestClient(web_mod.app).get("/?lang=es", headers={"accept-language": "en-US,en"})
+
+    assert resp.status_code == 200
+    assert '<html lang="es">' in resp.text
+    assert "Selección Cuantitativa Auditada" in resp.text
+
+
+def test_index_lang_selector_visible_and_accessible(tmp_path, monkeypatch) -> None:
+    monkeypatch.delenv("HOME_OPS_LANG", raising=False)
+    db_path = str(tmp_path / "home_ops.duckdb")
+    _seed(db_path, [])
+    monkeypatch.setattr(web_mod, "get_db_path", lambda: db_path)
+
+    es = TestClient(web_mod.app).get("/").text
+    assert 'href="?lang=es"' in es
+    assert 'href="?lang=en"' in es
+    assert 'aria-label="Seleccionar idioma"' in es
+
+    en = TestClient(web_mod.app).get("/?lang=en").text
+    assert 'aria-label="Select language"' in en
+
+
+def test_index_english_keeps_dynamic_data_and_llm_values(tmp_path, monkeypatch) -> None:
+    monkeypatch.delenv("HOME_OPS_LANG", raising=False)
+    db_path = str(tmp_path / "home_ops.duckdb")
+    _seed(
+        db_path,
+        [
+            "INSERT INTO listings (content_hash, address, price, m2, url, score) "
+            "VALUES ('h1', 'Calle Falsa 123', 150000, 80, 'https://example.com/1', 85)",
+            "INSERT INTO llm_analysis "
+            "(listing_id, estado_reforma, orientacion, ruido_zona, red_flags_llm) "
+            "SELECT id, 'Reformado', 'Sur', 'Bajo', ['Humedades'] "
+            "FROM listings WHERE content_hash = 'h1'",
+        ],
+    )
+    monkeypatch.setattr(web_mod, "get_db_path", lambda: db_path)
+
+    resp = TestClient(web_mod.app).get("/?lang=en")
+
+    assert resp.status_code == 200
+    # DB data and stored LLM values must NOT be translated.
+    assert "Calle Falsa 123" in resp.text
+    assert "Reformado" in resp.text
+    assert "Sur" in resp.text
+    assert "150,000 €" in resp.text
+    assert "Audit pending" in resp.text
+    # Escaping still applied in English mode.
+    assert "<script>" not in resp.text

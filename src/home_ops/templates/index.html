@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="{{ locale }}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Home-Ops — Consola de Auditoría Inmobiliaria</title>
+<title>{{ t('title') }}</title>
 <style>
   :root { --bg:#0d1117; --panel:#161b22; --border:#30363d; --text:#e6edf3; --muted:#8b949e; --accent:#58a6ff; --green:#3fb950; --yellow:#d29922; }
   * { box-sizing:border-box; margin:0; padding:0; }
@@ -76,54 +76,55 @@
 <div class="wrap">
   <!-- HEADER -->
   <div class="topbar">
-    <span class="brand">HOME-OPS | PANEL PÚBLICO</span>
-    <span class="ver">Últimos datos: {{ cutoff }}</span>
+    <span class="brand">HOME-OPS | {{ t('public.panel') }}</span>
+    <nav aria-label="{{ t('language.select') }}"><a href="?lang=es">ES</a> | <a href="?lang=en">EN</a></nav>
+    <span class="ver">{{ t('latest', cutoff=cutoff) }}</span>
   </div>
-  <h1>Pipeline Inmobiliario &amp; Scoring de Oportunidades</h1>
-  <p class="subtitle">Auditoría de Ingestión, Observaciones Temporales y Scoring 5D</p>
-  <a class="gh-btn" href="https://github.com/alexramsal/home-ops">Ver en GitHub ↗</a>
+  <h1>{{ t('hero') }}</h1>
+  <p class="subtitle">{{ t('subtitle') }}</p>
+  <a class="gh-btn" href="https://github.com/alexramsal/home-ops">{{ t('github.view') }}</a>
 
   <!-- PIPELINE -->
-  <div class="section-title">Arquitectura de Ingeniería de Datos</div>
-  <p style="color:var(--muted);font-size:.85rem;margin-bottom:1rem;">Pipeline Operacional: Scrape → Dedup → Scoring 5D → HITL</p>
+  <div class="section-title">{{ t('pipeline') }}</div>
+  <p style="color:var(--muted);font-size:.85rem;margin-bottom:1rem;">{{ t('pipeline.desc') }}</p>
   <div class="pipeline">
-    <div class="step"><div class="num">01</div><h3>Ingesta</h3><p>Extracción automatizada de publicaciones activas con captura de precio, superficie y atributos técnicos.</p><div class="stat">{{ n_obs_total }} observaciones brutas</div></div>
-    <div class="step"><div class="num">02</div><h3>Normalización</h3><p>Agrupación temporal en {{ n_unique }} listings únicos, rastreando {{ n_repeated }} observaciones repetidas sin descartar su serie histórica.</p><div class="stat">{{ n_unique }} únicos | {{ n_repeated }} repetidas</div></div>
-    <div class="step"><div class="num">03</div><h3>Evaluación</h3><p>Modelo cuantitativo de 5 dimensiones: descuento vs. mediana, liquidez, superficie, tipología y penalización de riesgo.</p><div class="stat">{{ n_scored }} con Score ≥ 70</div></div>
-    <div class="step"><div class="num">04</div><h3>Gobernanza</h3><p>Auditoría manual de notas registrales, titularidad y estado real antes de calificar una oportunidad como apta.</p><div class="stat">Validación documental</div></div>
+    <div class="step"><div class="num">01</div><h3>{{ t('ingestion') }}</h3><p>{{ t('ingestion.desc') }}</p><div class="stat">{{ t('step1.stat', n=n_obs_total) }}</div></div>
+    <div class="step"><div class="num">02</div><h3>{{ t('normalization') }}</h3><p>{{ t('normalization.desc', unique=n_unique, repeated=n_repeated) }}</p><div class="stat">{{ t('normalization.stat', unique=n_unique, repeated=n_repeated) }}</div></div>
+    <div class="step"><div class="num">03</div><h3>{{ t('evaluation') }}</h3><p>{{ t('evaluation.desc') }}</p><div class="stat">{{ t('evaluation.stat', n=n_scored) }}</div></div>
+    <div class="step"><div class="num">04</div><h3>{{ t('governance') }}</h3><p>{{ t('governance.desc') }}</p><div class="stat">{{ t('governance.stat') }}</div></div>
   </div>
 
   <!-- KPIS -->
-  <div class="section-title">Evidencia Cuantitativa Registrada (Hechos en DB)</div>
+  <div class="section-title">{{ t('evidence') }}</div>
   <div class="kpis">
-    <div class="kpi"><div class="lbl">Anuncios Únicos</div><div class="num">{{ kpis.unique }}</div><div class="desc">Listings únicos indexados</div><div class="badge">{{ n_unique }} Scored</div></div>
-    <div class="kpi"><div class="lbl">Observaciones de Precio</div><div class="num">{{ kpis.obs }}</div><div class="desc">Capturas brutas registradas</div><div class="badge">Ingesta Total</div></div>
-    <div class="kpi"><div class="lbl">Observaciones Repetidas</div><div class="num">{{ kpis.repeated }}</div><div class="desc">Repetidas tras primer avistamiento</div><div class="badge">Seguimiento</div></div>
-    <div class="kpi"><div class="lbl">Mediana Precio Actual</div><div class="num">{{ kpis.median }} €/m²</div><div class="desc">Mediana global en listings activos</div><div class="badge">Benchmark</div></div>
-    <div class="kpi"><div class="lbl">Oportunidades Destacadas</div><div class="num">{{ kpis.scored70 }}</div><div class="desc">{{ n_scored }} de {{ n_unique }} con score alto</div><div class="badge">Score ≥ 70</div></div>
-    <div class="kpi"><div class="lbl">Penalización Riesgo Base</div><div class="num">{{ kpis.risk }}</div><div class="desc">Metodología aplicada (0 fraudes)</div><div class="badge">Score 10</div></div>
+    <div class="kpi"><div class="lbl">{{ t('kpi.unique') }}</div><div class="num">{{ kpis.unique }}</div><div class="desc">{{ t('kpi.unique.desc') }}</div><div class="badge">{{ n_unique }} Scored</div></div>
+    <div class="kpi"><div class="lbl">{{ t('kpi.obs') }}</div><div class="num">{{ kpis.obs }}</div><div class="desc">{{ t('kpi.obs.desc') }}</div><div class="badge">{{ t('total.ingestion') }}</div></div>
+    <div class="kpi"><div class="lbl">{{ t('kpi.repeated') }}</div><div class="num">{{ kpis.repeated }}</div><div class="desc">{{ t('kpi.repeated.desc') }}</div><div class="badge">{{ t('tracking') }}</div></div>
+    <div class="kpi"><div class="lbl">{{ t('kpi.median') }}</div><div class="num">{{ kpis.median }} €/m²</div><div class="desc">{{ t('kpi.median.desc') }}</div><div class="badge">{{ t('benchmark') }}</div></div>
+    <div class="kpi"><div class="lbl">{{ t('kpi.featured') }}</div><div class="num">{{ kpis.scored70 }}</div><div class="desc">{{ t('kpi.featured.desc', scored=n_scored, unique=n_unique) }}</div><div class="badge">Score ≥ 70</div></div>
+    <div class="kpi"><div class="lbl">{{ t('kpi.risk') }}</div><div class="num">{{ kpis.risk }}</div><div class="desc">{{ t('kpi.risk.desc') }}</div><div class="badge">Score 10</div></div>
   </div>
 
   <!-- SEMANA -->
-  <div class="section-title">Monitorización Temporal</div>
+  <div class="section-title">{{ t('monitoring') }}</div>
   <div class="weekly">
-    <h3>Evidencia Semanal Registrada ({{ week.date }} · N = {{ week.n }} obs. válidas)</h3>
+    <h3>{{ t('weekly.evidence', date=week.date, n=week.n) }}</h3>
     <div class="grid">
-      <div class="wstat"><div class="lbl">Mediana Semanal</div><div class="val">{{ week.median }} €/m²</div></div>
-      <div class="wstat"><div class="lbl">Media Semanal</div><div class="val">{{ week.mean }} €/m²</div></div>
-      <div class="wstat"><div class="lbl">Punto de Datos</div><div class="val">{{ week.median }} €/m²</div><div style="font-size:.6rem;color:var(--muted);">{{ week.count }} semana(s) disponible(s)</div></div>
+      <div class="wstat"><div class="lbl">{{ t('weekly.median') }}</div><div class="val">{{ week.median }} €/m²</div></div>
+      <div class="wstat"><div class="lbl">{{ t('weekly.mean') }}</div><div class="val">{{ week.mean }} €/m²</div></div>
+      <div class="wstat"><div class="lbl">{{ t('weekly.point') }}</div><div class="val">{{ week.median }} €/m²</div><div style="font-size:.6rem;color:var(--muted);">{{ t('weeks.available', n=week.count) }}</div></div>
     </div>
-    <div class="warn">⚠ Una semana registrada es insuficiente para proyectar tendencia temporal o estacionalidad. Se rechazan gráficos inventados.</div>
+    <div class="warn">{{ t('weekly.warning') }}</div>
   </div>
 
   <!-- TENDENCIAS -->
-  <div class="section-title">Tendencias Temporales</div>
+  <div class="section-title">{{ t('trends') }}</div>
   <div class="trends weekly">
-    <h3>Evolución semanal de €/m² ({{ trend_qty }} semanas registradas)</h3>
+    <h3>{{ t('trend.title', n=trend_qty) }}</h3>
     {% if chart %}
     <svg viewBox="{{ chart.view_box }}" role="img" aria-labelledby="trend-title trend-desc" style="width:100%;height:auto;">
-      <title id="trend-title">Comparación semanal real del precio por metro cuadrado</title>
-      <desc id="trend-desc">Mediana y media semanal calculadas desde las observaciones almacenadas en DuckDB.</desc>
+      <title id="trend-title">{{ t('chart.title') }}</title>
+      <desc id="trend-desc">{{ t('chart.desc') }}</desc>
       {% for tick in chart.ticks %}
       <line x1="{{ chart.left }}" y1="{{ tick.y }}" x2="{{ chart.right_x }}" y2="{{ tick.y }}" stroke="#30363d"/>
       <text x="{{ chart.left - 10 }}" y="{{ tick.y + 4 }}" fill="#8b949e" font-size="11" text-anchor="end">{{ tick.label }}</text>
@@ -136,39 +137,39 @@
       <polyline points="{{ chart.mean_path }}" fill="none" stroke="#d29922" stroke-width="2" stroke-dasharray="6 4"/>
       {% endif %}
       {% for point in chart.points %}
-      <circle cx="{{ point.x }}" cy="{{ point.median_y }}" r="5" fill="#58a6ff"><title>Mediana {{ point.date }}: {{ point.median }} €/m²</title></circle>
-      <circle cx="{{ point.x }}" cy="{{ point.mean_y }}" r="4" fill="#d29922"><title>Media {{ point.date }}: {{ point.mean }} €/m²</title></circle>
+      <circle cx="{{ point.x }}" cy="{{ point.median_y }}" r="5" fill="#58a6ff"><title>{{ t('median') }} {{ point.date }}: {{ point.median }} €/m²</title></circle>
+      <circle cx="{{ point.x }}" cy="{{ point.mean_y }}" r="4" fill="#d29922"><title>{{ t('mean') }} {{ point.date }}: {{ point.mean }} €/m²</title></circle>
       <text x="{{ point.x }}" y="{{ chart.bottom_y + 24 }}" fill="#e6edf3" font-size="11" text-anchor="middle">{{ point.date }}</text>
       <text x="{{ point.x }}" y="{{ chart.bottom_y + 42 }}" fill="#8b949e" font-size="10" text-anchor="middle">N={{ point.n }}</text>
       {% endfor %}
-      <circle cx="{{ chart.left + 8 }}" cy="18" r="4" fill="#58a6ff"/><text x="{{ chart.left + 18 }}" y="22" fill="#e6edf3" font-size="11">Mediana</text>
-      <circle cx="{{ chart.left + 100 }}" cy="18" r="4" fill="#d29922"/><text x="{{ chart.left + 110 }}" y="22" fill="#e6edf3" font-size="11">Media</text>
+      <circle cx="{{ chart.left + 8 }}" cy="18" r="4" fill="#58a6ff"/><text x="{{ chart.left + 18 }}" y="22" fill="#e6edf3" font-size="11">{{ t('median') }}</text>
+      <circle cx="{{ chart.left + 100 }}" cy="18" r="4" fill="#d29922"/><text x="{{ chart.left + 110 }}" y="22" fill="#e6edf3" font-size="11">{{ t('mean') }}</text>
     </svg>
     <p style="color:var(--muted);font-size:.8rem;margin-top:.75rem;">
-      {{ trend_qty }} punto(s) semanal(es) observado(s).{% if chart.variation %} Variación descriptiva de la mediana: {{ chart.variation }}%.{% endif %}
-      {% if trend_qty < 4 %}<b>Comparación descriptiva; no constituye una tendencia.</b>{% else %}Evolución observada sin proyección ni ajuste.{% endif %}
+      {{ t('trend.points', n=trend_qty) }}{% if chart.variation %}{{ t('trend.variation', variation=chart.variation) }}{% endif %}
+      {% if trend_qty < 4 %}<b>{{ t('trend.no_trend') }}</b>{% else %}{{ t('trend.observed') }}{% endif %}
     </p>
     {% else %}
-    <p style="color:var(--muted);font-size:.85rem;">Aún no hay observaciones semanales válidas.</p>
+    <p style="color:var(--muted);font-size:.85rem;">{{ t('trend.empty') }}</p>
     {% endif %}
   </div>
 
   <!-- TABLA -->
-  <div class="section-title">Selección Cuantitativa Auditada</div>
-  <h2 style="font-size:1.1rem;">Oportunidades Inmobiliarias Rankeadas (Score 5D ≥ 70)</h2>
-  <p style="color:var(--muted);font-size:.8rem;margin-top:.25rem;">{{ n_scored }} inmuebles con Score ≥ 70 sobre {{ n_unique }} evaluados · mediana de referencia <b style="color:var(--text);">{{ kpis.median }} €/m²</b></p>
+  <div class="section-title">{{ t('selection') }}</div>
+  <h2 style="font-size:1.1rem;">{{ t('ranked') }}</h2>
+  <p style="color:var(--muted);font-size:.8rem;margin-top:.25rem;">{{ t('ranked.desc', scored=n_scored, unique=n_unique) }} <b style="color:var(--text);">{{ kpis.median }} €/m²</b></p>
   <table>
-    <thead><tr><th>Inmueble / Ubicación</th><th>Precio</th><th>Superficie</th><th>€/m²</th><th>Vs mediana</th><th>Score 5D</th><th>Riesgo</th><th>Portal</th><th>Estado HITL</th><th>Análisis IA</th></tr></thead>
+    <thead><tr><th>{{ t('property') }}</th><th>{{ t('price') }}</th><th>{{ t('surface') }}</th><th>€/m²</th><th>{{ t('vs_median') }}</th><th>Score 5D</th><th>{{ t('risk') }}</th><th>{{ t('portal') }}</th><th>{{ t('hitl') }}</th><th>{{ t('ai') }}</th></tr></thead>
     <tbody>
       {% for r in rank %}
       <tr>
-        <td class="addr">{% if loop.first %}<span class="top1">TOP #1</span><br>{% endif %}{{ r.address }}</td>
+        <td class="addr">{% if loop.first %}<span class="top1">{{ t('top') }}</span><br>{% endif %}{{ r.address }}</td>
         <td class="eur">{{ r.price }}</td>
         <td class="m2">{{ r.m2 }}</td>
         <td>{{ r.eur_m2 }}</td>
         <td class="vsmed">{{ r.vs_median }}</td>
         <td class="score">{{ r.score }} / 100</td>
-        <td class="risk">{{ r.risk }} (Metodología)</td>
+        <td class="risk">{{ r.risk }} ({{ t('methodology') }})</td>
         <td>{% if r.url != "#" %}<a class="portal-link" href="{{ r.url }}" target="_blank" rel="noopener">{{ r.portal }}</a>{% else %}{{ r.portal }}{% endif %}</td>
         <td class="hitl-pend">{{ r.hitl }}</td>
         <td>{{ r.llm }}</td>
@@ -176,48 +177,48 @@
       {% endfor %}
     </tbody>
   </table>
-  <p style="font-size:.7rem;color:var(--muted);margin-top:.5rem;">Nota metodológica: se muestran las oportunidades principales del conjunto de {{ n_scored }} inmuebles con Score ≥ 70 (de {{ n_unique }} evaluados). Todos los registros cuentan con scam_risk_score = 10 asignado por política de penalización preventiva sin imputar fraude.</p>
+  <p style="font-size:.7rem;color:var(--muted);margin-top:.5rem;">{{ t('method.note', scored=n_scored, unique=n_unique) }}</p>
 
   <!-- METODOLOGÍA -->
-  <div class="section-title">Fuentes indexadas</div>
+  <div class="section-title">{{ t('sources') }}</div>
   <div class="methods">
     {% for p in portals %}
-    <div class="method"><h4>{% if p.url %}<a class="portal-link" href="{{ p.url }}" target="_blank" rel="noopener">{{ p.portal }}</a>{% else %}{{ p.portal }}{% endif %}</h4><p>{{ p.count }} inmuebles registrados en la base de datos.</p></div>
-    {% else %}<div class="method"><h4>Portales</h4><p>Sin datos de portales.</p></div>{% endfor %}
+    <div class="method"><h4>{% if p.url %}<a class="portal-link" href="{{ p.url }}" target="_blank" rel="noopener">{{ p.portal }}</a>{% else %}{{ p.portal }}{% endif %}</h4><p>{{ t('source.count', n=p.count) }}</p></div>
+    {% else %}<div class="method"><h4>{{ t('portals') }}</h4><p>{{ t('no.portals') }}</p></div>{% endfor %}
   </div>
 
-  <div class="section-title">Metodología Transparente</div>
+  <div class="section-title">{{ t('transparent') }}</div>
   <div class="methods">
-    <div class="method"><h4>1. Ingestión &amp; Trazabilidad</h4><p>Scraping estructurado de listings en portales inmobiliarios, persistiendo metadatos completos y fechas de avistamiento para trazabilidad inmutable.</p></div>
-    <div class="method"><h4>2. Tracking de Observaciones</h4><p>De las {{ n_obs_total }} capturas, se aíslan {{ n_unique }} inmuebles únicos y {{ n_repeated }} observaciones repetidas en el tiempo (seguimiento de publicación activa, no duplicados difusos).</p></div>
-    <div class="method"><h4>3. Modelo de Scoring 5D</h4><p>Algoritmo multicriterio ponderado: diferencial vs. mediana zonal ({{ kpis.median }} €/m²), liquidez de zona, eficiencia de superficie, estado y tipología.</p></div>
-    <div class="method"><h4>4. Gestión de Riesgo Preventivo</h4><p>Se aplica penalización metodológica base (scam_risk_score = 10) a los {{ n_unique }} registros sin categorizarlos indebidamente como fraudes confirmados.</p></div>
-    <div class="method"><h4>5. Auditoría HITL</h4><p>Las {{ n_scored }} oportunidades con Score ≥ 70 se someten a validación documental humana (verificación registral y cargas) previo a su selección.</p></div>
+    <div class="method"><h4>{{ t('method1.title') }}</h4><p>{{ t('method1.body') }}</p></div>
+    <div class="method"><h4>{{ t('method2.title') }}</h4><p>{{ t('method2.body', n_obs=n_obs_total, unique=n_unique, repeated=n_repeated) }}</p></div>
+    <div class="method"><h4>{{ t('method3.title') }}</h4><p>{{ t('method3.body', median=kpis.median) }}</p></div>
+    <div class="method"><h4>{{ t('method4.title') }}</h4><p>{{ t('method4.body', unique=n_unique) }}</p></div>
+    <div class="method"><h4>{{ t('method5.title') }}</h4><p>{{ t('method5.body', scored=n_scored) }}</p></div>
   </div>
 
   <!-- LÍMITES -->
-  <div class="section-title">Límites del Sistema &amp; Frescura de Datos</div>
+  <div class="section-title">{{ t('limits') }}</div>
   <div class="limits">
     <ul>
-      <li><b>Fecha de Corte de Datos:</b> {{ cutoff }} — los datos analizados corresponden exactamente al snapshot capturado el {{ cutoff }}. No se han incorporado eventos posteriores.</li>
-      <li><b>Serie Temporal ({{ trend_qty }} semana{% if trend_qty != 1 %}s{% endif %}):</b> {{ trend_qty }} punto{% if trend_qty != 1 %}s{% endif %} semanal{% if trend_qty != 1 %}es{% endif %} registrado{% if trend_qty != 1 %}s{% endif %}. {% if trend_qty < 4 %}No es técnicamente admisible modelar tendencia o estacionalidad con este horizonte.{% else %}Se muestran observaciones reales sin proyección futura.{% endif %}</li>
-      <li><b>Precios de Oferta Publicados:</b> los importes reflejan precios anunciados por vendedores en portales inmobiliarios; las operaciones notariales reales suelen negociarse con descuentos adicionales.</li>
-      <li><b>Muestra Acotada ({{ n_unique }} Inmuebles Únicos):</b> el análisis se circunscribe a los {{ n_unique }} registros verificados. Home-Ops es un ejercicio de ingeniería de datos y no constituye asesoramiento financiero.</li>
-      <li><b>Cero Datos Inventados o Sintéticos:</b> no se publican versiones ficticias, runs inventados ni conteos de tests ficticios. Todos los números derivan estrictamente de la base de datos.</li>
+      <li><b>{{ t('limits.cutoff.title') }}</b> {{ t('limits.cutoff.body', cutoff=cutoff) }}</li>
+      <li><b>{{ t('limits.series.title_one' if trend_qty == 1 else 'limits.series.title_many', n=trend_qty) }}:</b> {{ t('limits.series.body_one' if trend_qty == 1 else 'limits.series.body_many', n=trend_qty) }} {% if trend_qty < 4 %}{{ t('limits.series.no_trend') }}{% else %}{{ t('limits.series.real') }}{% endif %}</li>
+      <li><b>{{ t('limits.prices.title') }}</b> {{ t('limits.prices.body') }}</li>
+      <li><b>{{ t('limits.sample.title', unique=n_unique) }}</b> {{ t('limits.sample.body', unique=n_unique) }}</li>
+      <li><b>{{ t('limits.synthetic.title') }}</b> {{ t('limits.synthetic.body') }}</li>
     </ul>
   </div>
 
   <!-- CTA -->
-  <div class="section-title">Repositorio Público &amp; Auditable</div>
+  <div class="section-title">{{ t('cta') }}</div>
   <div style="background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:1.5rem;text-align:center;">
-    <h3 style="font-size:1.05rem;">Accede al Código Fuente Completo y Pipeline de Ingestión en GitHub</h3>
-    <p style="color:var(--muted);font-size:.8rem;margin:.5rem 0 1rem;">Arquitectura de datos, scripts de normalización, scoring multicriterio 5D y esquemas de persistencia disponibles abiertamente.</p>
-    <a class="gh-btn" href="https://github.com/alexramsal/home-ops">Explorar en GitHub ↗</a>
+    <h3 style="font-size:1.05rem;">{{ t('cta.title') }}</h3>
+    <p style="color:var(--muted);font-size:.8rem;margin:.5rem 0 1rem;">{{ t('cta.desc') }}</p>
+    <a class="gh-btn" href="https://github.com/alexramsal/home-ops">{{ t('github.explore') }}</a>
   </div>
 
   <footer>
-    <span>Home-Ops | Consola de Auditoría Inmobiliaria y Análisis Cuantitativo</span>
-    <span>Últimos datos: {{ cutoff }} | {{ kpis.unique }} Inmuebles Únicos | {{ kpis.obs }} Observaciones</span>
+    <span>{{ t('footer') }}</span>
+    <span>{{ t('latest', cutoff=cutoff) }} | {{ kpis.unique }} {{ t('unique.properties') }} | {{ kpis.obs }} {{ t('observations') }}</span>
   </footer>
 </div>
 </body>

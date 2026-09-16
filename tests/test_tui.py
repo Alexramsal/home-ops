@@ -685,6 +685,32 @@ async def test_tui_panels_escape_external_markup(tmp_path) -> None:
 
 
 @pytest.mark.asyncio
+async def test_tui_locale_en(tmp_path, monkeypatch) -> None:
+    monkeypatch.setenv("HOME_OPS_LANG", "en")
+    db_path = str(tmp_path / "en.duckdb")
+    seed_dashboard(db_path)
+    app = HomeOpsTUI(db_path)
+    async with app.run_test() as pilot:
+        await pilot.pause()
+        assert app.SUB_TITLE == "Real estate radar"
+        assert "Last scan" in str(app.query_one("#top-status").render())
+        assert "TOTAL" in str(app.query_one("#kpi-total").render())
+        assert "OPPORTUNITIES" in str(app.query_one("#kpi-opportunities").render())
+        assert "MEDIAN €/m²" in str(app.query_one("#kpi-median").render())
+        assert "PENDING" in str(app.query_one("#kpi-pending").render())
+        tab_titles = [tab.label.plain for tab in app.query("Tab")]
+        assert tab_titles == ["Summary", "Pending", "Ranking", "Trends", "Activity"]
+        ranking_cols = [str(col.label) for col in app.query_one("#ranking").columns.values()]
+        assert ranking_cols == ["ID", "Address", "Price", "€/m²", "Score", "Portal"]
+
+
+def test_format_llm_locale() -> None:
+    assert _format_llm((None, None, None, None), locale="en") == "AI: not analyzed"
+    assert _format_llm(("Reformado", "Sur", "Bajo", ["Humedades"]), locale="en") == "AI: Reformado · Sur · Bajo · Flags: Humedades"
+    assert _format_llm((None, None, None, None)) == "IA: sin analizar"
+
+
+@pytest.mark.asyncio
 async def test_tui_scan_task_clears_scanning_when_cli_import_fails(
     tmp_path, monkeypatch
 ) -> None:

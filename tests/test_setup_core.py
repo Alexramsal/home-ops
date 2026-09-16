@@ -51,6 +51,7 @@ def test_load_state_merges_yaml_and_env(tmp_path: Path) -> None:
     assert state["scoring"]["min_score_to_alert"] == 70
     assert state["scoring"]["price_median"] == 250000
     assert state["llm"]["enabled"] is False
+    assert state["language"] == "es"
 
 
 def test_build_yaml_preserves_unknown_sections_and_keys(tmp_path: Path) -> None:
@@ -151,6 +152,25 @@ def test_load_state_missing_files_defaults(tmp_path: Path) -> None:
     assert state["telegram"]["bot_token"] == ""
     assert state["portals"] == []
     assert state["scoring"]["min_score_to_alert"] == 70
+
+
+def test_language_load_and_persist_is_env_only(tmp_path: Path) -> None:
+    cfg = tmp_path / "user_profile.yml"
+    env = tmp_path / ".env"
+    cfg.write_text("portal: {}\n")
+    env.write_text("HOME_OPS_LANG=en\n")
+    state = load_state(cfg, env)
+    assert state["language"] == "en"
+    state["language"] = "bad"
+    write_config(cfg, env, state)
+    assert "HOME_OPS_LANG=es" in env.read_text()
+    assert "HOME_OPS_LANG" not in cfg.read_text()
+
+
+def test_validators_localize_messages() -> None:
+    assert test_telegram("", "", locale="en")[1] == "Empty token."
+    assert test_llm("", "", "", locale="en")[1] == "base_url, api_key and model are required."
+    assert test_telegram("", "")[1] == "Token vacío."
 
 
 def test_telegram_validator_missing_creds() -> None:

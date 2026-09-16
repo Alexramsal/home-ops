@@ -23,6 +23,7 @@ ENV_KEYS = {
     "AI_API_KEY",
     "AI_MODEL",
     "HOME_OPS_LOG_JSON",
+    "HOME_OPS_LANG",
 }
 
 # YAML sections the wizard exposes; anything else in the file is preserved.
@@ -121,6 +122,7 @@ def load_state(config_path: Path, env_path: Path) -> dict[str, Any]:
             "bot_token": env_data.get("TELEGRAM_BOT_TOKEN", ""),
             "chat_id": env_data.get("TELEGRAM_CHAT_ID", ""),
         },
+        "language": env_data.get("HOME_OPS_LANG", "es") if env_data.get("HOME_OPS_LANG") in {"es", "en"} else "es",
         "env": {
             "AI_BASE_URL": env_data.get("AI_BASE_URL", ""),
             "AI_API_KEY": env_data.get("AI_API_KEY", ""),
@@ -262,6 +264,7 @@ def build_env(state: dict[str, Any], existing: dict[str, str] | list[str] | None
         "AI_BASE_URL": state["env"]["AI_BASE_URL"],
         "AI_API_KEY": state["env"]["AI_API_KEY"],
         "AI_MODEL": state["env"].get("AI_MODEL") or state["llm"].get("model", ""),
+        "HOME_OPS_LANG": state.get("language") if state.get("language") in {"es", "en"} else "es",
     }
 
     kept: list[str] = []
@@ -328,15 +331,15 @@ def write_config(config_path: Path, env_path: Path, state: dict[str, Any]) -> No
 # --- Live validators (network best-effort; return (ok, message)) --------------
 
 
-def test_telegram(bot_token: str, chat_id: str, timeout: float = 5.0) -> tuple[bool, str]:
+def test_telegram(bot_token: str, chat_id: str, timeout: float = 5.0, locale: str = "es") -> tuple[bool, str]:
     """Try to reach the Telegram Bot API and confirm the chat is reachable."""
     import json
     import urllib.request
 
     if not bot_token:
-        return False, "Token vacío."
+        return False, "Empty token." if locale == "en" else "Token vacío."
     if not chat_id:
-        return False, "Chat ID vacío."
+        return False, "Empty chat ID." if locale == "en" else "Chat ID vacío."
 
     try:
         with urllib.request.urlopen(
@@ -359,14 +362,14 @@ def test_telegram(bot_token: str, chat_id: str, timeout: float = 5.0) -> tuple[b
         return False, f"Error de red ({type(exc).__name__})."
 
 
-def test_llm(base_url: str, api_key: str, model: str, timeout: float = 10.0) -> tuple[bool, str]:
+def test_llm(base_url: str, api_key: str, model: str, timeout: float = 10.0, locale: str = "es") -> tuple[bool, str]:
     """Send one tiny chat completion to the configured OpenAI-compatible endpoint."""
     import json
     import urllib.error
     import urllib.request
 
     if not base_url or not api_key or not model:
-        return False, "base_url, api_key y model son obligatorios."
+        return False, "base_url, api_key and model are required." if locale == "en" else "base_url, api_key y model son obligatorios."
     url = base_url.rstrip("/") + "/chat/completions"
     body = json.dumps(
         {

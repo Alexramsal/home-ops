@@ -251,6 +251,14 @@ For restore, stop the service, replace the database, preserve ownership, then st
 > [!NOTE]
 > Telegram is optional. Without Telegram credentials, the daemon and readiness remain available and alert attempts are recorded as disabled / failed.
 
+## Language
+
+The web dashboard, TUI and setup wizard are bilingual (Spanish default, English selectable).
+
+- Set `HOME_OPS_LANG=es|en` in `.env` (or the environment) to pick the UI language.
+- The setup wizard (`homeops setup`) includes a **General → Interface language** selector that persists `HOME_OPS_LANG`.
+- The web dashboard detects the browser `Accept-Language` header and offers a manual ES/EN switcher; missing values fall back to Spanish.
+
 ## License
 
 Released under the [MIT License](LICENSE).

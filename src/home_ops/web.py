@@ -19,7 +19,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
-from home_ops import analytics
+from home_ops import analytics, i18n
 from home_ops.models.data_storage import get_connection, get_db_path
 
 app = FastAPI(title="Home-Ops")
@@ -121,26 +121,28 @@ def _fmt_llm(
     orient: str | None,
     ruido: str | None,
     flags: list[str] | None,
+    locale: i18n.Locale = "es",
 ) -> str:
     """Compact one-line LLM summary, or a clear placeholder when absent."""
     if llm_id is None:
-        return "Sin analizar"
+        return i18n.t("llm.none", locale)
     parts = [p for p in (estado, orient, ruido) if p]
     if flags:
         parts.append("Flags: " + ", ".join(flags))
-    return " · ".join(parts) if parts else "Sin analizar"
+    return " · ".join(parts) if parts else i18n.t("llm.none", locale)
 
 
-def _vs_median(price: float, m2: float, median_eur_m2: float) -> str:
+def _vs_median(price: float, m2: float, median_eur_m2: float, locale: i18n.Locale = "es") -> str:
     """% vs the current global median (€/m²)."""
     if not price or not m2 or not median_eur_m2:
         return "—"
     pct = (price / m2 / median_eur_m2 - 1) * 100
-    return f"{pct:.0f}% vs mediana"
+    return i18n.t("vs.median", locale, pct=f"{pct:.0f}")
 
 
 @app.get("/", response_class=HTMLResponse)
-def index(request: Request) -> HTMLResponse:
+def index(request: Request, lang: str | None = None) -> HTMLResponse:
+    locale = i18n.resolve_locale(lang, request.headers.get("accept-language"))
     with get_connection(get_db_path()) as db:
         db.init_db()
         # Mediana global actual
@@ -241,21 +243,25 @@ def index(request: Request) -> HTMLResponse:
                 "eur_m2": _fmt_eur_m2(
                     float(price) / float(m2) if price and m2 else None
                 ),
-                "vs_median": _vs_median(float(price), float(m2), median_eur_m2)
+                "vs_median": _vs_median(float(price), float(m2), median_eur_m2, locale)
                 if price and m2
                 else "—",
                 "score": f"{score:.0f}" if score is not None else "—",
                 "risk": f"{risk:.0f}" if risk is not None else "—",
                 "portal": portal,
                 "url": _safe_url(url, portal),
-                "hitl": "Verificado HITL" if hitl.get(rid) else "Pendiente Auditoría",
-                "llm": _fmt_llm(llm_id, estado, orient, ruido, flags),
+                "hitl": i18n.t("hitl.verified", locale)
+                if hitl.get(rid)
+                else i18n.t("hitl.pending", locale),
+                "llm": _fmt_llm(llm_id, estado, orient, ruido, flags, locale),
             }
         )
     return templates.TemplateResponse(
         request,
         "index.html",
         {
+            "locale": locale,
+            "t": lambda key, **kwargs: i18n.t(key, locale, **kwargs),
             "kpis": {
                 "unique": n_unique,
                 "obs": n_obs,
