@@ -158,7 +158,7 @@
   <h2 style="font-size:1.1rem;">Oportunidades Inmobiliarias Rankeadas (Score 5D ≥ 70)</h2>
   <p style="color:var(--muted);font-size:.8rem;margin-top:.25rem;">{{ n_scored }} inmuebles con Score ≥ 70 sobre {{ n_unique }} evaluados · mediana de referencia <b style="color:var(--text);">{{ kpis.median }} €/m²</b></p>
   <table>
-    <thead><tr><th>Inmueble / Ubicación</th><th>Precio</th><th>Superficie</th><th>€/m²</th><th>Vs mediana</th><th>Score 5D</th><th>Riesgo</th><th>Portal</th><th>Estado HITL</th></tr></thead>
+    <thead><tr><th>Inmueble / Ubicación</th><th>Precio</th><th>Superficie</th><th>€/m²</th><th>Vs mediana</th><th>Score 5D</th><th>Riesgo</th><th>Portal</th><th>Estado HITL</th><th>Análisis IA</th></tr></thead>
     <tbody>
       {% for r in rank %}
       <tr>
@@ -171,6 +171,7 @@
         <td class="risk">{{ r.risk }} (Metodología)</td>
         <td>{% if r.url != "#" %}<a class="portal-link" href="{{ r.url }}" target="_blank" rel="noopener">{{ r.portal }}</a>{% else %}{{ r.portal }}{% endif %}</td>
         <td class="hitl-pend">{{ r.hitl }}</td>
+        <td>{{ r.llm }}</td>
       </tr>
       {% endfor %}
     </tbody>

@@ -115,6 +115,22 @@ def _build_weekly_chart(series: list[dict[str, Any]]) -> dict[str, Any] | None:
     }
 
 
+def _fmt_llm(
+    llm_id: int | None,
+    estado: str | None,
+    orient: str | None,
+    ruido: str | None,
+    flags: list[str] | None,
+) -> str:
+    """Compact one-line LLM summary, or a clear placeholder when absent."""
+    if llm_id is None:
+        return "Sin analizar"
+    parts = [p for p in (estado, orient, ruido) if p]
+    if flags:
+        parts.append("Flags: " + ", ".join(flags))
+    return " · ".join(parts) if parts else "Sin analizar"
+
+
 def _vs_median(price: float, m2: float, median_eur_m2: float) -> str:
     """% vs the current global median (€/m²)."""
     if not price or not m2 or not median_eur_m2:
@@ -184,8 +200,11 @@ def index(request: Request) -> HTMLResponse:
         }
         rows = db.conn.execute(
             """SELECT l.id, l.address, l.price, l.m2, l.score,
-                      l.scam_risk_score, l.url, l.portal
+                      l.scam_risk_score, l.url, l.portal,
+                      a.listing_id, a.estado_reforma, a.orientacion,
+                      a.ruido_zona, a.red_flags_llm
                FROM listings l
+               LEFT JOIN llm_analysis a ON a.listing_id = l.id
                WHERE l.score IS NOT NULL
                ORDER BY l.score DESC, l.price ASC
                LIMIT 10"""
@@ -210,7 +229,10 @@ def index(request: Request) -> HTMLResponse:
         ]
     rank = []
     for r in rows:
-        rid, addr, price, m2, score, risk, url, portal = r
+        (
+            rid, addr, price, m2, score, risk, url, portal,
+            llm_id, estado, orient, ruido, flags,
+        ) = r
         rank.append(
             {
                 "address": addr or "—",
@@ -227,6 +249,7 @@ def index(request: Request) -> HTMLResponse:
                 "portal": portal,
                 "url": _safe_url(url, portal),
                 "hitl": "Verificado HITL" if hitl.get(rid) else "Pendiente Auditoría",
+                "llm": _fmt_llm(llm_id, estado, orient, ruido, flags),
             }
         )
     return templates.TemplateResponse(

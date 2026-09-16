@@ -14,6 +14,7 @@ pytest.importorskip("textual")
 from home_ops.models.data_storage import get_connection  # noqa: E402
 from home_ops.tui import (
     HomeOpsTUI,
+    _format_llm,
     _is_safe_listing_url,
     _render_evolution_bars,
     _resolve_listing_url,
@@ -136,6 +137,39 @@ async def test_tui_seeded_data(tmp_path) -> None:
         assert app.query_one("#runs").row_count == 1
         trend = str(app.query_one("#trend-spark").render())
         assert "█" in trend and "N=" in trend
+
+
+@pytest.mark.asyncio
+async def test_tui_details_show_llm_analysis_or_exact_fallback(tmp_path) -> None:
+    """Pending and ranking details include persisted IA analysis or its fallback."""
+    db_path = str(tmp_path / "home_ops.duckdb")
+    ids = seed_dashboard(db_path)
+    with get_connection(db_path) as db:
+        db.conn.execute(
+            """INSERT INTO llm_analysis
+               (listing_id, estado_reforma, orientacion, ruido_zona, red_flags_llm)
+               VALUES (?, 'Reformado', 'Sur', 'Bajo', ['Humedades'])""",
+            [ids[0]],
+        )
+    app = HomeOpsTUI(db_path)
+    async with app.run_test() as pilot:
+        await pilot.pause()
+        for table_id, detail_id in (
+            ("#pending", "#pending-detail"),
+            ("#ranking", "#ranking-detail"),
+        ):
+            table = app.query_one(table_id)
+            app.on_data_table_row_highlighted(
+                SimpleNamespace(data_table=table, cursor_row=0)
+            )
+            await pilot.pause()
+            detail = str(app.query_one(detail_id).render())
+            assert "IA: Reformado · Sur · Bajo · Flags: Humedades" in detail
+            app.on_data_table_row_highlighted(
+                SimpleNamespace(data_table=table, cursor_row=1)
+            )
+            await pilot.pause()
+            assert "IA: sin analizar" in str(app.query_one(detail_id).render())
 
 
 @pytest.mark.asyncio
@@ -282,6 +316,15 @@ async def test_tui_filter_ranking_cycle(tmp_path) -> None:
         await pilot.pause()
         assert "Todos" in str(app.query_one("#ranking-filter").render())
         assert app.query_one("#ranking").row_count == 3
+
+
+def test_tui_format_llm_fallback_and_escaping() -> None:
+    """All-null analysis falls back exactly; LLM text is escaped for Rich markup."""
+    assert _format_llm((None, None, None, None)) == "IA: sin analizar"
+    assert _format_llm((None, None, None, [])) == "IA: sin analizar"
+    rendered = Text.from_markup(_format_llm(("[b]Obra nueva[/b]", None, None, ["[x]"])))
+    assert rendered.plain == "IA: [b]Obra nueva[/b] · Flags: [x]"
+    assert not rendered.spans
 
 
 @pytest.mark.parametrize(
@@ -617,7 +660,7 @@ def test_tui_ranking_detail_localizes_and_escapes_markup() -> None:
     )
     rendered = Text.from_markup(detail)
     assert rendered.plain == (
-        "[red]Calle[2] | 3 hab. | 90.0 m² | https://x.test/[a] · Atajo: o — abrir anuncio en el navegador"
+        "[red]Calle[2] | 3 hab. | 90.0 m² | https://x.test/[a] | IA: sin analizar · Atajo: o — abrir anuncio en el navegador"
     )
     assert not rendered.spans
 

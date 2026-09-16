@@ -110,6 +110,15 @@ def _resolve_listing_url(url: str, portal: str) -> str:
     return candidate if _is_safe_listing_url(candidate) else ""
 
 
+def _format_llm(row: Any) -> str:
+    """Format the four persisted IA fields for a detail panel."""
+    estado, orientacion, ruido, flags = row[-4:] if row else (None, None, None, None)
+    parts = [escape(str(value)) for value in (estado, orientacion, ruido) if value]
+    if flags:
+        parts.append("Flags: " + ", ".join(escape(str(flag)) for flag in flags))
+    return "IA: " + " · ".join(parts) if parts else "IA: sin analizar"
+
+
 class HomeOpsTUI(App[None]):
     """Pipeline control panel: scan/approve/reset + analytics dashboard."""
 
@@ -413,7 +422,8 @@ class HomeOpsTUI(App[None]):
         rooms = str(row["rooms"] or "—")
         m2 = str(row["m2"] or "—")
         url = escape(str(row["url"] or "sin URL"))
-        return f"{address} | {rooms} hab. | {m2} m² | {url} · {_OPEN_HINT}"
+        llm = _format_llm(row.get("llm"))
+        return f"{address} | {rooms} hab. | {m2} m² | {url} | {llm} · {_OPEN_HINT}"
 
     def _render_ranking(self) -> None:
         """Repaint the ranking table from the cached top-100 by score desc."""
@@ -462,15 +472,19 @@ class HomeOpsTUI(App[None]):
             high_score = int(high_row[0]) if high_row else 0
             pending = db.conn.execute(
                 """SELECT p.listing_id, l.address, p.score, l.price, l.m2,
-                          l.rooms, l.url, l.portal
+                          l.rooms, l.url, l.portal,
+                          a.estado_reforma, a.orientacion, a.ruido_zona, a.red_flags_llm
                    FROM pending_approvals p
                    LEFT JOIN listings l ON l.id = p.listing_id
+                   LEFT JOIN llm_analysis a ON a.listing_id = l.id
                    WHERE p.approved = FALSE
                    ORDER BY p.created_at ASC, p.listing_id ASC"""
             ).fetchall()
             ranking = db.conn.execute(
-                """SELECT id, address, score, price, m2, rooms, url, portal
-                   FROM listings
+                """SELECT l.id, l.address, l.score, l.price, l.m2, l.rooms, l.url, l.portal,
+                          a.estado_reforma, a.orientacion, a.ruido_zona, a.red_flags_llm
+                   FROM listings l
+                   LEFT JOIN llm_analysis a ON a.listing_id = l.id
                    WHERE score IS NOT NULL
                    ORDER BY score DESC, id ASC
                    LIMIT 100"""
@@ -523,7 +537,7 @@ class HomeOpsTUI(App[None]):
             url_str = escape(str(row[6] or "sin URL"))
             self._pending_details.append(
                 f"{addr} | {self._price(row[3])} | "
-                f"{row[4] or '—'} m² | {row[5] or '—'} hab. | {url_str}"
+                f"{row[4] or '—'} m² | {row[5] or '—'} hab. | {url_str} | {_format_llm(row)}"
             )
             pending_table.add_row(
                 str(row[0]),
@@ -540,7 +554,9 @@ class HomeOpsTUI(App[None]):
         )
 
         keys = ("id", "address", "score", "price", "m2", "rooms", "url", "portal")
-        self._ranking_all = [dict(zip(keys, row, strict=True)) for row in ranking]
+        self._ranking_all = [
+            {**dict(zip(keys, row, strict=False)), "llm": row[8:]} for row in ranking
+        ]
         self._render_ranking()
 
         evo_table = self.query_one("#evolution", DataTable)

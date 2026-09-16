@@ -183,3 +183,36 @@ def test_index_trends_section_without_observations(tmp_path, monkeypatch) -> Non
     assert resp.status_code == 200
     assert "Aún no hay observaciones semanales válidas" in resp.text
     assert "<svg" not in resp.text
+
+def test_index_shows_llm_analysis_column(tmp_path, monkeypatch) -> None:
+    """Top-10 table must LEFT JOIN llm_analysis and render real values."""
+    db_path = str(tmp_path / "home_ops.duckdb")
+    _seed(
+        db_path,
+        [
+            "INSERT INTO listings (content_hash, address, price, m2, url, score) "
+            "VALUES ('h1', 'Piso Analizado', 200000, 90, 'https://example.com/a', 90)",
+            "INSERT INTO listings (content_hash, address, price, m2, url, score) "
+            "VALUES ('h2', 'Piso Sin Analizar', 180000, 70, 'https://example.com/b', 80)",
+            "INSERT INTO llm_analysis "
+            "(listing_id, estado_reforma, orientacion, ruido_zona, red_flags_llm) "
+            "SELECT id, 'Reformado', 'Sur', 'Bajo', "
+            "['Humedades', '<script>alert(1)</script>'] "
+            "FROM listings WHERE content_hash = 'h1'",
+        ],
+    )
+    monkeypatch.setattr(web_mod, "get_db_path", lambda: db_path)
+
+    resp = TestClient(web_mod.app).get("/")
+    assert resp.status_code == 200
+    assert "Análisis IA" in resp.text
+    assert "Reformado" in resp.text
+    assert "Sur" in resp.text
+    assert "Bajo" in resp.text
+    assert "Humedades" in resp.text
+    # Analyzed listing and unanalyzed listing both present
+    assert "Piso Analizado" in resp.text
+    assert "Piso Sin Analizar" in resp.text
+    assert "Sin analizar" in resp.text
+    # Jinja escapes LLM-provided text (no raw HTML execution)
+    assert "<script>alert(1)</script>" not in resp.text
