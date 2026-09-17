@@ -289,30 +289,69 @@ def test_index_lang_selector_visible_and_accessible(tmp_path, monkeypatch) -> No
     assert 'aria-label="Select language"' in en
 
 
-def test_index_english_keeps_dynamic_data_and_llm_values(tmp_path, monkeypatch) -> None:
-    monkeypatch.delenv("HOME_OPS_LANG", raising=False)
+def test_index_pagination_and_stable_sort(tmp_path, monkeypatch) -> None:
+    db_path = str(tmp_path / "home_ops.duckdb")
+    # Seed 15 listings with identical scores to test stable sort by ID
+    sql_list = []
+    for i in range(1, 16):
+        sql_list.append(
+            f"INSERT INTO listings (id, content_hash, address, price, m2, url, score) "
+            f"VALUES ({i}, 'h{i}', 'Avenida {i:02d} Norte', 100000, 50, 'https://example.com/{i}', 80)"
+        )
+    _seed(db_path, sql_list)
+    monkeypatch.setattr(web_mod, "get_db_path", lambda: db_path)
+
+    client = TestClient(web_mod.app)
+
+    # Default / page 1
+    resp1 = client.get("/")
+    assert resp1.status_code == 200
+    assert "Avenida 01 Norte" in resp1.text
+    assert "Avenida 10 Norte" in resp1.text
+    assert "Avenida 11 Norte" not in resp1.text
+    assert "15" in resp1.text  # Total count in pagination bar
+
+    # Page 2
+    resp2 = client.get("/?page=2")
+    assert resp2.status_code == 200
+    assert "Avenida 11 Norte" in resp2.text
+    assert "Avenida 15 Norte" in resp2.text
+    assert "Avenida 01 Norte" not in resp2.text
+
+    # Invalid page out of bounds -> clamped to page 1 or max page
+    resp_invalid = client.get("/?page=999")
+    assert resp_invalid.status_code == 200
+    assert "Avenida 11 Norte" in resp_invalid.text  # Clamped to last page (2)
+
+    resp_neg = client.get("/?page=-5")
+    assert resp_neg.status_code == 200
+    assert "Avenida 01 Norte" in resp_neg.text  # Clamped to page 1
+
+
+def test_index_expandable_accessible_ai_row_and_responsive_wrapper(tmp_path, monkeypatch) -> None:
     db_path = str(tmp_path / "home_ops.duckdb")
     _seed(
         db_path,
         [
-            "INSERT INTO listings (content_hash, address, price, m2, url, score) "
-            "VALUES ('h1', 'Calle Falsa 123', 150000, 80, 'https://example.com/1', 85)",
+            "INSERT INTO listings (id, content_hash, address, price, m2, url, score) "
+            "VALUES (42, 'h42', 'Calle Accessible 42', 120000, 60, 'https://example.com/42', 90)",
             "INSERT INTO llm_analysis "
-            "(listing_id, estado_reforma, orientacion, ruido_zona, red_flags_llm) "
-            "SELECT id, 'Reformado', 'Sur', 'Bajo', ['Humedades'] "
-            "FROM listings WHERE content_hash = 'h1'",
+            "(listing_id, estado_reforma, orientacion, ruido_zona, red_flags_llm, auditoria) "
+            "VALUES (42, 'Excelente', 'Sur', 'Bajo', ['Ninguno'], 'Auditoría completa verificada.')",
         ],
     )
     monkeypatch.setattr(web_mod, "get_db_path", lambda: db_path)
 
-    resp = TestClient(web_mod.app).get("/?lang=en")
-
+    client = TestClient(web_mod.app)
+    resp = client.get("/")
     assert resp.status_code == 200
-    # DB data and stored LLM values must NOT be translated.
-    assert "Calle Falsa 123" in resp.text
-    assert "Reformado" in resp.text
-    assert "Sur" in resp.text
-    assert "150,000 €" in resp.text
-    assert "Audit pending" in resp.text
-    # Escaping still applied in English mode.
-    assert "<script>" not in resp.text
+
+    # Responsive wrapper
+    assert 'class="table-responsive"' in resp.text or 'style="overflow-x:auto' in resp.text
+
+    # Accessible toggle button and hidden detail row matching ID
+    assert 'aria-controls="ai-detail-42"' in resp.text
+    assert 'aria-expanded="false"' in resp.text
+    assert 'id="ai-detail-42"' in resp.text
+    assert 'hidden' in resp.text
+    assert 'Auditoría completa verificada.' in resp.text

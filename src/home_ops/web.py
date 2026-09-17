@@ -11,6 +11,7 @@ Ponytail: no pagination -- add if listing count grows past a screenful
 
 from __future__ import annotations
 
+import math
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
@@ -157,8 +158,15 @@ def _vs_median(price: float, m2: float, median_eur_m2: float, locale: i18n.Local
 
 
 @app.get("/", response_class=HTMLResponse)
-def index(request: Request, lang: str | None = None) -> HTMLResponse:
+def index(request: Request, lang: str | None = None, page: int | str = 1) -> HTMLResponse:
     locale = i18n.resolve_locale(lang, request.headers.get("accept-language"))
+    try:
+        page_num = int(page)
+    except (ValueError, TypeError):
+        page_num = 1
+    if page_num < 1:
+        page_num = 1
+
     with get_connection(get_db_path()) as db:
         db.init_db()
         # Mediana global actual
@@ -201,14 +209,29 @@ def index(request: Request, lang: str | None = None) -> HTMLResponse:
         n_obs = int(total_obs_row[0] or 0) if total_obs_row else 0
         n_unique = int(total_unique_row[0] or 0) if total_unique_row else 0
         n_repeated = n_obs - n_unique
-        scored_row = db.conn.execute(
+
+        total_scored_row = db.conn.execute(
+            "SELECT COUNT(*) FROM listings WHERE score IS NOT NULL"
+        ).fetchone()
+        total_scored = int(total_scored_row[0] or 0) if total_scored_row else 0
+
+        scored_70_row = db.conn.execute(
             "SELECT COUNT(*) FROM listings WHERE score IS NOT NULL AND score >= 70"
         ).fetchone()
-        scored_70 = int(scored_row[0] or 0) if scored_row else 0
+        scored_70 = int(scored_70_row[0] or 0) if scored_70_row else 0
+
         risk_row = db.conn.execute(
             "SELECT COUNT(*) FROM listings WHERE scam_risk_score IS NOT NULL"
         ).fetchone()
         n_risk = int(risk_row[0] or 0) if risk_row else 0
+
+        # Pagination calculations (10 per page)
+        per_page = 10
+        total_pages = max(1, math.ceil(total_scored / per_page)) if total_scored > 0 else 1
+        if page_num > total_pages:
+            page_num = total_pages
+        offset = (page_num - 1) * per_page
+
         # HITL state per listing (approved flag from pending_approvals)
         hitl = {
             row[0]: row[1]
@@ -225,8 +248,9 @@ def index(request: Request, lang: str | None = None) -> HTMLResponse:
                FROM listings l
                LEFT JOIN llm_analysis a ON a.listing_id = l.id
                WHERE l.score IS NOT NULL
-               ORDER BY l.score DESC, l.price ASC
-               LIMIT 10"""
+               ORDER BY l.score DESC, l.price ASC, l.id ASC
+               LIMIT ? OFFSET ?""",
+            (per_page, offset),
         ).fetchall()
         counts = {
             str(portal): int(count)
@@ -255,6 +279,7 @@ def index(request: Request, lang: str | None = None) -> HTMLResponse:
         ) = r
         rank.append(
             {
+                "id": rid,
                 "address": addr or "—",
                 "price": _fmt_euro(price),
                 "m2": _fmt_m2(m2),
@@ -271,12 +296,28 @@ def index(request: Request, lang: str | None = None) -> HTMLResponse:
                 "hitl": i18n.t("hitl.verified", locale)
                 if hitl.get(rid)
                 else i18n.t("hitl.pending", locale),
+                "hitl_raw": bool(hitl.get(rid)),
                 "llm": _fmt_llm(
                     llm_id, estado, orient, ruido, flags, locale,
                     ubicacion, ubicacion_motivo, auditoria,
                 ),
+                "llm_id": llm_id,
             }
         )
+
+    pagination = {
+        "page": page_num,
+        "per_page": per_page,
+        "total_items": total_scored,
+        "total_pages": total_pages,
+        "has_prev": page_num > 1,
+        "has_next": page_num < total_pages,
+        "prev_page": page_num - 1,
+        "next_page": page_num + 1,
+        "start_item": (page_num - 1) * per_page + 1 if total_scored > 0 else 0,
+        "end_item": min(page_num * per_page, total_scored),
+    }
+
     return templates.TemplateResponse(
         request,
         "index.html",
@@ -309,5 +350,6 @@ def index(request: Request, lang: str | None = None) -> HTMLResponse:
             },
             "rank": rank,
             "portals": portals,
+            "pagination": pagination,
         },
     )
