@@ -141,7 +141,7 @@ def analyze_description(
         result.auditoria = parsed.get("auditoria")
         flags = parsed.get("red_flags_llm")
         if isinstance(flags, list):
-            result.red_flags_llm = [str(f) for f in flags]
+            result.red_flags_llm = flags
 
     if parsed is None:
         if _has_existing_analysis(listing.id, db):
@@ -199,16 +199,10 @@ def _parse_json(raw: str) -> dict[str, Any] | None:
         return None
 
     # Require at least one nonempty meaningful known field
-    meaningful_count = 0
-    for f in ("estado_reforma", "orientacion", "ruido_zona", "ubicacion", "ubicacion_motivo", "auditoria"):
-        val = data.get(f)
-        if isinstance(val, str) and len(val.strip()) > 0:
-            meaningful_count += 1
-
-    if isinstance(flags, list) and len(flags) > 0:
-        meaningful_count += 1
-
-    if meaningful_count == 0:
+    if not (
+        any(isinstance(data.get(f), str) and bool(data.get(f, "").strip()) for f in str_fields + ("ubicacion",))
+        or bool(flags)
+    ):
         return None
 
     return data
