@@ -64,6 +64,9 @@ class LlmAnalysis:
     raw_response: str = ""
 
 
+_VALID_UBICACION = {"buena", "regular", "mala"}
+
+
 def analyze_description(
     listing: Listing,
     config: Config,
@@ -132,15 +135,23 @@ def analyze_description(
         result.estado_reforma = parsed.get("estado_reforma")
         result.orientacion = parsed.get("orientacion")
         result.ruido_zona = parsed.get("ruido_zona")
-        result.ubicacion = parsed.get("ubicacion")
+        raw_ub = parsed.get("ubicacion")
+        result.ubicacion = raw_ub.lower() if isinstance(raw_ub, str) else None
         result.ubicacion_motivo = parsed.get("ubicacion_motivo")
         result.auditoria = parsed.get("auditoria")
         flags = parsed.get("red_flags_llm")
         if isinstance(flags, list):
             result.red_flags_llm = [str(f) for f in flags]
 
-    _persist(result, db)
-    return result
+    if parsed is None:
+        if _has_existing_analysis(listing.id, db):
+            # Preserve existing valid analysis byte-for-byte on malformed output
+            return None
+        success = _persist(result, db, is_valid=False)
+        return result if success else None
+
+    success = _persist(result, db, is_valid=True)
+    return result if success else None
 
 
 def _response_text(response: Any) -> str:
@@ -168,39 +179,99 @@ def _parse_json(raw: str) -> dict[str, Any] | None:
             data = json.loads(text[start : end + 1])
         except json.JSONDecodeError:
             return None
-    return data if isinstance(data, dict) else None
+
+    if not isinstance(data, dict):
+        return None
+
+    # Validate known optional fields types
+    str_fields = ("estado_reforma", "orientacion", "ruido_zona", "ubicacion_motivo", "auditoria")
+    for f in str_fields:
+        val = data.get(f)
+        if val is not None and not isinstance(val, str):
+            return None
+
+    ubicacion = data.get("ubicacion")
+    if ubicacion is not None and (not isinstance(ubicacion, str) or ubicacion.lower() not in _VALID_UBICACION):
+        return None
+
+    flags = data.get("red_flags_llm")
+    if flags is not None and (not isinstance(flags, list) or not all(isinstance(f, str) and bool(f.strip()) for f in flags)):
+        return None
+
+    # Require at least one nonempty meaningful known field
+    meaningful_count = 0
+    for f in ("estado_reforma", "orientacion", "ruido_zona", "ubicacion", "ubicacion_motivo", "auditoria"):
+        val = data.get(f)
+        if isinstance(val, str) and len(val.strip()) > 0:
+            meaningful_count += 1
+
+    if isinstance(flags, list) and len(flags) > 0:
+        meaningful_count += 1
+
+    if meaningful_count == 0:
+        return None
+
+    return data
 
 
-def _persist(result: LlmAnalysis, db: DuckDBConnection) -> None:
-    """Persist the analysis row, always keeping the raw response.
+def _has_existing_analysis(listing_id: int, db: DuckDBConnection) -> bool:
+    """Check if an analysis row already exists for listing_id."""
+    try:
+        row = db.conn.execute(
+            "SELECT 1 FROM llm_analysis WHERE listing_id = ?",
+            [listing_id],
+        ).fetchone()
+        return row is not None
+    except Exception:
+        return False
 
-    Raises nothing: persistence failure is logged and swallowed so the
-    enrichment itself stays non-blocking.
+
+def _persist(result: LlmAnalysis, db: DuckDBConnection, is_valid: bool = True) -> bool:
+    """Persist the analysis row via atomic upsert (if valid) or first-time insert.
+
+    Returns True if persistence succeeded, False otherwise.
     """
     try:
-        db.conn.execute(
-            """
+        sql = """
             INSERT INTO llm_analysis (
                 listing_id, estado_reforma, orientacion, ruido_zona,
                 red_flags_llm, ubicacion, ubicacion_motivo, auditoria,
                 model_used, prompt_tokens, completion_tokens,
-                raw_response
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """,
-            [
-                result.listing_id,
-                result.estado_reforma,
-                result.orientacion,
-                result.ruido_zona,
-                result.red_flags_llm,
-                result.ubicacion,
-                result.ubicacion_motivo,
-                result.auditoria,
-                result.model_used,
-                result.prompt_tokens,
-                result.completion_tokens,
-                result.raw_response,
-            ],
-        )
+                raw_response, analyzed_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        """
+        if is_valid:
+            sql += """
+                ON CONFLICT (listing_id) DO UPDATE SET
+                    estado_reforma = excluded.estado_reforma,
+                    orientacion = excluded.orientacion,
+                    ruido_zona = excluded.ruido_zona,
+                    red_flags_llm = excluded.red_flags_llm,
+                    ubicacion = excluded.ubicacion,
+                    ubicacion_motivo = excluded.ubicacion_motivo,
+                    auditoria = excluded.auditoria,
+                    model_used = excluded.model_used,
+                    prompt_tokens = excluded.prompt_tokens,
+                    completion_tokens = excluded.completion_tokens,
+                    raw_response = excluded.raw_response,
+                    analyzed_at = excluded.analyzed_at
+            """
+        params = [
+            result.listing_id,
+            result.estado_reforma,
+            result.orientacion,
+            result.ruido_zona,
+            result.red_flags_llm,
+            result.ubicacion,
+            result.ubicacion_motivo,
+            result.auditoria,
+            result.model_used,
+            result.prompt_tokens,
+            result.completion_tokens,
+            result.raw_response,
+        ]
+        db.conn.execute(sql, params)
+        return True
     except Exception as exc:  # noqa: BLE001
         logger.warning("Failed to persist llm_analysis for listing %s: %s", result.listing_id, exc)
+        return False

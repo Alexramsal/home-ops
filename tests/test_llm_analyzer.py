@@ -5,6 +5,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from home_ops.enricher import llm_analyzer
 from home_ops.models.schema import Config, Listing, LlmConfig
 
@@ -94,6 +96,70 @@ class TestMalformedJson:
         assert len(rows) == 1
         assert rows[0][0] == raw
 
+    def test_malformed_json_preserves_existing_analysis(self, db: DuckDBConnection) -> None:
+        """GIVEN an existing valid row WHEN LLM returns malformed JSON THEN existing row preserved, returns None."""
+        listing = _make_listing(db)
+        db.conn.execute(
+            """
+            INSERT INTO llm_analysis (listing_id, estado_reforma, auditoria, model_used, raw_response)
+            VALUES (?, 'reformado', 'auditoria previa', 'model-v1', '{"estado_reforma":"reformado"}')
+            """,
+            [listing.id],
+        )
+        raw = "esto no es json"
+        with patch("litellm.completion", _mock_completion(raw)):
+            result = llm_analyzer.analyze_description(listing, _make_config(), db)
+        assert result is None
+        row = db.conn.execute(
+            "SELECT estado_reforma, auditoria, model_used FROM llm_analysis WHERE listing_id = ?",
+            [listing.id],
+        ).fetchone()
+        assert row is not None
+        assert row[0] == "reformado"
+        assert row[1] == "auditoria previa"
+        assert row[2] == "model-v1"
+
+    @pytest.mark.parametrize(
+        "invalid_raw",
+        [
+            "{}",
+            '{"ubicacion": 42}',
+            '{"ubicacion": "invalida"}',
+            '{"estado_reforma": 123}',
+            '{"red_flags_llm": "not a list"}',
+            '{"red_flags_llm": [123]}',
+            '{"red_flags_llm": [null]}',
+            '{"red_flags_llm": [{"a": 1}]}',
+            '{"red_flags_llm": ["   "]}',
+            '{"foo": "bar"}',
+            '{"estado_reforma": "   "}',
+        ],
+    )
+    def test_invalid_json_responses_preserve_existing_row_byte_for_byte(
+        self, db: DuckDBConnection, invalid_raw: str
+    ) -> None:
+        """GIVEN an existing valid row WHEN LLM returns invalid JSON dict THEN existing row preserved byte-for-byte and returns None."""
+        listing = _make_listing(db)
+        db.conn.execute(
+            """
+            INSERT INTO llm_analysis (listing_id, estado_reforma, auditoria, model_used, raw_response)
+            VALUES (?, 'reformado', 'auditoria previa', 'model-v1', '{"estado_reforma":"reformado"}')
+            """,
+            [listing.id],
+        )
+        old_row = db.conn.execute(
+            "SELECT * FROM llm_analysis WHERE listing_id = ?",
+            [listing.id],
+        ).fetchone()
+        with patch("litellm.completion", _mock_completion(invalid_raw)):
+            result = llm_analyzer.analyze_description(listing, _make_config(), db)
+        assert result is None
+        new_row = db.conn.execute(
+            "SELECT * FROM llm_analysis WHERE listing_id = ?",
+            [listing.id],
+        ).fetchone()
+        assert new_row == old_row
+
     def test_markdown_fenced_json_parsed(self, db: DuckDBConnection) -> None:
         """GIVEN JSON wrapped in markdown fences WHEN analyzed THEN parsed via fence strip."""
         listing = _make_listing(db)
@@ -136,6 +202,73 @@ class TestNetworkFailure:
             [listing.id],
         ).fetchone()
         assert rows is not None and rows[0] == 0
+
+    def test_timeout_preserves_existing_analysis(self, db: DuckDBConnection) -> None:
+        """GIVEN an existing row WHEN LLM completion times out THEN existing row preserved, returns None."""
+        listing = _make_listing(db)
+        db.conn.execute(
+            """
+            INSERT INTO llm_analysis (listing_id, estado_reforma, auditoria, model_used, raw_response)
+            VALUES (?, 'reformado', 'auditoria previa', 'model-v1', '{"estado_reforma":"reformado"}')
+            """,
+            [listing.id],
+        )
+        with patch("litellm.completion", side_effect=Exception("timeout")):
+            result = llm_analyzer.analyze_description(listing, _make_config(), db)
+        assert result is None
+        row = db.conn.execute(
+            "SELECT estado_reforma, auditoria FROM llm_analysis WHERE listing_id = ?",
+            [listing.id],
+        ).fetchone()
+        assert row is not None
+        assert row[0] == "reformado"
+        assert row[1] == "auditoria previa"
+
+
+class TestPersistenceFailure:
+    def test_persistence_failure_returns_none(self, db: DuckDBConnection) -> None:
+        """GIVEN a valid response WHEN db persistence fails THEN returns None."""
+        listing = _make_listing(db)
+        mock_conn = MagicMock()
+        mock_conn.execute.side_effect = Exception("db lock error")
+        db._conn = mock_conn
+        with patch("litellm.completion", _mock_completion(_VALID_JSON)):
+            result = llm_analyzer.analyze_description(listing, _make_config(), db)
+        assert result is None
+
+
+class TestUpsertBehavior:
+    def test_valid_response_upserts_and_refreshes_timestamp(self, db: DuckDBConnection) -> None:
+        """GIVEN an existing row WHEN valid analysis completed THEN atomic upsert updates row."""
+        listing = _make_listing(db)
+        db.conn.execute(
+            """
+            INSERT INTO llm_analysis (listing_id, estado_reforma, auditoria, model_used, raw_response, analyzed_at)
+            VALUES (?, 'viejo', NULL, 'old-model', 'old raw', TIMESTAMP '2020-01-01 00:00:00')
+            """,
+            [listing.id],
+        )
+        old_row = db.conn.execute(
+            "SELECT analyzed_at FROM llm_analysis WHERE listing_id = ?",
+            [listing.id],
+        ).fetchone()
+        assert old_row is not None
+        old_ts = old_row[0]
+
+        json_new = '{"estado_reforma": "reformado", "auditoria": "nueva audit"}'
+        with patch("litellm.completion", _mock_completion(json_new)):
+            result = llm_analyzer.analyze_description(listing, _make_config(), db)
+        assert result is not None
+        assert result.auditoria == "nueva audit"
+        row = db.conn.execute(
+            "SELECT estado_reforma, auditoria, model_used, analyzed_at FROM llm_analysis WHERE listing_id = ?",
+            [listing.id],
+        ).fetchone()
+        assert row is not None
+        assert row[0] == "reformado"
+        assert row[1] == "nueva audit"
+        assert row[2] == "test/model"
+        assert row[3] > old_ts  # strict increase assertion
 
 
 class TestEmptyDescription:
