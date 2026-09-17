@@ -20,16 +20,28 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 _PROMPT = (
-    "Analiza esta descripción de un anuncio inmobiliario en español. "
-    "Devuelve SOLO un JSON válido, sin texto adicional, con estas claves:\n"
+    "Eres un auditor inmobiliario experto. Analiza esta descripción de un anuncio "
+    "inmobiliario en español y realiza una auditoría completa de la vivienda y su "
+    "ubicación. Devuelve SOLO un JSON válido, sin texto adicional, con estas claves:\n"
     '{"estado_reforma": "string|null", "orientacion": "string|null", '
-    '"ruido_zona": "string|null", "red_flags_llm": ["string", ...]}\n'
+    '"ruido_zona": "string|null", "red_flags_llm": ["string", ...], '
+    '"ubicacion": "buena|regular|mala|null", "ubicacion_motivo": "string|null", '
+    '"auditoria": "string"}\n'
     "- estado_reforma: estado de reforma si se menciona (ej. 'reformado', "
     "'a reformar', 'segunda mano'), null si no.\n"
     "- orientacion: orientación si se menciona (ej. 'sur', 'este'), null si no.\n"
     "- ruido_zona: si describe zona ruidosa o tranquila, null si no.\n"
-    "- red_flags_llm: frases sospechosas de estafa (urgencia, pago fuera de "
-    "plataforma, precio irreal, pedir señal sin visita); lista vacía si no hay.\n"
+    "- red_flags_llm: frases sospechosas de estafa o engaño (urgencia, pago fuera de "
+    "plataforma, precio irreal, pedir señal sin visita, fotos que no coinciden, "
+    "inconsistencias entre lo anunciado y lo descrito); lista vacía si no hay.\n"
+    "- ubicacion: juicio de la ubicación según la descripción (zona, barrio, "
+    "orientación, entorno): 'buena', 'regular', 'mala', o null si la descripción "
+    "no permite juzgarla.\n"
+    "- ubicacion_motivo: razón breve del juicio de ubicación (ej. 'zona céntrica "
+    "bien comunicada', 'barrio periférico sin servicios'), null si no aplica.\n"
+    "- auditoria: resumen ejecutivo de la auditoría (2-4 frases): estado real de la "
+    "vivienda, vicios ocultos o reparaciones necesarias detectados, señales de "
+    "engaño, y si el precio parece acorde. En español.\n"
     "Descripción:\n"
 )
 
@@ -43,6 +55,9 @@ class LlmAnalysis:
     orientacion: str | None = None
     ruido_zona: str | None = None
     red_flags_llm: list[str] = field(default_factory=list)
+    ubicacion: str | None = None
+    ubicacion_motivo: str | None = None
+    auditoria: str | None = None
     model_used: str = ""
     prompt_tokens: int | None = None
     completion_tokens: int | None = None
@@ -117,6 +132,9 @@ def analyze_description(
         result.estado_reforma = parsed.get("estado_reforma")
         result.orientacion = parsed.get("orientacion")
         result.ruido_zona = parsed.get("ruido_zona")
+        result.ubicacion = parsed.get("ubicacion")
+        result.ubicacion_motivo = parsed.get("ubicacion_motivo")
+        result.auditoria = parsed.get("auditoria")
         flags = parsed.get("red_flags_llm")
         if isinstance(flags, list):
             result.red_flags_llm = [str(f) for f in flags]
@@ -164,9 +182,10 @@ def _persist(result: LlmAnalysis, db: DuckDBConnection) -> None:
             """
             INSERT INTO llm_analysis (
                 listing_id, estado_reforma, orientacion, ruido_zona,
-                red_flags_llm, model_used, prompt_tokens, completion_tokens,
+                red_flags_llm, ubicacion, ubicacion_motivo, auditoria,
+                model_used, prompt_tokens, completion_tokens,
                 raw_response
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             [
                 result.listing_id,
@@ -174,6 +193,9 @@ def _persist(result: LlmAnalysis, db: DuckDBConnection) -> None:
                 result.orientacion,
                 result.ruido_zona,
                 result.red_flags_llm,
+                result.ubicacion,
+                result.ubicacion_motivo,
+                result.auditoria,
                 result.model_used,
                 result.prompt_tokens,
                 result.completion_tokens,

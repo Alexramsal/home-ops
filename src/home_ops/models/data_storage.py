@@ -193,6 +193,9 @@ class DuckDBConnection:
                 orientacion TEXT,
                 ruido_zona TEXT,
                 red_flags_llm VARCHAR[] DEFAULT [],
+                ubicacion TEXT,
+                ubicacion_motivo TEXT,
+                auditoria TEXT,
                 model_used TEXT,
                 prompt_tokens INTEGER,
                 completion_tokens INTEGER,
@@ -200,6 +203,16 @@ class DuckDBConnection:
                 analyzed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         """)
+        # Auditoría extendida: ubicación + resumen (idempotente para DB existentes)
+        self.conn.execute(
+            "ALTER TABLE llm_analysis ADD COLUMN IF NOT EXISTS ubicacion TEXT;"
+        )
+        self.conn.execute(
+            "ALTER TABLE llm_analysis ADD COLUMN IF NOT EXISTS ubicacion_motivo TEXT;"
+        )
+        self.conn.execute(
+            "ALTER TABLE llm_analysis ADD COLUMN IF NOT EXISTS auditoria TEXT;"
+        )
         # Append-only price observations: one row per listing seen per scan,
         # capturing price changes over time (listings itself is deduped).
         self.conn.execute("""

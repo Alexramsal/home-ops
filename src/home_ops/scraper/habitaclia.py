@@ -33,6 +33,11 @@ def _item_to_dict(item: dict[str, Any]) -> dict[str, Any]:
     price = transaction.get("price") or {}
     urls = item.get("urls") or {}
     path = urls.get("canonical") or item.get("navigationUrl") or ""
+    # Habitaclia canonical URLs are sometimes truncated in the payload (short
+    # uuid without "/d") and 404. The numeric detail format always works.
+    legacy_id = str(item.get("legacyNumericId")) if item.get("legacyNumericId") else ""
+    if path and legacy_id and not path.rstrip("/").endswith("/d") and ".htm" not in path:
+        path = f"/i{legacy_id}.htm?from=list"
     municipality = location.get("municipality") or ""
     district = location.get("district") or ""
     certificate = prop.get("energyEfficiencyCertificate") or {}

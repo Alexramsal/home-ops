@@ -122,14 +122,30 @@ def _fmt_llm(
     ruido: str | None,
     flags: list[str] | None,
     locale: i18n.Locale = "es",
+    ubicacion: str | None = None,
+    ubicacion_motivo: str | None = None,
+    auditoria: str | None = None,
 ) -> str:
-    """Compact one-line LLM summary, or a clear placeholder when absent."""
+    """Compact LLM audit summary: state, orientation, noise, location verdict,
+    red flags and full audit text; or a clear placeholder when absent."""
     if llm_id is None:
         return i18n.t("llm.none", locale)
     parts = [p for p in (estado, orient, ruido) if p]
+    if ubicacion:
+        badge = {"buena": "✓", "regular": "~", "mala": "✗"}.get(ubicacion, "")
+        parts.append(f"{badge} {ubicacion.capitalize()} ({ubicacion_motivo})")
     if flags:
         parts.append("Flags: " + ", ".join(flags))
-    return " · ".join(parts) if parts else i18n.t("llm.none", locale)
+    if parts:
+        text = " · ".join(parts)
+        if auditoria:
+            text += f" — {auditoria}"
+        return text
+    # Audit run produced a summary but no structured fields (e.g. description
+    # too short to audit): surface the summary instead of "not analyzed".
+    if auditoria:
+        return auditoria
+    return i18n.t("llm.none", locale)
 
 
 def _vs_median(price: float, m2: float, median_eur_m2: float, locale: i18n.Locale = "es") -> str:
@@ -204,7 +220,8 @@ def index(request: Request, lang: str | None = None) -> HTMLResponse:
             """SELECT l.id, l.address, l.price, l.m2, l.score,
                       l.scam_risk_score, l.url, l.portal,
                       a.listing_id, a.estado_reforma, a.orientacion,
-                      a.ruido_zona, a.red_flags_llm
+                      a.ruido_zona, a.red_flags_llm, a.ubicacion,
+                      a.ubicacion_motivo, a.auditoria
                FROM listings l
                LEFT JOIN llm_analysis a ON a.listing_id = l.id
                WHERE l.score IS NOT NULL
@@ -233,7 +250,8 @@ def index(request: Request, lang: str | None = None) -> HTMLResponse:
     for r in rows:
         (
             rid, addr, price, m2, score, risk, url, portal,
-            llm_id, estado, orient, ruido, flags,
+            llm_id, estado, orient, ruido, flags, ubicacion,
+            ubicacion_motivo, auditoria,
         ) = r
         rank.append(
             {
@@ -253,7 +271,10 @@ def index(request: Request, lang: str | None = None) -> HTMLResponse:
                 "hitl": i18n.t("hitl.verified", locale)
                 if hitl.get(rid)
                 else i18n.t("hitl.pending", locale),
-                "llm": _fmt_llm(llm_id, estado, orient, ruido, flags, locale),
+                "llm": _fmt_llm(
+                    llm_id, estado, orient, ruido, flags, locale,
+                    ubicacion, ubicacion_motivo, auditoria,
+                ),
             }
         )
     return templates.TemplateResponse(
