@@ -90,29 +90,29 @@ The project ships with a FastAPI dashboard backed by the real DuckDB dataset. It
 ### Automation built for long-running operation
 The daemon supports daily or interval schedules, daily alert quotas, catch-up recovery after downtime and overlap protection.
 
-## Onboarding con tu Agente IA ("Clona y Habla")
+## AI Agent Onboarding ("Clone & Talk")
 
-Home-Ops incluye un contrato de integración nativo ([`AGENTS.md`](AGENTS.md)) compatible con Claude Code, Codex, OpenCode, Pi, Hermes y cualquier agente que abra el repositorio.
+Home-Ops includes a native integration contract ([`AGENTS.md`](AGENTS.md)) compatible with Claude Code, Codex, OpenCode, Pi, Hermes, and any agent opening the repository.
 
 ```bash
 git clone https://github.com/Alexramsal/Home-Ops.git && cd Home-Ops && uv sync
 ```
 
-Abre tu agente IA en el repositorio y dile en lenguaje natural:
-> *"Configura mi búsqueda de vivienda en Cádiz con presupuesto máximo de 250.000 € y 80 m² min"*
+Open your AI agent in the repository and tell it in natural language:
+> *"Configure my property search in Cádiz with a maximum budget of €250,000 and 80 m² minimum"*
 
-El agente utilizará los comandos CLI validados sin tocar la base de datos ni editar YAML a mano:
+The agent will use validated CLI commands without directly querying the database or manually editing YAML:
 
-| Comando | Acción |
+| Command | Action |
 | --- | --- |
-| `uv run homeops profile validate` | Valida la estructura y valores de `user_profile.yml`. |
-| `uv run homeops profile set KEY VALUE` | Actualiza atómicamente una clave de configuración (p. ej. `scoring.thresholds.price_median`). |
-| `uv run homeops sources validate URL` | Prueba si una URL candidata pertenece a un portal soportado y extrae inmuebles. |
-| `uv run homeops sources add URL` | Valida y añade una URL a `portal.urls` en `user_profile.yml`. |
-| `uv run homeops scan` | Ejecuta el pipeline completo de ingesta, scoring y alertas. |
-| `uv run homeops status` | Muestra el estado del pipeline y la cola de aprobación HITL en DuckDB. |
+| `uv run homeops profile validate` | Validate `user_profile.yml` structure and values. |
+| `uv run homeops profile set KEY VALUE` | Atomically update a configuration key (e.g. `scoring.thresholds.price_median`). |
+| `uv run homeops sources validate URL` | Test if a candidate URL belongs to a supported portal and parses listings. |
+| `uv run homeops sources add URL` | Validate and append a URL to `portal.urls` in `user_profile.yml`. |
+| `uv run homeops scan` | Run a full scrape → dedup → score → alert cycle. |
+| `uv run homeops status` | Inspect pipeline state and pending approvals in DuckDB. |
 
-> 🔒 **Privacidad Financiera:** Los datos financieros (ingresos, ahorros, cuota hipotecaria maxima) se conservan exclusivamente en `.env` o `user_profile.yml` locales. **Nunca** se envían en URLs de búsqueda ni a portales inmobiliarios externos. Si usas un agente cloud, no introduzcas salarios ni datos bancarios en el chat.
+> 🔒 **Financial Privacy:** Sensitive financial data (income, savings, maximum mortgage payment) stays exclusively in local `.env` or `user_profile.yml` files. It is **never** sent in search URLs or to external property portals. If using a cloud-hosted agent, do not include salaries or bank details in the chat.
 
 ## Quick start
 
