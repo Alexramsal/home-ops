@@ -178,6 +178,18 @@ def _enrich_new_listings(listings: list[Listing], fetcher: Any) -> None:
         # parse_detail currently targets Idealista markup only.
         if not listing.url or listing.portal != "idealista":
             continue
+
+        needs_detail = (
+            listing.garage_price is None
+            or listing.certificado_energetico_present is None
+            or not listing.description
+            or len(listing.description.strip()) < 50
+            or listing.description.endswith("...")
+            or listing.description.endswith("…")
+        )
+        if not needs_detail:
+            continue
+
         time.sleep(DETAIL_DELAY_SECONDS)
         try:
             html = _fetch_page_text(fetcher, listing.url)
@@ -193,6 +205,10 @@ def _enrich_new_listings(listings: list[Listing], fetcher: Any) -> None:
             listing.garage_price = parsed["garage_price"]
         if parsed.get("certificado_energetico_present") is not None:
             listing.certificado_energetico_present = parsed["certificado_energetico_present"]
+        if parsed.get("description"):
+            new_desc = str(parsed["description"])
+            if not listing.description or len(new_desc) > len(listing.description):
+                listing.description = new_desc
 
 
 def cold_start(url: str, zone: str = "", max_pages: int = 5) -> list[Listing]:

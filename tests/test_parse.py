@@ -422,3 +422,11 @@ class TestParseDetail:
         assert result["garage_price"] is None
         # Fixture row: "En trámite" -> certificate present.
         assert result["certificado_energetico_present"] is True
+
+    def test_parse_detail_extracts_description(self) -> None:
+        """GIVEN detail HTML with description block WHEN parse_detail THEN description extracted."""
+        html = """<html><body>
+        <div class="comment">Piso luminoso y amplio en el centro de Jerez, 3 dormitorios.</div>
+        </body></html>"""
+        result = parse_detail(html)
+        assert result["description"] == "Piso luminoso y amplio en el centro de Jerez, 3 dormitorios."

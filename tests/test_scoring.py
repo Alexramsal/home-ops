@@ -791,3 +791,87 @@ class TestRulesScorerBuyerProtection:
         result = scorer.score(listing, euribor_rate_override=3.5)
         assert result.total >= 0.0
         assert "MISSING_ENERGY_CERT" in result.flags
+
+
+class TestFlagRiskScoring:
+    """Risk signal flag scoring integration tests."""
+
+    def _listing(self) -> Listing:
+        return Listing(
+            content_hash="flag_risk_001",
+            price=Decimal("250000"),
+            m2=100.0,
+            certificado_energetico_present=True,
+            garage_price=Decimal("15000"),
+            description="Piso normal",
+        )
+
+    def test_known_risk_flag_deducts_bounded_points(self, config_with_scoring: Config) -> None:
+        """GIVEN known risk signal WHEN scored THEN score reduced by flag penalty."""
+        from home_ops.scorer.rules import RulesScorer
+
+        scorer = RulesScorer(config_with_scoring)
+        clean_res = scorer.score(self._listing(), euribor_rate_override=3.5)
+        flag_res = scorer.score(
+            self._listing(), euribor_rate_override=3.5, extra_flags=["ocupado"]
+        )
+
+        # ocupado penalty = 25.0 points (0.25 total)
+        assert flag_res.total == pytest.approx(clean_res.total - 0.25, abs=1e-6)
+        assert "ocupado" in flag_res.flags
+
+    def test_unknown_flag_does_not_alter_score(self, config_with_scoring: Config) -> None:
+        """GIVEN unknown text flag WHEN scored THEN total score unchanged."""
+        from home_ops.scorer.rules import RulesScorer
+
+        scorer = RulesScorer(config_with_scoring)
+        clean_res = scorer.score(self._listing(), euribor_rate_override=3.5)
+        unknown_res = scorer.score(
+            self._listing(), euribor_rate_override=3.5, extra_flags=["desconocido_test_flag"]
+        )
+
+        assert unknown_res.total == pytest.approx(clean_res.total, abs=1e-6)
+        assert "desconocido_test_flag" in unknown_res.flags
+
+    def test_no_double_penalization_for_existing_scam_flags(self) -> None:
+        """GIVEN existing scam flag in extra_flags WHEN scored THEN no double penalty."""
+        from home_ops.models.schema import BuyerProtectionConfig
+        from home_ops.scorer.rules import RulesScorer
+
+        cfg = Config(
+            scoring=ScoringThresholds(price_median=250_000.0),
+            buyer_protection=BuyerProtectionConfig(),
+        )
+        scorer = RulesScorer(cfg)
+        listing = self._listing()
+        listing.description = "solo whatsapp reserva antes de visitar"
+
+        base_res = scorer.score(listing, euribor_rate_override=3.5)
+        dup_res = scorer.score(
+            listing, euribor_rate_override=3.5, extra_flags=["SCAM_RED_FLAG_TEXT"]
+        )
+
+        assert dup_res.total == pytest.approx(base_res.total, abs=1e-6)
+
+    def test_reads_stored_llm_flags_from_db(self, config_with_scoring: Config) -> None:
+        """GIVEN stored llm_analysis row in db WHEN score with db_conn THEN flags applied."""
+        from home_ops.models.data_storage import DuckDBConnection
+        from home_ops.scorer.rules import RulesScorer
+
+        with DuckDBConnection(":memory:") as db:
+            db.init_db()
+            listing = self._listing()
+            listing.id = db.insert_listing(listing)
+
+            db.conn.execute(
+                "INSERT INTO llm_analysis (listing_id, red_flags_llm) VALUES (?, ?)",
+                [listing.id, ["nuda_propiedad"]],
+            )
+
+            scorer = RulesScorer(config_with_scoring)
+            res = scorer.score(listing, db_conn=db.conn, euribor_rate_override=3.5)
+
+            assert "nuda_propiedad" in res.flags
+            # nuda_propiedad penalty = 20.0 points (0.20)
+            clean_res = scorer.score(self._listing(), euribor_rate_override=3.5)
+            assert res.total == pytest.approx(clean_res.total - 0.20, abs=1e-6)

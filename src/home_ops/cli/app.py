@@ -39,6 +39,107 @@ app = typer.Typer(
 )
 console = Console()
 
+# ---------------------------------------------------------------------------
+# profile subcommands: validate/set user_profile.yml via YAML (no SQL/network)
+# ---------------------------------------------------------------------------
+profile_app = typer.Typer(help="Validate or update user_profile.yml.")
+
+
+@profile_app.command("validate")
+def profile_validate(
+    config_path: ConfigOpt = None,
+) -> None:
+    """Validate user_profile.yml structure and values. Exit 0 if OK."""
+    from home_ops.cli.profile import _resolve_profile_path, validate_profile
+
+    try:
+        path = _resolve_profile_path(config_path)
+        if not path.exists():
+            console.print(f"[bold red]Profile not found:[/bold red] {path}")
+            raise typer.Exit(code=1)
+        errors = validate_profile(path)
+    except Exception as exc:
+        console.print(f"[bold red]Validation failed:[/bold red] {exc}")
+        raise typer.Exit(code=1) from exc
+
+    if errors:
+        console.print(f"[bold red]Profile invalid ({len(errors)} error(s)):[/bold red]")
+        for e in errors:
+            console.print(f"  - {e}")
+        raise typer.Exit(code=1)
+    console.print(f"[green]Profile valid:[/green] {path}")
+
+
+@profile_app.command("set")
+def profile_set(
+    key_path: str,
+    value: str,
+    config_path: ConfigOpt = None,
+) -> None:
+    """Set a key in user_profile.yml (dotted path, e.g. euribor_rate or scoring.thresholds.price_median). Atomic write; other keys preserved."""
+    from home_ops.cli.profile import _resolve_profile_path, set_profile_value
+
+    try:
+        path = _resolve_profile_path(config_path)
+        if not path.exists():
+            console.print(f"[bold red]Profile not found:[/bold red] {path}")
+            raise typer.Exit(code=1)
+        set_profile_value(path, key_path, value)
+    except Exception as exc:
+        console.print(f"[bold red]Set failed:[/bold red] {exc}")
+        raise typer.Exit(code=1) from exc
+    console.print(f"[green]Set {key_path}={value}[/green] in {path}")
+
+
+app.add_typer(profile_app, name="profile")
+
+# ---------------------------------------------------------------------------
+# sources subcommands: validate candidate URLs and add them to user_profile.yml
+# ---------------------------------------------------------------------------
+sources_app = typer.Typer(help="Validate candidate portal URLs or add them to user_profile.yml.")
+
+
+@sources_app.command("validate")
+def sources_validate(
+    url: str = typer.Argument(..., help="Portal search URL to validate"),
+) -> None:
+    """Validate a candidate portal search URL (domain + parser + >=1 item)."""
+    from home_ops.cli.sources import validate_source
+
+    ok, reason, count = validate_source(url)
+    if not ok:
+        console.print(f"[bold red]FAIL:[/bold red] {reason}")
+        raise typer.Exit(code=1)
+    console.print(f"[bold green]PASS:[/bold green] portal={reason}, items={count}")
+
+
+@sources_app.command("add")
+def sources_add(
+    url: str = typer.Argument(..., help="Portal search URL to add"),
+    config_path: ConfigOpt = None,
+) -> None:
+    """Validate a portal search URL and append it to portal.urls in user_profile.yml."""
+    from home_ops.cli.profile import _resolve_profile_path
+    from home_ops.cli.sources import add_source
+
+    try:
+        path = _resolve_profile_path(config_path)
+        if not path.exists():
+            console.print(f"[bold red]Profile not found:[/bold red] {path}")
+            raise typer.Exit(code=1)
+        ok, msg = add_source(path, url)
+    except Exception as exc:
+        console.print(f"[bold red]Add failed:[/bold red] {exc}")
+        raise typer.Exit(code=1) from exc
+
+    if not ok:
+        console.print(f"[bold red]FAIL:[/bold red] {msg}")
+        raise typer.Exit(code=1)
+    console.print(f"[bold green]SUCCESS:[/bold green] {msg}")
+
+
+app.add_typer(sources_app, name="sources")
+
 # Shared Typer argument for optional config path
 ConfigPathArg = Annotated[
     Path | None,
@@ -655,8 +756,8 @@ def _run_scan(config_path: Path | None = None, force: bool = False) -> None:
                     catastro.lookup(listing, config.portal_url, db)
 
                 # Optional LLM description enrichment (best-effort, opt-in).
-                # Persists the raw call for traceability; red_flags_llm are
-                # surfaced as score flags without altering the numeric score.
+                # Persists raw call for traceability; red_flags_llm are passed as
+                # extra_flags to RulesScorer to apply risk penalties.
                 llm_flags: list[str] = []
                 if config.llm.enabled:
                     llm_result = llm_analyzer.analyze_description(listing, config, db)
@@ -664,10 +765,10 @@ def _run_scan(config_path: Path | None = None, force: bool = False) -> None:
                         llm_flags = llm_result.red_flags_llm
 
                 # Score — use RulesScorer; multiply by 100 for 0-100 threshold compatibility
-                score_result = scorer.score(listing, db_conn=db.conn, zone=zone)
+                score_result = scorer.score(
+                    listing, db_conn=db.conn, zone=zone, extra_flags=llm_flags
+                )
                 score_value = score_result.total * 100.0
-                if llm_flags:
-                    score_result.flags.extend(llm_flags)
 
                 # Persist scam-risk fields regardless of alert gating, so the
                 # buyer-protection output survives even when no alert is sent

@@ -214,6 +214,7 @@ _DETAIL_EMPTY = {
     "garage_price": None,
     "certificado_energetico_present": None,
     "price_includes_garage_override": None,
+    "description": None,
 }
 
 
@@ -235,7 +236,7 @@ def _row_value(row: Selector) -> str:
 
 
 def parse_detail(html: str) -> dict[str, Any]:
-    """Parse an Idealista detail page into garage/energy fields.
+    """Parse an Idealista detail page into garage/energy/description fields.
 
     Anchors are text rows under ``#details div.detail-info`` with a
     ``span.txt`` label and ``span.value`` value. Row presence is the signal:
@@ -245,8 +246,8 @@ def parse_detail(html: str) -> dict[str, Any]:
 
     Returns:
         ``{"garage_price": Decimal|None, "certificado_energetico_present":
-        bool|None, "price_includes_garage_override": None}``. No selector
-        match yields None — the parser never guesses a value.
+        bool|None, "price_includes_garage_override": None, "description": str|None}``.
+        No selector match yields None — the parser never guesses a value.
     """
     if not html or not html.strip():
         return dict(_DETAIL_EMPTY)
@@ -260,10 +261,19 @@ def parse_detail(html: str) -> dict[str, Any]:
             garage_price = _extract_price(_row_value(row))
         elif label in _CERT_LABELS and cert_present is None:
             cert_present = True
+
+    desc_el = page.css(
+        "div.comment, div.adCommentsLanguage, div.description-content, div.item-description, p.comment"
+    )
+    desc_text = desc_el[0].css("::text").get("").strip() if desc_el else None
+    if desc_text == "":
+        desc_text = None
+
     return {
         "garage_price": garage_price,
         "certificado_energetico_present": cert_present,
         "price_includes_garage_override": None,
+        "description": desc_text,
     }
 
 

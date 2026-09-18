@@ -84,6 +84,12 @@ def load_config(config_path: Path | None = None, env_path: Path | None = None) -
     """Load and merge configuration from YAML + .env into a Config model.
 
     Priority (last wins): built-in defaults -> YAML -> env vars.
+
+    Regional defaults (ITP 6-10%, mortgage 30 years, Europe/Madrid) live
+    in the Pydantic models below (BuyerProtectionConfig, ScheduleConfig):
+    a missing YAML section falls back to those defaults; an explicit user
+    value always wins (explicit wins guard). No separate locale files: the
+    schema is the single source of truth.
     """
     raw = load_user_profile(config_path)
     secrets = load_env(env_path)

@@ -29,6 +29,27 @@ from home_ops.scorer.scam_risk import ScamRiskScorer
 logger = logging.getLogger(__name__)
 
 
+KNOWN_RISK_FLAG_PENALTIES: dict[str, float] = {
+    "ocupado": 25.0,
+    "ilegal_okupa": 25.0,
+    "sin_posesion": 25.0,
+    "nuda_propiedad": 20.0,
+    "subasta": 20.0,
+    "embargo": 20.0,
+    "sin_cedula": 15.0,
+    "vicios_ocultos": 15.0,
+    "danos_estructurales": 20.0,
+    "a_reformar_integral": 10.0,
+    "reforma_integral": 10.0,
+    "pago_fuera_plataforma": 20.0,
+    "urgencia_sospechosa": 15.0,
+    "precio_irreal": 15.0,
+    "reserva_sin_visita": 20.0,
+    "sin_visita": 15.0,
+    "alquilado_sin_rentabilidad": 10.0,
+}
+
+
 class RulesScorer:
     """Multi-dimensional scoring engine for property listings.
 
@@ -91,6 +112,7 @@ class RulesScorer:
         db_conn: Any = None,
         euribor_rate_override: float | None = None,
         zone: str | None = None,
+        extra_flags: list[str] | None = None,
     ) -> ScoreResult:
         """Score a single listing across all configured dimensions.
 
@@ -101,6 +123,8 @@ class RulesScorer:
             zone: Optional zone slug — when given (with db_conn and
                 listing.m2), price is scored against the zone's real
                 median €/m² instead of the static config price_median.
+            extra_flags: Optional additional risk flags (e.g. LLM red flags)
+                to evaluate and include in the result.
 
         Returns:
             ScoreResult with total, per-dimension breakdown, and flags.
@@ -113,6 +137,23 @@ class RulesScorer:
         raw_m2 = listing.m2
         raw_cert = listing.certificado_energetico_present
         raw_garage = listing.garage_price
+
+        # Collect extra flags (from parameter and/or DB llm_analysis if available)
+        all_extra_flags: list[str] = list(extra_flags) if extra_flags else []
+        if db_conn is not None and listing.id is not None:
+            try:
+                row = db_conn.execute(
+                    "SELECT red_flags_llm FROM llm_analysis WHERE listing_id = ?",
+                    [listing.id],
+                ).fetchone()
+                if row and row[0]:
+                    stored_flags = row[0]
+                    if isinstance(stored_flags, (list, tuple)):
+                        for sf in stored_flags:
+                            if isinstance(sf, str) and sf.strip():
+                                all_extra_flags.append(sf.strip())
+            except Exception:
+                pass
 
         # Build field map for weights adjustment
         field_map: list[tuple[str, Any]] = [
@@ -194,6 +235,22 @@ class RulesScorer:
                 / Decimal("12"),
                 euribor_rate=self._get_euribor_rate(db_conn, euribor_rate_override),
             )
+
+        already_penalized: set[str] = {"certificado_missing"}
+        if scam_breakdown is not None:
+            already_penalized.update(scam_breakdown.red_flags)
+
+        for flag in all_extra_flags:
+            if flag not in flags:
+                flags.append(flag)
+            flag_norm = flag.lower().strip()
+            if flag in already_penalized or flag_norm in already_penalized:
+                continue
+            if flag_norm in KNOWN_RISK_FLAG_PENALTIES:
+                pen_points = KNOWN_RISK_FLAG_PENALTIES[flag_norm]
+                total = max(0.0, total - pen_points / 100.0)
+                already_penalized.add(flag)
+                already_penalized.add(flag_norm)
 
         return ScoreResult(
             total=total,

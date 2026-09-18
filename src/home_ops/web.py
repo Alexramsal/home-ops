@@ -16,7 +16,8 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
-from fastapi import FastAPI, Request
+import duckdb
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
@@ -157,6 +158,26 @@ def _vs_median(price: float, m2: float, median_eur_m2: float, locale: i18n.Local
     return i18n.t("vs.median", locale, pct=f"{pct:.0f}")
 
 
+def _is_db_lock_error(exc: Exception) -> bool:
+    """Return True if exc represents a DuckDB database file lock error."""
+    if not isinstance(exc, (duckdb.Error, RuntimeError)):
+        return False
+    msgs = [str(exc)]
+    if exc.__cause__:
+        msgs.append(str(exc.__cause__))
+    combined = " ".join(msgs).lower()
+    lock_keywords = (
+        "could not set lock",
+        "conflicting lock",
+        "database is locked",
+        "db locked",
+        "lock on file",
+        "could not obtain lock",
+        "locked by",
+    )
+    return any(k in combined for k in lock_keywords)
+
+
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request, lang: str | None = None, page: int | str = 1) -> HTMLResponse:
     locale = i18n.resolve_locale(lang, request.headers.get("accept-language"))
@@ -167,109 +188,118 @@ def index(request: Request, lang: str | None = None, page: int | str = 1) -> HTM
     if page_num < 1:
         page_num = 1
 
-    with get_connection(get_db_path()) as db:
-        db.init_db()
-        # Mediana global actual
-        per_m2 = analytics.price_per_m2_stats(db)
-        median_eur_m2 = float(per_m2["p50"] or 0)
+    try:
+        with get_connection(get_db_path()) as db:
+            db.init_db()
+            # Mediana global actual
+            per_m2 = analytics.price_per_m2_stats(db)
+            median_eur_m2 = float(per_m2["p50"] or 0)
 
-        # Semana más reciente
-        weekly = db.conn.execute("""
-            SELECT date_trunc('week', observed_at), COUNT(*),
-                   quantile_cont(price / m2, 0.5), AVG(price / m2)
-            FROM price_history WHERE price > 0 AND m2 > 0
-            GROUP BY 1 ORDER BY 1 DESC
-        """).fetchall()
-        latest_week = weekly[0] if weekly else (None, 0, None, None)
-        n_weeks = len(weekly)
+            # Semana más reciente
+            weekly = db.conn.execute("""
+                SELECT date_trunc('week', observed_at), COUNT(*),
+                       quantile_cont(price / m2, 0.5), AVG(price / m2)
+                FROM price_history WHERE price > 0 AND m2 > 0
+                GROUP BY 1 ORDER BY 1 DESC
+            """).fetchall()
+            latest_week = weekly[0] if weekly else (None, 0, None, None)
+            n_weeks = len(weekly)
 
-        series = [
-            {
-                "date": w[0].strftime("%Y-%m-%d") if w[0] else "—",
-                "n": int(w[1]),
-                "median": _fmt_es_number(float(w[2])) if w[2] else "—",
-                "mean": _fmt_es_number(float(w[3])) if w[3] else "—",
-                "median_raw": float(w[2]) if w[2] else None,
-                "mean_raw": float(w[3]) if w[3] else None,
+            series = [
+                {
+                    "date": w[0].strftime("%Y-%m-%d") if w[0] else "—",
+                    "n": int(w[1]),
+                    "median": _fmt_es_number(float(w[2])) if w[2] else "—",
+                    "mean": _fmt_es_number(float(w[3])) if w[3] else "—",
+                    "median_raw": float(w[2]) if w[2] else None,
+                    "mean_raw": float(w[3]) if w[3] else None,
+                }
+                for w in reversed(weekly)  # weekly viene DESC; reverse a ASC
+            ]
+
+            # Fecha de corte (última observación)
+            cutoff = db.conn.execute("SELECT MAX(observed_at) FROM price_history").fetchone()
+            cutoff_date = cutoff[0].strftime("%Y-%m-%d") if cutoff and cutoff[0] else "—"
+
+            # Totales reales (volumen capturado, sin filtro de precio):
+            total_obs_row = db.conn.execute(
+                "SELECT COUNT(*) FROM price_history"
+            ).fetchone()
+            total_unique_row = db.conn.execute(
+                "SELECT COUNT(*) FROM listings"
+            ).fetchone()
+            n_obs = int(total_obs_row[0] or 0) if total_obs_row else 0
+            n_unique = int(total_unique_row[0] or 0) if total_unique_row else 0
+            n_repeated = n_obs - n_unique
+
+            total_scored_row = db.conn.execute(
+                "SELECT COUNT(*) FROM listings WHERE score IS NOT NULL"
+            ).fetchone()
+            total_scored = int(total_scored_row[0] or 0) if total_scored_row else 0
+
+            scored_70_row = db.conn.execute(
+                "SELECT COUNT(*) FROM listings WHERE score IS NOT NULL AND score >= 70"
+            ).fetchone()
+            scored_70 = int(scored_70_row[0] or 0) if scored_70_row else 0
+
+            risk_row = db.conn.execute(
+                "SELECT COUNT(*) FROM listings WHERE scam_risk_score IS NOT NULL"
+            ).fetchone()
+            n_risk = int(risk_row[0] or 0) if risk_row else 0
+
+            # Pagination calculations (10 per page)
+            per_page = 10
+            total_pages = max(1, math.ceil(total_scored / per_page)) if total_scored > 0 else 1
+            if page_num > total_pages:
+                page_num = total_pages
+            offset = (page_num - 1) * per_page
+
+            # HITL state per listing (approved flag from pending_approvals)
+            hitl = {
+                row[0]: row[1]
+                for row in db.conn.execute(
+                    "SELECT listing_id, approved FROM pending_approvals"
+                ).fetchall()
             }
-            for w in reversed(weekly)  # weekly viene DESC; reverse a ASC
-        ]
-
-        # Fecha de corte (última observación)
-        cutoff = db.conn.execute("SELECT MAX(observed_at) FROM price_history").fetchone()
-        cutoff_date = cutoff[0].strftime("%Y-%m-%d") if cutoff and cutoff[0] else "—"
-
-        # Totales reales (volumen capturado, sin filtro de precio):
-        total_obs_row = db.conn.execute(
-            "SELECT COUNT(*) FROM price_history"
-        ).fetchone()
-        total_unique_row = db.conn.execute(
-            "SELECT COUNT(*) FROM listings"
-        ).fetchone()
-        n_obs = int(total_obs_row[0] or 0) if total_obs_row else 0
-        n_unique = int(total_unique_row[0] or 0) if total_unique_row else 0
-        n_repeated = n_obs - n_unique
-
-        total_scored_row = db.conn.execute(
-            "SELECT COUNT(*) FROM listings WHERE score IS NOT NULL"
-        ).fetchone()
-        total_scored = int(total_scored_row[0] or 0) if total_scored_row else 0
-
-        scored_70_row = db.conn.execute(
-            "SELECT COUNT(*) FROM listings WHERE score IS NOT NULL AND score >= 70"
-        ).fetchone()
-        scored_70 = int(scored_70_row[0] or 0) if scored_70_row else 0
-
-        risk_row = db.conn.execute(
-            "SELECT COUNT(*) FROM listings WHERE scam_risk_score IS NOT NULL"
-        ).fetchone()
-        n_risk = int(risk_row[0] or 0) if risk_row else 0
-
-        # Pagination calculations (10 per page)
-        per_page = 10
-        total_pages = max(1, math.ceil(total_scored / per_page)) if total_scored > 0 else 1
-        if page_num > total_pages:
-            page_num = total_pages
-        offset = (page_num - 1) * per_page
-
-        # HITL state per listing (approved flag from pending_approvals)
-        hitl = {
-            row[0]: row[1]
-            for row in db.conn.execute(
-                "SELECT listing_id, approved FROM pending_approvals"
+            rows = db.conn.execute(
+                """SELECT l.id, l.address, l.price, l.m2, l.score,
+                          l.scam_risk_score, l.url, l.portal,
+                          a.listing_id, a.estado_reforma, a.orientacion,
+                          a.ruido_zona, a.red_flags_llm, a.ubicacion,
+                          a.ubicacion_motivo, a.auditoria
+                   FROM listings l
+                   LEFT JOIN llm_analysis a ON a.listing_id = l.id
+                   WHERE l.score IS NOT NULL
+                   ORDER BY l.score DESC, l.price ASC, l.id ASC
+                   LIMIT ? OFFSET ?""",
+                (per_page, offset),
             ).fetchall()
-        }
-        rows = db.conn.execute(
-            """SELECT l.id, l.address, l.price, l.m2, l.score,
-                      l.scam_risk_score, l.url, l.portal,
-                      a.listing_id, a.estado_reforma, a.orientacion,
-                      a.ruido_zona, a.red_flags_llm, a.ubicacion,
-                      a.ubicacion_motivo, a.auditoria
-               FROM listings l
-               LEFT JOIN llm_analysis a ON a.listing_id = l.id
-               WHERE l.score IS NOT NULL
-               ORDER BY l.score DESC, l.price ASC, l.id ASC
-               LIMIT ? OFFSET ?""",
-            (per_page, offset),
-        ).fetchall()
-        counts = {
-            str(portal): int(count)
-            for portal, count in db.conn.execute(
-                """SELECT portal, COUNT(*) AS count
-                   FROM listings GROUP BY portal ORDER BY count DESC"""
-            ).fetchall()
-        }
-        # Declared sources stay visible even at 0 coverage until a scan lands rows.
-        portals = [
-            {
-                "portal": name,
-                "count": counts.get(name, 0),
-                "url": _PORTAL_BASES.get(name),
+            counts = {
+                str(portal): int(count)
+                for portal, count in db.conn.execute(
+                    """SELECT portal, COUNT(*) AS count
+                       FROM listings GROUP BY portal ORDER BY count DESC"""
+                ).fetchall()
             }
-            for name in sorted(
-                {*_PORTAL_BASES, *counts}, key=lambda name: (-counts.get(name, 0), name)
-            )
-        ]
+            # Declared sources stay visible even at 0 coverage until a scan lands rows.
+            portals = [
+                {
+                    "portal": name,
+                    "count": counts.get(name, 0),
+                    "url": _PORTAL_BASES.get(name),
+                }
+                for name in sorted(
+                    {*_PORTAL_BASES, *counts}, key=lambda name: (-counts.get(name, 0), name)
+                )
+            ]
+    except Exception as exc:
+        if _is_db_lock_error(exc):
+            raise HTTPException(
+                status_code=503,
+                detail=i18n.t("web.db_locked", locale),
+                headers={"Retry-After": "5"},
+            ) from exc
+        raise
     rank = []
     for r in rows:
         (

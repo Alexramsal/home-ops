@@ -723,3 +723,36 @@ class TestEnrichment:
         # Skipped listing keeps summary values
         assert listings[0].garage_price is None
         assert listings[1].garage_price == Decimal("3000")
+
+    @patch("home_ops.scraper.lifecycle._fetch_page_text")
+    @patch("home_ops.scraper.lifecycle.parse_detail")
+    @patch("home_ops.scraper.lifecycle.time.sleep")
+    def test_enrichment_updates_incomplete_description(
+        self,
+        mock_sleep: MagicMock,
+        mock_parse_detail: MagicMock,
+        mock_fetch: MagicMock,
+    ) -> None:
+        """GIVEN listing with incomplete description WHEN enriched THEN full description updated."""
+        from home_ops.scraper.lifecycle import _enrich_new_listings
+
+        short_desc = "Piso en centro..."
+        full_desc = "Piso en centro de Jerez, totalmente reformado con 3 dormitorios y 2 baños."
+        listing = Listing(
+            content_hash="desc_test_1",
+            url="https://www.idealista.com/inmueble/100/",
+            portal="idealista",
+            description=short_desc,
+            garage_price=Decimal("10000"),
+            certificado_energetico_present=True,
+        )
+        mock_fetch.return_value = "<html>detail</html>"
+        mock_parse_detail.return_value = {
+            "garage_price": Decimal("10000"),
+            "certificado_energetico_present": True,
+            "description": full_desc,
+        }
+
+        _enrich_new_listings([listing], MagicMock())
+
+        assert listing.description == full_desc

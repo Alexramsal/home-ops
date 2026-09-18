@@ -1,9 +1,13 @@
 """Smoke test: web dashboard renders (empty DB and with listings), no crash."""
 
+import multiprocessing
+from typing import Any
+
 import pytest
 
 pytest.importorskip("fastapi")
 
+import duckdb  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
 
 from home_ops import web as web_mod  # noqa: E402
@@ -355,3 +359,88 @@ def test_index_expandable_accessible_ai_row_and_responsive_wrapper(tmp_path, mon
     assert 'id="ai-detail-42"' in resp.text
     assert 'hidden' in resp.text
     assert 'Auditoría completa verificada.' in resp.text
+
+
+def _writer_lock_worker(
+    db_path: str, lock_acquired_event: Any, stop_event: Any
+) -> None:
+    conn = duckdb.connect(db_path, read_only=False)
+    conn.execute("CREATE TABLE IF NOT EXISTS t (id INT)")
+    lock_acquired_event.set()
+    stop_event.wait(timeout=5)
+    conn.close()
+
+
+def test_index_returns_503_retry_after_when_db_locked_by_other_process(
+    tmp_path, monkeypatch
+) -> None:
+    """Inter-process lock RED->GREEN test: writer process holds DuckDB lock, web returns 503 Retry-After."""
+    db_path = str(tmp_path / "home_ops.duckdb")
+    ctx = multiprocessing.get_context("spawn")
+    lock_event = ctx.Event()
+    stop_event = ctx.Event()
+    proc = ctx.Process(
+        target=_writer_lock_worker, args=(db_path, lock_event, stop_event)
+    )
+    proc.start()
+    try:
+        assert lock_event.wait(timeout=3), "Writer process failed to acquire lock"
+        monkeypatch.setattr(web_mod, "get_db_path", lambda: db_path)
+
+        client = TestClient(web_mod.app, raise_server_exceptions=False)
+        resp = client.get("/")
+
+        assert resp.status_code == 503
+        assert "retry-after" in resp.headers
+        assert resp.headers["retry-after"] == "5"
+    finally:
+        stop_event.set()
+        proc.join(timeout=2)
+
+
+def test_index_does_not_hide_non_lock_db_errors(tmp_path, monkeypatch) -> None:
+    """Non-lock DB errors must not be swallowed into 503; they produce 500."""
+    db_path = str(tmp_path / "home_ops.duckdb")
+    monkeypatch.setattr(web_mod, "get_db_path", lambda: db_path)
+
+    def _raise_other_error(*args, **kwargs):
+        raise RuntimeError("Synthetic non-lock database error")
+
+    monkeypatch.setattr(web_mod, "get_connection", _raise_other_error)
+
+    client = TestClient(web_mod.app, raise_server_exceptions=False)
+    resp = client.get("/")
+
+    assert resp.status_code == 500
+    assert "retry-after" not in resp.headers
+
+
+def test_web_formatting_and_helpers() -> None:
+    """Test formatters and LLM summary helper functions in web module."""
+    assert web_mod._fmt_euro(None) == "—"
+    assert web_mod._fmt_euro(150000.0) == "150,000 €"
+
+    assert web_mod._fmt_m2(None) == "—"
+    assert web_mod._fmt_m2(85.0) == "85 m²"
+
+    assert web_mod._fmt_eur_m2(None) == "—"
+    assert web_mod._fmt_eur_m2(2000.0) == "2,000 €/m²"
+
+    assert web_mod._vs_median(0, 0, 0) == "—"
+    assert web_mod._vs_median(150000, 80, 2000, "es") != "—"
+
+    # _fmt_llm with None llm_id
+    assert web_mod._fmt_llm(None, None, None, None, None) == "Sin analizar"
+
+    # _fmt_llm with location and audit text
+    res = web_mod._fmt_llm(
+        1, "Reformado", "Sur", "Bajo", ["Humedades"], "es", "buena", "Zona céntrica", "Audit OK"
+    )
+    assert "Reformado" in res
+    assert "Audit OK" in res
+
+    # _fmt_llm with only auditoria
+    assert web_mod._fmt_llm(1, None, None, None, None, "es", auditoria="Descripción corta") == "Descripción corta"
+
+    # _fmt_llm empty
+    assert web_mod._fmt_llm(1, None, None, None, None, "es") == "Sin analizar"

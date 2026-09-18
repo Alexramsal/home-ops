@@ -90,6 +90,30 @@ The project ships with a FastAPI dashboard backed by the real DuckDB dataset. It
 ### Automation built for long-running operation
 The daemon supports daily or interval schedules, daily alert quotas, catch-up recovery after downtime and overlap protection.
 
+## Onboarding con tu Agente IA ("Clona y Habla")
+
+Home-Ops incluye un contrato de integración nativo ([`AGENTS.md`](AGENTS.md)) compatible con Claude Code, Codex, OpenCode, Pi, Hermes y cualquier agente que abra el repositorio.
+
+```bash
+git clone https://github.com/Alexramsal/Home-Ops.git && cd Home-Ops && uv sync
+```
+
+Abre tu agente IA en el repositorio y dile en lenguaje natural:
+> *"Configura mi búsqueda de vivienda en Cádiz con presupuesto máximo de 250.000 € y 80 m² min"*
+
+El agente utilizará los comandos CLI validados sin tocar la base de datos ni editar YAML a mano:
+
+| Comando | Acción |
+| --- | --- |
+| `uv run homeops profile validate` | Valida la estructura y valores de `user_profile.yml`. |
+| `uv run homeops profile set KEY VALUE` | Actualiza atómicamente una clave de configuración (p. ej. `scoring.thresholds.price_median`). |
+| `uv run homeops sources validate URL` | Prueba si una URL candidata pertenece a un portal soportado y extrae inmuebles. |
+| `uv run homeops sources add URL` | Valida y añade una URL a `portal.urls` en `user_profile.yml`. |
+| `uv run homeops scan` | Ejecuta el pipeline completo de ingesta, scoring y alertas. |
+| `uv run homeops status` | Muestra el estado del pipeline y la cola de aprobación HITL en DuckDB. |
+
+> 🔒 **Privacidad Financiera:** Los datos financieros (ingresos, ahorros, cuota hipotecaria maxima) se conservan exclusivamente en `.env` o `user_profile.yml` locales. **Nunca** se envían en URLs de búsqueda ni a portales inmobiliarios externos. Si usas un agente cloud, no introduzcas salarios ni datos bancarios en el chat.
+
 ## Quick start
 
 ### Docker — recommended
@@ -166,6 +190,10 @@ Home-Ops keeps **secrets** and **preferences** separate:
 
 | Command | Purpose |
 | --- | --- |
+| `homeops profile validate` | Validate `user_profile.yml` structure and values. |
+| `homeops profile set KEY VALUE` | Atomically update a configuration key (e.g. `scoring.thresholds.price_median`). |
+| `homeops sources validate URL` | Test if a URL belongs to a supported portal and parses listings. |
+| `homeops sources add URL` | Validate and append a URL to `portal.urls` in `user_profile.yml`. |
 | `homeops scan` | Run a full scrape → dedup → score → alert cycle. |
 | `homeops status` | Inspect pipeline state and pending approvals. |
 | `homeops analytics` | Show price, €/m², portal and per-day run analytics. |
