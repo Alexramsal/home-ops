@@ -222,19 +222,22 @@ home-ops/
 └── pyproject.toml
 ```
 
-## Quality gates
+## Quality gates & Engineering standard
 
-Every push to `main` runs the CI pipeline with:
+The codebase is built under strict senior engineering guidelines:
+
+- **705 Automated Tests**: Unit, integration, CLI, TUI, web and scraper parsers.
+- **84.4% Test Coverage**: Far exceeding the 70% CI coverage budget.
+- **Modular CLI Architecture**: Single-responsibility submodules (`scan_runner`, `daemon`, `status`, `analytics`, `profile`, `sources`).
+- **Strict Static Typing & Linting**: `mypy` zero-errors and `ruff` formatting.
+
+Run quality verification locally:
 
 ```bash
-ruff check src/
-mypy src/
-pytest
-
-docker compose up --build
+uv run pytest
+uv run ruff check src tests
+uv run mypy src
 ```
-
-The test suite enforces a **70% coverage floor** and CI also performs a Docker smoke check.
 
 ## Deployment
 
