@@ -1,0 +1,125 @@
+HOME-OPS | PANEL PÚBLICO
+Últimos datos: 2026-09-01
+Pipeline Inmobiliario & Scoring de Oportunidades
+Auditoría de Ingestión, Observaciones Temporales y Scoring 5D
+Ver en GitHub
+ARQUITECTURA DE INGENIERÍA DE DATOS
+Pipeline Operacional: Scrape → Dedup → Scoring 5D → HITL
+Procesamiento integral desde la ingesta de publicaciones en Idealista hasta la validación de oportun
+01
+INGESTA
+Scrape Idealista
+Extracción automatizada de publicaciones activas con captura de precio, superficie y atributos técni
+170 observaciones brutas
+02
+NORMALIZACIÓN
+Deduplicación & Tracking
+Agrupación temporal en 28 listings únicos, rastreando 142 observaciones repetidas sin descartar su s
+28 únicos | 142 repetidas
+03
+EVALUACIÓN
+Scoring 5D
+Modelo cuantitativo de 5 dimensiones: descuento vs. mediana, liquidez, superficie, tipología y penal
+14 con Score ≥ 70
+04
+GOBERNANZA
+Human-in-the-Loop
+Auditoría manual de notas registrales, titularidad y estado real antes de calificar una oportunidad 
+Validación documental
+Evidencia Cuantitativa Registrada (Hechos en DB)
+Base de Datos Verificada | Sin Datos Sintéticos
+MONITORIZACIÓN TEMPORAL
+Evidencia Semanal Registrada (Semana 2026-08-31)
+1 SEMANA DISPONIBLE
+Semana: 2026-08-31
+N = 150 obs. válidas
+MEDIANA SEMANAL
+3.702 €/m²
+MEDIA SEMANAL
+3.865 €/m²
+Punto de Datos Único Registrado (Escala Real):
+3.702 €/m²
+INSUFICIENCIA DE DATOS PARA INFERIR TENDENCIA
+La base de datos cuenta con una única semana de muestreo consolidada (semana 2026-08-31 con 150 obse
+Principio de integridad: Se rechaza la inclusión de gráficos ficticios o simulaciones interpoladas. 
+SELECCIÓN CUANTITATIVA AUDITADA
+Oportunidades Inmobiliarias Rankeadas (Score 5D ≥ 70)
+14 inmuebles con Score ≥ 70 sobre 28 evaluados | Top oportunidad verificada mediante HITL
+14 OPORTUNIDADES ≥ 70 / 28 EVALUADOS
+INMUEBLE / UBICACIÓN
+PRECIO
+SUPERFICIE
+EUR / m²
+SCORE 5D
+PENALIZACIÓN RIESGO
+PORTAL
+ESTADO HITL
+Dúplex Plaza de Toros, El Puerto
+TOP #1 VERIFICADO
+230.000 €
+130 m²
+1.769 €/m²
+-51% vs mediana
+87 / 100
+10 (Metodología)
+Idealista
+Verificado HITL OK
+Piso en Casco Historico - Ribera del Marisco, El Puerto de Santa Maria
+SCORE 74
+260.000 €
+110 m²
+2.364 €/m²
+-35% vs mediana
+74 / 100
+10 (Metodología)
+Idealista
+Pendiente Auditoría
+Piso en Centro, Jerez de la Frontera
+SCORE 70
+675.000 €
+371 m²
+1.819 €/m²
+-50% vs mediana
+70 / 100
+10 (Metodología)
+Idealista
+Pendiente Auditoría
+Piso en Plaza Topete, Centro Historico - Plaza Espana, Cadiz
+SCORE 70
+595.000 €
+212 m²
+2.807 €/m²
+-22% vs mediana
+70 / 100
+10 (Metodología)
+Idealista
+Pendiente Auditoría
+Nota metodológica: Se muestran las oportunidades principales del conjunto de 14 inmuebles con Score 
+Metodología Transparente
+1. Ingestión & Trazabilidad
+Scraping estructurado de listings en Idealista, persistiendo metadatos completos y fechas de avistam
+2. Tracking de Observaciones (No Duplicados)
+De las 170 capturas, se aíslan 28 inmuebles únicos y 142 observaciones repetidas en el tiempo (segui
+3. Modelo de Scoring 5D
+Algoritmo multicriterio ponderado: diferencial vs. mediana zonal (3.618 €/m²), liquidez de zona, efi
+4. Gestión de Riesgo Preventivo
+Se aplica penalización metodológica base (scam_risk_score = 10) a los 28 registros sin categorizarlo
+5. Auditoría Human-in-the-Loop (HITL)
+Las 14 oportunidades con Score ≥ 70 se someten a validación documental humana (verificación registra
+Límites del Sistema & Frescura de Datos
+• Fecha de Corte de Datos: 2026-09-01
+Los datos analizados corresponden exactamente al snapshot capturado el 2026-09-01. No se han incorpo
+• Insuficiencia de Serie Temporal (1 Semana)
+Disponibilidad de una única semana de muestra (2026-08-31 con 150 observaciones). No es técnicamente
+• Precios de Oferta Publicados
+Los importes reflejan precios anunciados por vendedores en Idealista; las operaciones notariales rea
+• Muestra Acotada (28 Inmuebles Únicos)
+El análisis se circunscribe a los 28 registros verificados. Home-Ops es un ejercicio de ingeniería d
+• Cero Datos Inventados o Sintéticos
+No se publican versiones ficticias, runs inventados ni conteos de tests ficticios. Todos los números
+REPOSITORIO PÚBLICO & AUDITABLE
+Accede al Código Fuente Completo y Pipeline de Ingestión en GitHub
+Arquitectura de datos, scripts de normalización, scoring multicriterio 5D y esquemas de persistencia
+Explorar en GitHub
+Home-Ops | Consola de Auditoría Inmobiliaria y Análisis Cuantitativo
+Últimos datos: 2026-09-01 | 28 Inmuebles Únicos | 170 Observaciones

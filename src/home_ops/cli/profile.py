@@ -6,9 +6,69 @@ import contextlib
 import os
 import tempfile
 from pathlib import Path
-from typing import Any
+from typing import Annotated, Any
 
+import typer
 import yaml
+
+ConfigOpt = Annotated[
+    Path | None,
+    typer.Option(
+        "--config",
+        "-c",
+        help="Path to user_profile.yml (default: auto-discover)",
+        exists=True,
+        dir_okay=False,
+        readable=True,
+    ),
+]
+
+profile_app = typer.Typer(help="Validate or update user_profile.yml.")
+
+
+@profile_app.command("validate")
+def profile_validate(config_path: ConfigOpt = None) -> None:
+    """Validate user_profile.yml structure and values. Exit 0 if OK."""
+    import home_ops.cli.app as app_mod
+
+    try:
+        path = _resolve_profile_path(config_path)
+        if not path.exists():
+            app_mod.console.print(f"[bold red]Profile not found:[/bold red] {path}")
+            raise typer.Exit(code=1)
+        errors = validate_profile(path)
+    except Exception as exc:
+        app_mod.console.print(f"[bold red]Validation failed:[/bold red] {exc}")
+        raise typer.Exit(code=1) from exc
+
+    if errors:
+        app_mod.console.print(f"[bold red]Profile invalid ({len(errors)} error(s)):[/bold red]")
+        for e in errors:
+            app_mod.console.print(f"  - {e}")
+        raise typer.Exit(code=1)
+    app_mod.console.print(f"[green]Profile valid:[/green] {path}")
+
+
+@profile_app.command("set")
+def profile_set(
+    key_path: str,
+    value: str,
+    config_path: ConfigOpt = None,
+) -> None:
+    """Set a key in user_profile.yml (dotted path). Atomic write; other keys preserved."""
+    import home_ops.cli.app as app_mod
+
+    try:
+        path = _resolve_profile_path(config_path)
+        if not path.exists():
+            app_mod.console.print(f"[bold red]Profile not found:[/bold red] {path}")
+            raise typer.Exit(code=1)
+        set_profile_value(path, key_path, value)
+    except Exception as exc:
+        app_mod.console.print(f"[bold red]Set failed:[/bold red] {exc}")
+        raise typer.Exit(code=1) from exc
+    app_mod.console.print(f"[green]Set {key_path}={value}[/green] in {path}")
+
 
 
 def _resolve_profile_path(config_path: Path | None = None) -> Path:

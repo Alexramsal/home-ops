@@ -4,8 +4,63 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Any
+from typing import Annotated, Any
 from urllib.parse import urlparse
+
+import typer
+
+ConfigOpt = Annotated[
+    Path | None,
+    typer.Option(
+        "--config",
+        "-c",
+        help="Path to user_profile.yml (default: auto-discover)",
+        exists=True,
+        dir_okay=False,
+        readable=True,
+    ),
+]
+
+sources_app = typer.Typer(help="Validate candidate portal URLs or add them to user_profile.yml.")
+
+
+@sources_app.command("validate")
+def sources_validate(
+    url: str = typer.Argument(..., help="Portal search URL to validate"),
+) -> None:
+    """Validate a candidate portal search URL (domain + parser + >=1 item)."""
+    import home_ops.cli.app as app_mod
+
+    ok, reason, count = validate_source(url)
+    if not ok:
+        app_mod.console.print(f"[bold red]FAIL:[/bold red] {reason}")
+        raise typer.Exit(code=1)
+    app_mod.console.print(f"[bold green]PASS:[/bold green] portal={reason}, items={count}")
+
+
+@sources_app.command("add")
+def sources_add(
+    url: str = typer.Argument(..., help="Portal search URL to add"),
+    config_path: ConfigOpt = None,
+) -> None:
+    """Validate a portal search URL and append it to portal.urls in user_profile.yml."""
+    import home_ops.cli.app as app_mod
+    from home_ops.cli.profile import _resolve_profile_path
+
+    try:
+        path = _resolve_profile_path(config_path)
+        if not path.exists():
+            app_mod.console.print(f"[bold red]Profile not found:[/bold red] {path}")
+            raise typer.Exit(code=1)
+        ok, msg = add_source(path, url)
+    except Exception as exc:
+        app_mod.console.print(f"[bold red]Add failed:[/bold red] {exc}")
+        raise typer.Exit(code=1) from exc
+
+    if not ok:
+        app_mod.console.print(f"[bold red]FAIL:[/bold red] {msg}")
+        raise typer.Exit(code=1)
+    app_mod.console.print(f"[bold green]SUCCESS:[/bold green] {msg}")
 
 logger = logging.getLogger(__name__)
 

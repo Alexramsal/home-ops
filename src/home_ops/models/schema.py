@@ -2,14 +2,23 @@
 
 from datetime import datetime
 from decimal import Decimal
-from typing import Literal
-from zoneinfo import available_timezones
+from typing import Any, Literal
+from zoneinfo import ZoneInfo, available_timezones
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 
+def _parse_timezone(tz_name: Any) -> ZoneInfo:
+    """Parse a timezone string into a ZoneInfo instance, returning UTC if invalid or not a string."""
+    if not isinstance(tz_name, str) or not tz_name:
+        return ZoneInfo("UTC")
+    try:
+        return ZoneInfo(tz_name)
+    except Exception:
+        return ZoneInfo("UTC")
+
+
 class Listing(BaseModel):
-    """A single property listing scraped from a portal."""
 
     id: int | None = None
     content_hash: str = Field(..., description="SHA256 of normalized address+m2+floor")

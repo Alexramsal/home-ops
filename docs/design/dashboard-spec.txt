@@ -1,0 +1,269 @@
+frame 'Home-Ops Public Dashboard (1440)' [Home-Ops Public Dashboard (1440)]
+  frame 'Navbar' [Navbar]
+    frame 'Brand Column' [Brand Column]
+      frame 'Tag Row' [Tag Row]
+        frame 'System Badge' [System Badge]
+          text: 'HOME-OPS | PANEL PÚBLICO'
+        frame 'Freshness Pill' [Freshness Pill]
+          text: 'Últimos datos: 2026-09-01'
+      text: 'Pipeline Inmobiliario & Scoring de Oportunidades'
+      text: 'Auditoría de Ingestión, Observaciones Temporales y Scoring 5D'
+    frame 'Nav Right' [Nav Right]
+      frame 'GitHub CTA Button' [GitHub CTA Button]
+        icon 'GitHub Icon' [GitHub Icon]
+        text: 'Ver en GitHub'
+  frame 'Section - Hero Pipeline' [Section - Hero Pipeline]
+    frame 'Hero Header' [Hero Header]
+      text: 'ARQUITECTURA DE INGENIERÍA DE DATOS'
+      text: 'Pipeline Operacional: Scrape → Dedup → Scoring 5D → HITL'
+      text: 'Procesamiento integral desde la ingesta de publicaciones en Idealista hasta la validación de oportunidades mediante un modelo multicriterio supervisado por revisión humana.'
+    frame 'Pipeline Stages Row' [Pipeline Stages Row]
+      frame 'Stage - Scrape Idealista' [Stage - Scrape Idealista]
+        frame 'Stage Top Row' [Stage Top Row]
+          text: '01'
+          frame 'Stage Badge' [Stage Badge]
+            text: 'INGESTA'
+        text: 'Scrape Idealista'
+        text: 'Extracción automatizada de publicaciones activas con captura de precio, superficie y atributos técnicos.'
+        frame 'Stage Stat Pill' [Stage Stat Pill]
+          text: '170 observaciones brutas'
+      frame 'Stage - Deduplicación & Tracking' [Stage - Deduplicación & Tracking]
+        frame 'Stage Top Row' [Stage Top Row]
+          text: '02'
+          frame 'Stage Badge' [Stage Badge]
+            text: 'NORMALIZACIÓN'
+        text: 'Deduplicación & Tracking'
+        text: 'Agrupación temporal en 28 listings únicos, rastreando 142 observaciones repetidas sin descartar su serie histórica.'
+        frame 'Stage Stat Pill' [Stage Stat Pill]
+          text: '28 únicos | 142 repetidas'
+      frame 'Stage - Scoring 5D' [Stage - Scoring 5D]
+        frame 'Stage Top Row' [Stage Top Row]
+          text: '03'
+          frame 'Stage Badge' [Stage Badge]
+            text: 'EVALUACIÓN'
+        text: 'Scoring 5D'
+        text: 'Modelo cuantitativo de 5 dimensiones: descuento vs. mediana, liquidez, superficie, tipología y penalización de riesgo.'
+        frame 'Stage Stat Pill' [Stage Stat Pill]
+          text: '14 con Score ≥ 70'
+      frame 'Stage - Human-in-the-Loop' [Stage - Human-in-the-Loop]
+        frame 'Stage Top Row' [Stage Top Row]
+          text: '04'
+          frame 'Stage Badge' [Stage Badge]
+            text: 'GOBERNANZA'
+        text: 'Human-in-the-Loop'
+        text: 'Auditoría manual de notas registrales, titularidad y estado real antes de calificar una oportunidad como apta.'
+        frame 'Stage Stat Pill' [Stage Stat Pill]
+          text: 'Validación documental'
+  frame 'Section - Evidence KPIs' [Section - Evidence KPIs]
+    frame 'KPI Section Header' [KPI Section Header]
+      text: 'Evidencia Cuantitativa Registrada (Hechos en DB)'
+      text: 'Base de Datos Verificada | Sin Datos Sintéticos'
+    frame 'KPI Row 1' [KPI Row 1]
+      ref 'KPI - ANUNCIOS ÚNICOS' [KPI - ANUNCIOS ÚNICOS]
+      ref 'KPI - OBSERVACIONES DE PRECIO' [KPI - OBSERVACIONES DE PRECIO]
+      ref 'KPI - OBSERVACIONES REPETIDAS' [KPI - OBSERVACIONES REPETIDAS]
+    frame 'KPI Row 2' [KPI Row 2]
+      ref 'KPI - MEDIANA PRECIO ACTUAL' [KPI - MEDIANA PRECIO ACTUAL]
+      ref 'KPI - OPORTUNIDADES DESTACADAS' [KPI - OPORTUNIDADES DESTACADAS]
+      ref 'KPI - PENALIZACIÓN RIESGO BASE' [KPI - PENALIZACIÓN RIESGO BASE]
+  frame 'Section - Weekly Evidence' [Section - Weekly Evidence]
+    frame 'Weekly Header' [Weekly Header]
+      frame 'Weekly Title Column' [Weekly Title Column]
+        text: 'MONITORIZACIÓN TEMPORAL'
+        text: 'Evidencia Semanal Registrada (Semana 2026-08-31)'
+      frame 'Weekly Status Pill' [Weekly Status Pill]
+        text: '1 SEMANA DISPONIBLE'
+    frame 'Weekly Content Row' [Weekly Content Row]
+      frame 'Single Data Point Card' [Single Data Point Card]
+        frame 'Card Top Row' [Card Top Row]
+          text: 'Semana: 2026-08-31'
+          frame 'Sample Pill' [Sample Pill]
+            text: 'N = 150 obs. válidas'
+        frame 'Stats Metrics Row' [Stats Metrics Row]
+          frame 'Median Box' [Median Box]
+            text: 'MEDIANA SEMANAL'
+            text: '3.702 €/m²'
+          frame 'Mean Box' [Mean Box]
+            text: 'MEDIA SEMANAL'
+            text: '3.865 €/m²'
+        frame 'Honest Single Bar Visualization' [Honest Single Bar Visualization]
+          text: 'Punto de Datos Único Registrado (Escala Real):'
+          frame 'Bar Track' [Bar Track]
+            frame 'Bar Visual Fill' [Bar Visual Fill]
+              text: '3.702 €/m²'
+      frame 'Methodological Limitation Notice' [Methodological Limitation Notice]
+        frame 'Notice Header' [Notice Header]
+          icon 'Notice Icon' [Notice Icon]
+          text: 'INSUFICIENCIA DE DATOS PARA INFERIR TENDENCIA'
+        text: 'La base de datos cuenta con una única semana de muestreo consolidada (semana 2026-08-31 con 150 observaciones válidas). Se declara expresamente que una semana es estadísticamente insuficiente para proyectar una tendencia temporal o comportamiento estacional de precios.'
+        text: 'Principio de integridad: Se rechaza la inclusión de gráficos ficticios o simulaciones interpoladas. La visualización refleja únicamente el punto muestral corroborado.'
+  frame 'Section - Ranked Opportunities' [Section - Ranked Opportunities]
+    frame 'Table Header Area' [Table Header Area]
+      frame 'Title Area' [Title Area]
+        text: 'SELECCIÓN CUANTITATIVA AUDITADA'
+        text: 'Oportunidades Inmobiliarias Rankeadas (Score 5D ≥ 70)'
+        text: '14 inmuebles con Score ≥ 70 sobre 28 evaluados | Top oportunidad verificada mediante HITL'
+      frame 'Filter Badge' [Filter Badge]
+        text: '14 OPORTUNIDADES ≥ 70 / 28 EVALUADOS'
+    frame 'Data Table' [Data Table]
+      frame 'Table Head Row' [Table Head Row]
+        frame 'Header Cell - INMUEBLE / UBICACIÓN' [Header Cell - INMUEBLE / UBICACIÓN]
+          text: 'INMUEBLE / UBICACIÓN'
+        frame 'Header Cell - PRECIO' [Header Cell - PRECIO]
+          text: 'PRECIO'
+        frame 'Header Cell - SUPERFICIE' [Header Cell - SUPERFICIE]
+          text: 'SUPERFICIE'
+        frame 'Header Cell - EUR / m²' [Header Cell - EUR / m²]
+          text: 'EUR / m²'
+        frame 'Header Cell - SCORE 5D' [Header Cell - SCORE 5D]
+          text: 'SCORE 5D'
+        frame 'Header Cell - PENALIZACIÓN RIESGO' [Header Cell - PENALIZACIÓN RIESGO]
+          text: 'PENALIZACIÓN RIESGO'
+        frame 'Header Cell - PORTAL' [Header Cell - PORTAL]
+          text: 'PORTAL'
+        frame 'Header Cell - ESTADO HITL' [Header Cell - ESTADO HITL]
+          text: 'ESTADO HITL'
+      frame 'Data Row - 1' [Data Row - 1]
+        frame 'Cell Inmueble' [Cell Inmueble]
+          text: 'Dúplex Plaza de Toros, El Puerto'
+          frame 'Inmueble Sub Badge' [Inmueble Sub Badge]
+            text: 'TOP #1 VERIFICADO'
+        frame 'Cell Precio' [Cell Precio]
+          text: '230.000 €'
+        frame 'Cell Superficie' [Cell Superficie]
+          text: '130 m²'
+        frame 'Cell EurM2' [Cell EurM2]
+          text: '1.769 €/m²'
+          text: '-51% vs mediana'
+        frame 'Cell Score' [Cell Score]
+          frame 'Score Badge' [Score Badge]
+            text: '87 / 100'
+        frame 'Cell Riesgo' [Cell Riesgo]
+          frame 'Risk Badge' [Risk Badge]
+            text: '10 (Metodología)'
+        frame 'Cell Portal' [Cell Portal]
+          text: 'Idealista'
+        frame 'Cell HITL' [Cell HITL]
+          frame 'HITL Badge' [HITL Badge]
+            text: 'Verificado HITL OK'
+      frame 'Data Row - 2' [Data Row - 2]
+        frame 'Cell Inmueble' [Cell Inmueble]
+          text: 'Piso en Casco Historico - Ribera del Marisco, El Puerto de Santa Maria'
+          frame 'Inmueble Sub Badge' [Inmueble Sub Badge]
+            text: 'SCORE 74'
+        frame 'Cell Precio' [Cell Precio]
+          text: '260.000 €'
+        frame 'Cell Superficie' [Cell Superficie]
+          text: '110 m²'
+        frame 'Cell EurM2' [Cell EurM2]
+          text: '2.364 €/m²'
+          text: '-35% vs mediana'
+        frame 'Cell Score' [Cell Score]
+          frame 'Score Badge' [Score Badge]
+            text: '74 / 100'
+        frame 'Cell Riesgo' [Cell Riesgo]
+          frame 'Risk Badge' [Risk Badge]
+            text: '10 (Metodología)'
+        frame 'Cell Portal' [Cell Portal]
+          text: 'Idealista'
+        frame 'Cell HITL' [Cell HITL]
+          frame 'HITL Badge' [HITL Badge]
+            text: 'Pendiente Auditoría'
+      frame 'Data Row - 3' [Data Row - 3]
+        frame 'Cell Inmueble' [Cell Inmueble]
+          text: 'Piso en Centro, Jerez de la Frontera'
+          frame 'Inmueble Sub Badge' [Inmueble Sub Badge]
+            text: 'SCORE 70'
+        frame 'Cell Precio' [Cell Precio]
+          text: '675.000 €'
+        frame 'Cell Superficie' [Cell Superficie]
+          text: '371 m²'
+        frame 'Cell EurM2' [Cell EurM2]
+          text: '1.819 €/m²'
+          text: '-50% vs mediana'
+        frame 'Cell Score' [Cell Score]
+          frame 'Score Badge' [Score Badge]
+            text: '70 / 100'
+        frame 'Cell Riesgo' [Cell Riesgo]
+          frame 'Risk Badge' [Risk Badge]
+            text: '10 (Metodología)'
+        frame 'Cell Portal' [Cell Portal]
+          text: 'Idealista'
+        frame 'Cell HITL' [Cell HITL]
+          frame 'HITL Badge' [HITL Badge]
+            text: 'Pendiente Auditoría'
+      frame 'Data Row - 4' [Data Row - 4]
+        frame 'Cell Inmueble' [Cell Inmueble]
+          text: 'Piso en Plaza Topete, Centro Historico - Plaza Espana, Cadiz'
+          frame 'Inmueble Sub Badge' [Inmueble Sub Badge]
+            text: 'SCORE 70'
+        frame 'Cell Precio' [Cell Precio]
+          text: '595.000 €'
+        frame 'Cell Superficie' [Cell Superficie]
+          text: '212 m²'
+        frame 'Cell EurM2' [Cell EurM2]
+          text: '2.807 €/m²'
+          text: '-22% vs mediana'
+        frame 'Cell Score' [Cell Score]
+          frame 'Score Badge' [Score Badge]
+            text: '70 / 100'
+        frame 'Cell Riesgo' [Cell Riesgo]
+          frame 'Risk Badge' [Risk Badge]
+            text: '10 (Metodología)'
+        frame 'Cell Portal' [Cell Portal]
+          text: 'Idealista'
+        frame 'Cell HITL' [Cell HITL]
+          frame 'HITL Badge' [HITL Badge]
+            text: 'Pendiente Auditoría'
+      frame 'Table Note Footer' [Table Note Footer]
+        text: 'Nota metodológica: Se muestran las oportunidades principales del conjunto de 14 inmuebles con Score ≥ 70 (de 28 evaluados). Todos los registros cuentan con scam_risk_score = 10 asignado por política de penalización preventiva sin imputar fraude.'
+  frame 'Section - Methodology and Limitations Split' [Section - Methodology and Limitations Split]
+    frame 'Col - Methodology' [Col - Methodology]
+      frame 'Method Header' [Method Header]
+        icon 'Method Icon' [Method Icon]
+        text: 'Metodología Transparente'
+      frame 'Method Item - 1. Ingestión & Trazabilidad' [Method Item - 1. Ingestión & Trazabilidad]
+        text: '1. Ingestión & Trazabilidad'
+        text: 'Scraping estructurado de listings en Idealista, persistiendo metadatos completos y fechas de avistamiento para trazabilidad inmutable.'
+      frame 'Method Item - 2. Tracking de Observaciones (No Duplicados)' [Method Item - 2. Tracking de Observaciones (No Duplicados)]
+        text: '2. Tracking de Observaciones (No Duplicados)'
+        text: 'De las 170 capturas, se aíslan 28 inmuebles únicos y 142 observaciones repetidas en el tiempo (seguimiento de publicación activa, no duplicados difusos).'
+      frame 'Method Item - 3. Modelo de Scoring 5D' [Method Item - 3. Modelo de Scoring 5D]
+        text: '3. Modelo de Scoring 5D'
+        text: 'Algoritmo multicriterio ponderado: diferencial vs. mediana zonal (3.618 €/m²), liquidez de zona, eficiencia de superficie, estado y tipología.'
+      frame 'Method Item - 4. Gestión de Riesgo Preventivo' [Method Item - 4. Gestión de Riesgo Preventivo]
+        text: '4. Gestión de Riesgo Preventivo'
+        text: 'Se aplica penalización metodológica base (scam_risk_score = 10) a los 28 registros sin categorizarlos indebidamente como fraudes confirmados.'
+      frame 'Method Item - 5. Auditoría Human-in-the-Loop (HITL)' [Method Item - 5. Auditoría Human-in-the-Loop (HITL)]
+        text: '5. Auditoría Human-in-the-Loop (HITL)'
+        text: 'Las 14 oportunidades con Score ≥ 70 se someten a validación documental humana (verificación registral y cargas) previo a su selección.'
+    frame 'Col - Limitations' [Col - Limitations]
+      frame 'Limits Header' [Limits Header]
+        icon 'Limits Icon' [Limits Icon]
+        text: 'Límites del Sistema & Frescura de Datos'
+      frame 'Limit Item - • Fecha de Corte de Datos: 2026-09-01' [Limit Item - • Fecha de Corte de Datos: 2026-09-01]
+        text: '• Fecha de Corte de Datos: 2026-09-01'
+        text: 'Los datos analizados corresponden exactamente al snapshot capturado el 2026-09-01. No se han incorporado eventos posteriores.'
+      frame 'Limit Item - • Insuficiencia de Serie Temporal (1 Semana)' [Limit Item - • Insuficiencia de Serie Temporal (1 Semana)]
+        text: '• Insuficiencia de Serie Temporal (1 Semana)'
+        text: 'Disponibilidad de una única semana de muestra (2026-08-31 con 150 observaciones). No es técnicamente admisible modelar tendencia o estacionalidad con este horizonte.'
+      frame 'Limit Item - • Precios de Oferta Publicados' [Limit Item - • Precios de Oferta Publicados]
+        text: '• Precios de Oferta Publicados'
+        text: 'Los importes reflejan precios anunciados por vendedores en Idealista; las operaciones notariales reales suelen negociarse con descuentos adicionales.'
+      frame 'Limit Item - • Muestra Acotada (28 Inmuebles Únicos)' [Limit Item - • Muestra Acotada (28 Inmuebles Únicos)]
+        text: '• Muestra Acotada (28 Inmuebles Únicos)'
+        text: 'El análisis se circunscribe a los 28 registros verificados. Home-Ops es un ejercicio de ingeniería de datos y no constituye asesoramiento financiero.'
+      frame 'Limit Item - • Cero Datos Inventados o Sintéticos' [Limit Item - • Cero Datos Inventados o Sintéticos]
+        text: '• Cero Datos Inventados o Sintéticos'
+        text: 'No se publican versiones ficticias, runs inventados ni conteos de tests ficticios. Todos los números derivan estrictamente de la base de datos.'
+  frame 'Section - GitHub CTA Banner' [Section - GitHub CTA Banner]
+    frame 'Banner Text Column' [Banner Text Column]
+      text: 'REPOSITORIO PÚBLICO & AUDITABLE'
+      text: 'Accede al Código Fuente Completo y Pipeline de Ingestión en GitHub'
+      text: 'Arquitectura de datos, scripts de normalización, scoring multicriterio 5D y esquemas de persistencia disponibles abiertamente.'
+    frame 'Banner GitHub Button' [Banner GitHub Button]
+      icon 'Btn Icon' [Btn Icon]
+      text: 'Explorar en GitHub'
+  frame 'Footer' [Footer]
+    text: 'Home-Ops | Consola de Auditoría Inmobiliaria y Análisis Cuantitativo'
+    text: 'Últimos datos: 2026-09-01 | 28 Inmuebles Únicos | 170 Observaciones'

@@ -1,0 +1,3594 @@
+{
+  "type": "frame",
+  "id": "jyy1Q",
+  "name": "table",
+  "context": "table",
+  "clip": true,
+  "width": "fill_container",
+  "fill": "#161b22",
+  "cornerRadius": 8,
+  "stroke": "#30363d",
+  "strokeWidth": 1,
+  "strokeAlignment": "inner",
+  "layout": "vertical",
+  "children": [
+    {
+      "type": "frame",
+      "id": "XcROy",
+      "name": "tr-header",
+      "context": "tr",
+      "width": "fill_container",
+      "height": 38,
+      "fill": "#161b22",
+      "stroke": "#30363d",
+      "strokeWidth": {
+        "bottom": 2
+      },
+      "padding": [
+        0,
+        12
+      ],
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "frame",
+          "id": "J64Tmt",
+          "name": "th-toggle",
+          "context": "th",
+          "width": 22,
+          "height": 38,
+          "alignItems": "center"
+        },
+        {
+          "type": "frame",
+          "id": "Y7n5O",
+          "name": "INMUEBLE / UBICACIÓN",
+          "context": "th",
+          "width": 262,
+          "height": 38,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "v4WWG",
+              "name": "INMUEBLE / UBICACIÓN",
+              "fill": "#8b949e",
+              "content": "INMUEBLE / UBICACIÓN",
+              "fontFamily": "Roboto Mono",
+              "fontSize": 9.5,
+              "fontWeight": "700",
+              "letterSpacing": 0.4
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "K5FLuL",
+          "name": "PRECIO",
+          "context": "th",
+          "width": 80,
+          "height": 38,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "yWQSt",
+              "name": "PRECIO",
+              "fill": "#8b949e",
+              "content": "PRECIO",
+              "fontFamily": "Roboto Mono",
+              "fontSize": 9.5,
+              "fontWeight": "700",
+              "letterSpacing": 0.4
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "mrA5d",
+          "name": "SUPERFICIE",
+          "context": "th",
+          "width": 62,
+          "height": 38,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "B9fZp",
+              "name": "SUPERFICIE",
+              "fill": "#8b949e",
+              "content": "SUPERFICIE",
+              "fontFamily": "Roboto Mono",
+              "fontSize": 9.5,
+              "fontWeight": "700",
+              "letterSpacing": 0.4
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "tehcq",
+          "name": "€/M²",
+          "context": "th",
+          "width": 72,
+          "height": 38,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "mf2j9",
+              "name": "€/M²",
+              "fill": "#8b949e",
+              "content": "€/M²",
+              "fontFamily": "Roboto Mono",
+              "fontSize": 9.5,
+              "fontWeight": "700",
+              "letterSpacing": 0.4
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "EYk7d",
+          "name": "VS MEDIANA",
+          "context": "th",
+          "width": 80,
+          "height": 38,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "xN5LV",
+              "name": "VS MEDIANA",
+              "fill": "#8b949e",
+              "content": "VS MEDIANA",
+              "fontFamily": "Roboto Mono",
+              "fontSize": 9.5,
+              "fontWeight": "700",
+              "letterSpacing": 0.4
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "h5AkMf",
+          "name": "SCORE 5D",
+          "context": "th",
+          "width": 62,
+          "height": 38,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "fp99h",
+              "name": "SCORE 5D",
+              "fill": "#8b949e",
+              "content": "SCORE 5D",
+              "fontFamily": "Roboto Mono",
+              "fontSize": 9.5,
+              "fontWeight": "700",
+              "letterSpacing": 0.4
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "YUp7F",
+          "name": "RIESGO",
+          "context": "th",
+          "width": 104,
+          "height": 38,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "xc8ig",
+              "name": "RIESGO",
+              "fill": "#8b949e",
+              "content": "RIESGO",
+              "fontFamily": "Roboto Mono",
+              "fontSize": 9.5,
+              "fontWeight": "700",
+              "letterSpacing": 0.4
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "VN6M1",
+          "name": "PORTAL",
+          "context": "th",
+          "width": 76,
+          "height": 38,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "oniaK",
+              "name": "PORTAL",
+              "fill": "#8b949e",
+              "content": "PORTAL",
+              "fontFamily": "Roboto Mono",
+              "fontSize": 9.5,
+              "fontWeight": "700",
+              "letterSpacing": 0.4
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "m6Fan",
+          "name": "ESTADO HITL",
+          "context": "th",
+          "width": 128,
+          "height": 38,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "twH6S",
+              "name": "ESTADO HITL",
+              "fill": "#8b949e",
+              "content": "ESTADO HITL",
+              "fontFamily": "Roboto Mono",
+              "fontSize": 9.5,
+              "fontWeight": "700",
+              "letterSpacing": 0.4
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "vCfP4",
+          "name": "DETALLE",
+          "context": "th",
+          "width": 78,
+          "height": 38,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "juVgz",
+              "name": "DETALLE",
+              "fill": "#8b949e",
+              "content": "DETALLE",
+              "fontFamily": "Roboto Mono",
+              "fontSize": 9.5,
+              "fontWeight": "700",
+              "letterSpacing": 0.4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "rCSb0",
+      "name": "tbody",
+      "context": "tbody",
+      "width": "fill_container",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "De6Vu",
+          "name": "tr-1",
+          "context": "tr",
+          "width": "fill_container",
+          "height": 44,
+          "fill": "#1c2128",
+          "stroke": "#30363d",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "padding": [
+            0,
+            12
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "vHMyl",
+              "name": "td-toggle",
+              "context": "td",
+              "width": 22,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "wfrLX",
+                  "name": "icon-accordion",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "keyboard_arrow_down",
+                  "library": "Material Symbols Rounded",
+                  "fill": "#58a6ff"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "ugeu3",
+              "name": "td-loc",
+              "context": "td",
+              "width": 262,
+              "height": 44,
+              "gap": 6,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "NDdcT",
+                  "name": "badge-top",
+                  "fill": "#23863620",
+                  "cornerRadius": 4,
+                  "stroke": "#2ea04360",
+                  "strokeWidth": 1,
+                  "padding": [
+                    1,
+                    4
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "E4IATk",
+                      "fill": "#3fb950",
+                      "content": "TOP 1",
+                      "fontFamily": "Roboto Mono",
+                      "fontSize": 9,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "XOY69",
+                  "fill": "#e6edf3",
+                  "content": "Chiclana, La Banda - Fútbol",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 11,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "U7bYfZ",
+              "name": "td-price",
+              "context": "td",
+              "width": 80,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "LgJPc",
+                  "fill": "#3fb950",
+                  "content": "230.000 €",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 11,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "zw2rG",
+              "name": "td-surf",
+              "context": "td",
+              "width": 62,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "KTDTF",
+                  "fill": "#8b949e",
+                  "content": "192 m²",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "YtV3X",
+              "name": "td-pricem2",
+              "context": "td",
+              "width": 72,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "g3oLy",
+                  "fill": "#e6edf3",
+                  "content": "1.198 €/m²",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 10.5,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "pQQ5F",
+              "name": "td-mediana",
+              "context": "td",
+              "width": 80,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "l7V3al",
+                  "fill": "#3fb950",
+                  "content": "-49% vs med",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 10.5,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "ArwId",
+              "name": "td-score",
+              "context": "td",
+              "width": 62,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "utNMm",
+                  "fill": "#e6edf3",
+                  "content": "97/100",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 11,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "WQzUg",
+              "name": "td-risk",
+              "context": "td",
+              "width": 104,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "n9DBPw",
+                  "fill": "#d29922",
+                  "content": "0 (Metodología)",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 10,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "TodKJ",
+              "name": "td-portal",
+              "context": "td",
+              "width": 76,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "B5448",
+                  "name": "habitaclia",
+                  "fill": "#21262d",
+                  "cornerRadius": 4,
+                  "stroke": "#30363d",
+                  "strokeWidth": 1,
+                  "gap": 3,
+                  "padding": [
+                    2,
+                    6
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "CrZbC",
+                      "fill": "#8b949e",
+                      "content": "habitaclia",
+                      "fontFamily": "Roboto Mono",
+                      "fontSize": 10,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "iJfNx",
+              "name": "td-hitl",
+              "context": "td",
+              "width": 128,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "o9kwfR",
+                  "name": "badge-hitl",
+                  "fill": "#2d2206",
+                  "cornerRadius": 4,
+                  "stroke": "#bb8009",
+                  "strokeWidth": 1,
+                  "padding": [
+                    2,
+                    6
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "f4mQw",
+                      "fill": "#f2cc60",
+                      "content": "Pendiente Auditoría",
+                      "fontFamily": "Roboto Mono",
+                      "fontSize": 9.5,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "dA7zq",
+              "name": "td-action",
+              "context": "td",
+              "width": 78,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "D9hD5",
+                  "name": "btn-accordion",
+                  "fill": "#1f6feb20",
+                  "cornerRadius": 5,
+                  "stroke": "#388bfd",
+                  "strokeWidth": 1,
+                  "gap": 3,
+                  "padding": [
+                    3,
+                    6
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "x3ZJY",
+                      "fill": "#58a6ff",
+                      "content": "Ocultar ▲",
+                      "fontFamily": "Roboto Mono",
+                      "fontSize": 9.5,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "dNc8Y",
+          "name": "tr-ai-detail",
+          "context": "tr",
+          "width": "fill_container",
+          "fill": "#0d1117",
+          "stroke": "#30363d",
+          "strokeWidth": {
+            "bottom": 2
+          },
+          "layout": "vertical",
+          "gap": 8,
+          "padding": [
+            12,
+            18
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "tA0A6",
+              "name": "drawer-header",
+              "gap": 8,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "kH0xI",
+                  "name": "badge-ai-audit",
+                  "fill": "#1f6feb20",
+                  "cornerRadius": 4,
+                  "stroke": "#388bfd60",
+                  "strokeWidth": 1,
+                  "gap": 5,
+                  "padding": [
+                    2,
+                    6
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "KIrx8",
+                      "width": 14,
+                      "height": 14,
+                      "icon": "psychology",
+                      "library": "Material Symbols Rounded",
+                      "fill": "#58a6ff"
+                    },
+                    {
+                      "type": "text",
+                      "id": "AictW",
+                      "fill": "#58a6ff",
+                      "content": "AUDITORÍA IA — DeepSeek-V3",
+                      "fontFamily": "Roboto Mono",
+                      "fontSize": 10,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "dahQj",
+                  "name": "badge-status",
+                  "fill": "#23863620",
+                  "cornerRadius": 4,
+                  "stroke": "#2ea04360",
+                  "strokeWidth": 1,
+                  "padding": [
+                    2,
+                    6
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "pEQRy",
+                      "fill": "#3fb950",
+                      "content": "Vicios Ocultos & Entorno Verificado",
+                      "fontFamily": "Roboto Mono",
+                      "fontSize": 9.5,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "Z3LrS",
+              "name": "ai-content",
+              "fill": "#c9d1d9",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "✓ Buena (cerca del centro, del Tranvía y de servicios esenciales) — Vivienda amplia de 192 m² en planta baja con distribución funcional: 4 dormitorios, 2 baños, cocina y salón independientes, garaje, patio y trastero. Sin mención de estado de reforma, orientación ni ruido, por lo que no se detectan vicios ocultos descritos ni señales de engaño. Ubicación favorable por cercanía al centro y al Tranvía. Al no constar precio en el anuncio, no es posible valorar si es acorde.",
+              "lineHeight": 1.5,
+              "fontFamily": "Roboto Mono",
+              "fontSize": 11,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "pLKnm",
+          "name": "tr-2",
+          "context": "tr",
+          "width": "fill_container",
+          "height": 44,
+          "fill": "#161b22",
+          "stroke": "#30363d",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "padding": [
+            0,
+            12
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "yQ2FB",
+              "name": "td-toggle",
+              "context": "td",
+              "width": 22,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "x54s4G",
+                  "name": "icon-accordion",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "chevron_right",
+                  "library": "Material Symbols Rounded",
+                  "fill": "#8b949e"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "RPOYy",
+              "name": "td-loc",
+              "context": "td",
+              "width": 262,
+              "height": 44,
+              "gap": 6,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "wLoqq",
+                  "fill": "#e6edf3",
+                  "content": "Jerez de la Fra., El Retiro - Parque",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 11,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "aahFY",
+              "name": "td-price",
+              "context": "td",
+              "width": 80,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "Ymr6t",
+                  "fill": "#3fb950",
+                  "content": "200.000 €",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 11,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "KcaEK",
+              "name": "td-surf",
+              "context": "td",
+              "width": 62,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "YrVqi",
+                  "fill": "#8b949e",
+                  "content": "114 m²",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "g6cKVr",
+              "name": "td-pricem2",
+              "context": "td",
+              "width": 72,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "z5Shdx",
+                  "fill": "#e6edf3",
+                  "content": "1.754 €/m²",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 10.5,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "bM3SV",
+              "name": "td-mediana",
+              "context": "td",
+              "width": 80,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "KUwYo",
+                  "fill": "#3fb950",
+                  "content": "-26% vs med",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 10.5,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "eNDWl",
+              "name": "td-score",
+              "context": "td",
+              "width": 62,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "infG5",
+                  "fill": "#e6edf3",
+                  "content": "96/100",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 11,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "I6nmCj",
+              "name": "td-risk",
+              "context": "td",
+              "width": 104,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "slSZh",
+                  "fill": "#d29922",
+                  "content": "0 (Metodología)",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 10,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "VoKbd",
+              "name": "td-portal",
+              "context": "td",
+              "width": 76,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "SEc7h",
+                  "name": "habitaclia",
+                  "fill": "#21262d",
+                  "cornerRadius": 4,
+                  "stroke": "#30363d",
+                  "strokeWidth": 1,
+                  "gap": 3,
+                  "padding": [
+                    2,
+                    6
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "hBI9U",
+                      "fill": "#8b949e",
+                      "content": "habitaclia",
+                      "fontFamily": "Roboto Mono",
+                      "fontSize": 10,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "F1ZekJ",
+              "name": "td-hitl",
+              "context": "td",
+              "width": 128,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "JoMNg",
+                  "name": "badge-hitl",
+                  "fill": "#2d2206",
+                  "cornerRadius": 4,
+                  "stroke": "#bb8009",
+                  "strokeWidth": 1,
+                  "padding": [
+                    2,
+                    6
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "SOADO",
+                      "fill": "#f2cc60",
+                      "content": "Pendiente Auditoría",
+                      "fontFamily": "Roboto Mono",
+                      "fontSize": 9.5,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Ldl6t",
+              "name": "td-action",
+              "context": "td",
+              "width": 78,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "F3XwbS",
+                  "name": "btn-accordion",
+                  "fill": "#21262d",
+                  "cornerRadius": 5,
+                  "stroke": "#30363d",
+                  "strokeWidth": 1,
+                  "gap": 3,
+                  "padding": [
+                    3,
+                    6
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "DLnLi",
+                      "fill": "#8b949e",
+                      "content": "Ver IA ▼",
+                      "fontFamily": "Roboto Mono",
+                      "fontSize": 9.5,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "I7HkU",
+          "name": "tr-3",
+          "context": "tr",
+          "width": "fill_container",
+          "height": 44,
+          "fill": "#161b22",
+          "stroke": "#30363d",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "padding": [
+            0,
+            12
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "e4AbE",
+              "name": "td-toggle",
+              "context": "td",
+              "width": 22,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "K2ebq",
+                  "name": "icon-accordion",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "chevron_right",
+                  "library": "Material Symbols Rounded",
+                  "fill": "#8b949e"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "x5lF29",
+              "name": "td-loc",
+              "context": "td",
+              "width": 262,
+              "height": 44,
+              "gap": 6,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "WlD3g",
+                  "fill": "#e6edf3",
+                  "content": "Cádiz Capital, Centro Histórico",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 11,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "y1x6b",
+              "name": "td-price",
+              "context": "td",
+              "width": 80,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "VX0Df",
+                  "fill": "#3fb950",
+                  "content": "247.000 €",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 11,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "TGjua",
+              "name": "td-surf",
+              "context": "td",
+              "width": 62,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "l1jV2k",
+                  "fill": "#8b949e",
+                  "content": "119 m²",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "T1e7P",
+              "name": "td-pricem2",
+              "context": "td",
+              "width": 72,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "Io6Bb",
+                  "fill": "#e6edf3",
+                  "content": "2.076 €/m²",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 10.5,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "YS6YH",
+              "name": "td-mediana",
+              "context": "td",
+              "width": 80,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "J0WOxL",
+                  "fill": "#3fb950",
+                  "content": "-12% vs med",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 10.5,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Cagne",
+              "name": "td-score",
+              "context": "td",
+              "width": 62,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "KgDK3",
+                  "fill": "#e6edf3",
+                  "content": "95/100",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 11,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "A3cIAF",
+              "name": "td-risk",
+              "context": "td",
+              "width": 104,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "WzGuU",
+                  "fill": "#d29922",
+                  "content": "0 (Metodología)",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 10,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "uCrpq",
+              "name": "td-portal",
+              "context": "td",
+              "width": 76,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "m42MK",
+                  "name": "habitaclia",
+                  "fill": "#21262d",
+                  "cornerRadius": 4,
+                  "stroke": "#30363d",
+                  "strokeWidth": 1,
+                  "gap": 3,
+                  "padding": [
+                    2,
+                    6
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "D8is1F",
+                      "fill": "#8b949e",
+                      "content": "habitaclia",
+                      "fontFamily": "Roboto Mono",
+                      "fontSize": 10,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "TTfPC",
+              "name": "td-hitl",
+              "context": "td",
+              "width": 128,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "hZTpG",
+                  "name": "badge-hitl",
+                  "fill": "#2d2206",
+                  "cornerRadius": 4,
+                  "stroke": "#bb8009",
+                  "strokeWidth": 1,
+                  "padding": [
+                    2,
+                    6
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "Ati8K",
+                      "fill": "#f2cc60",
+                      "content": "Pendiente Auditoría",
+                      "fontFamily": "Roboto Mono",
+                      "fontSize": 9.5,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "sciPy",
+              "name": "td-action",
+              "context": "td",
+              "width": 78,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "qrYKS",
+                  "name": "btn-accordion",
+                  "fill": "#21262d",
+                  "cornerRadius": 5,
+                  "stroke": "#30363d",
+                  "strokeWidth": 1,
+                  "gap": 3,
+                  "padding": [
+                    3,
+                    6
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "GEqcz",
+                      "fill": "#8b949e",
+                      "content": "Ver IA ▼",
+                      "fontFamily": "Roboto Mono",
+                      "fontSize": 9.5,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "M0hMg",
+          "name": "tr-4",
+          "context": "tr",
+          "width": "fill_container",
+          "height": 44,
+          "fill": "#161b22",
+          "stroke": "#30363d",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "padding": [
+            0,
+            12
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "gGwSM",
+              "name": "td-toggle",
+              "context": "td",
+              "width": 22,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "J4Ywh",
+                  "name": "icon-accordion",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "chevron_right",
+                  "library": "Material Symbols Rounded",
+                  "fill": "#8b949e"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "D8SKeE",
+              "name": "td-loc",
+              "context": "td",
+              "width": 262,
+              "height": 44,
+              "gap": 6,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "waFyr",
+                  "fill": "#e6edf3",
+                  "content": "Jerez de la Fra., Icovesa - Naranjos",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 11,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "DxH18",
+              "name": "td-price",
+              "context": "td",
+              "width": 80,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "v0nJR",
+                  "fill": "#3fb950",
+                  "content": "175.000 €",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 11,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "rGw0q",
+              "name": "td-surf",
+              "context": "td",
+              "width": 62,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "NKC8k",
+                  "fill": "#8b949e",
+                  "content": "145 m²",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "oGXGR",
+              "name": "td-pricem2",
+              "context": "td",
+              "width": 72,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "uzqfH",
+                  "fill": "#e6edf3",
+                  "content": "1.207 €/m²",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 10.5,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "sPKAH",
+              "name": "td-mediana",
+              "context": "td",
+              "width": 80,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "Wjlmz",
+                  "fill": "#3fb950",
+                  "content": "-49% vs med",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 10.5,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "JggNX",
+              "name": "td-score",
+              "context": "td",
+              "width": 62,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "FQfal",
+                  "fill": "#e6edf3",
+                  "content": "90/100",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 11,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "PWcO5",
+              "name": "td-risk",
+              "context": "td",
+              "width": 104,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "YCvuD",
+                  "fill": "#d29922",
+                  "content": "10 (Metodología)",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 10,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "f9Eo5U",
+              "name": "td-portal",
+              "context": "td",
+              "width": 76,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "J8Z4l",
+                  "name": "tecnocasa",
+                  "fill": "#21262d",
+                  "cornerRadius": 4,
+                  "stroke": "#30363d",
+                  "strokeWidth": 1,
+                  "gap": 3,
+                  "padding": [
+                    2,
+                    6
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "t1jBq",
+                      "fill": "#8b949e",
+                      "content": "tecnocasa",
+                      "fontFamily": "Roboto Mono",
+                      "fontSize": 10,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "e9E1Z",
+              "name": "td-hitl",
+              "context": "td",
+              "width": 128,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "i2vhZ",
+                  "name": "badge-hitl",
+                  "fill": "#2d2206",
+                  "cornerRadius": 4,
+                  "stroke": "#bb8009",
+                  "strokeWidth": 1,
+                  "padding": [
+                    2,
+                    6
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "w4iSLb",
+                      "fill": "#f2cc60",
+                      "content": "Pendiente Auditoría",
+                      "fontFamily": "Roboto Mono",
+                      "fontSize": 9.5,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "WdlzO",
+              "name": "td-action",
+              "context": "td",
+              "width": 78,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "wkui0",
+                  "name": "btn-accordion",
+                  "fill": "#21262d",
+                  "cornerRadius": 5,
+                  "stroke": "#30363d",
+                  "strokeWidth": 1,
+                  "gap": 3,
+                  "padding": [
+                    3,
+                    6
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "i5qFO",
+                      "fill": "#8b949e",
+                      "content": "Ver IA ▼",
+                      "fontFamily": "Roboto Mono",
+                      "fontSize": 9.5,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "tFdwN",
+          "name": "tr-5",
+          "context": "tr",
+          "width": "fill_container",
+          "height": 44,
+          "fill": "#161b22",
+          "stroke": "#30363d",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "padding": [
+            0,
+            12
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "Tyuo3",
+              "name": "td-toggle",
+              "context": "td",
+              "width": 22,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "Ghm5c",
+                  "name": "icon-accordion",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "chevron_right",
+                  "library": "Material Symbols Rounded",
+                  "fill": "#8b949e"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "EUhBY",
+              "name": "td-loc",
+              "context": "td",
+              "width": 262,
+              "height": 44,
+              "gap": 6,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "zpDrW",
+                  "fill": "#e6edf3",
+                  "content": "Chiclana de la Frontera, Casco Urbano",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 11,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "OlYj6",
+              "name": "td-price",
+              "context": "td",
+              "width": 80,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "cz0yk",
+                  "fill": "#3fb950",
+                  "content": "184.900 €",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 11,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "eVnRa",
+              "name": "td-surf",
+              "context": "td",
+              "width": 62,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "d3xkld",
+                  "fill": "#8b949e",
+                  "content": "128 m²",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "aUuYe",
+              "name": "td-pricem2",
+              "context": "td",
+              "width": 72,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "S6fdEv",
+                  "fill": "#e6edf3",
+                  "content": "1.445 €/m²",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 10.5,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "KQYkQ",
+              "name": "td-mediana",
+              "context": "td",
+              "width": 80,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "pM7sL",
+                  "fill": "#3fb950",
+                  "content": "-39% vs med",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 10.5,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "C299W",
+              "name": "td-score",
+              "context": "td",
+              "width": 62,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "sTFUo",
+                  "fill": "#e6edf3",
+                  "content": "90/100",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 11,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "N2N2y7",
+              "name": "td-risk",
+              "context": "td",
+              "width": 104,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "rmchh",
+                  "fill": "#d29922",
+                  "content": "10 (Metodología)",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 10,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "hcXzO",
+              "name": "td-portal",
+              "context": "td",
+              "width": 76,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "Td6Za",
+                  "name": "tecnocasa",
+                  "fill": "#21262d",
+                  "cornerRadius": 4,
+                  "stroke": "#30363d",
+                  "strokeWidth": 1,
+                  "gap": 3,
+                  "padding": [
+                    2,
+                    6
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "HfbOJ",
+                      "fill": "#8b949e",
+                      "content": "tecnocasa",
+                      "fontFamily": "Roboto Mono",
+                      "fontSize": 10,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "rzLxu",
+              "name": "td-hitl",
+              "context": "td",
+              "width": 128,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "V3DQg",
+                  "name": "badge-hitl",
+                  "fill": "#2d2206",
+                  "cornerRadius": 4,
+                  "stroke": "#bb8009",
+                  "strokeWidth": 1,
+                  "padding": [
+                    2,
+                    6
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "uaa9B",
+                      "fill": "#f2cc60",
+                      "content": "Pendiente Auditoría",
+                      "fontFamily": "Roboto Mono",
+                      "fontSize": 9.5,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "y7qW6",
+              "name": "td-action",
+              "context": "td",
+              "width": 78,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "n2yPgy",
+                  "name": "btn-accordion",
+                  "fill": "#21262d",
+                  "cornerRadius": 5,
+                  "stroke": "#30363d",
+                  "strokeWidth": 1,
+                  "gap": 3,
+                  "padding": [
+                    3,
+                    6
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "yGcXI",
+                      "fill": "#8b949e",
+                      "content": "Ver IA ▼",
+                      "fontFamily": "Roboto Mono",
+                      "fontSize": 9.5,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "b8UvhL",
+          "name": "tr-6",
+          "context": "tr",
+          "width": "fill_container",
+          "height": 44,
+          "fill": "#161b22",
+          "stroke": "#30363d",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "padding": [
+            0,
+            12
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "OgbGE",
+              "name": "td-toggle",
+              "context": "td",
+              "width": 22,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "AllGg",
+                  "name": "icon-accordion",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "chevron_right",
+                  "library": "Material Symbols Rounded",
+                  "fill": "#8b949e"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "I110KS",
+              "name": "td-loc",
+              "context": "td",
+              "width": 262,
+              "height": 44,
+              "gap": 6,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "r7ARvj",
+                  "fill": "#e6edf3",
+                  "content": "Algeciras, Zona Centro Histórico",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 11,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "D4W7Mv",
+              "name": "td-price",
+              "context": "td",
+              "width": 80,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "YlcAy",
+                  "fill": "#3fb950",
+                  "content": "185.000 €",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 11,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "T9AQ5",
+              "name": "td-surf",
+              "context": "td",
+              "width": 62,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "IHXWA",
+                  "fill": "#8b949e",
+                  "content": "139 m²",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "RI38w",
+              "name": "td-pricem2",
+              "context": "td",
+              "width": 72,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "lAKN0",
+                  "fill": "#e6edf3",
+                  "content": "1.331 €/m²",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 10.5,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "MUSkf",
+              "name": "td-mediana",
+              "context": "td",
+              "width": 80,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "tLN8T",
+                  "fill": "#3fb950",
+                  "content": "-44% vs med",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 10.5,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "ojqaR",
+              "name": "td-score",
+              "context": "td",
+              "width": 62,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "hF4zF",
+                  "fill": "#e6edf3",
+                  "content": "90/100",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 11,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "w5NIT",
+              "name": "td-risk",
+              "context": "td",
+              "width": 104,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "wwS23",
+                  "fill": "#d29922",
+                  "content": "10 (Metodología)",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 10,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "nP0d5",
+              "name": "td-portal",
+              "context": "td",
+              "width": 76,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "X4VIUR",
+                  "name": "tecnocasa",
+                  "fill": "#21262d",
+                  "cornerRadius": 4,
+                  "stroke": "#30363d",
+                  "strokeWidth": 1,
+                  "gap": 3,
+                  "padding": [
+                    2,
+                    6
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "q9MQKQ",
+                      "fill": "#8b949e",
+                      "content": "tecnocasa",
+                      "fontFamily": "Roboto Mono",
+                      "fontSize": 10,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "qI2s9",
+              "name": "td-hitl",
+              "context": "td",
+              "width": 128,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "ZfPti",
+                  "name": "badge-hitl",
+                  "fill": "#2d2206",
+                  "cornerRadius": 4,
+                  "stroke": "#bb8009",
+                  "strokeWidth": 1,
+                  "padding": [
+                    2,
+                    6
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "mbeLs",
+                      "fill": "#f2cc60",
+                      "content": "Pendiente Auditoría",
+                      "fontFamily": "Roboto Mono",
+                      "fontSize": 9.5,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "K2wvoN",
+              "name": "td-action",
+              "context": "td",
+              "width": 78,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "wJjCL",
+                  "name": "btn-accordion",
+                  "fill": "#21262d",
+                  "cornerRadius": 5,
+                  "stroke": "#30363d",
+                  "strokeWidth": 1,
+                  "gap": 3,
+                  "padding": [
+                    3,
+                    6
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "gKVDH",
+                      "fill": "#8b949e",
+                      "content": "Ver IA ▼",
+                      "fontFamily": "Roboto Mono",
+                      "fontSize": 9.5,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "IBLE0",
+          "name": "tr-7",
+          "context": "tr",
+          "width": "fill_container",
+          "height": 44,
+          "fill": "#161b22",
+          "stroke": "#30363d",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "padding": [
+            0,
+            12
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "y77axQ",
+              "name": "td-toggle",
+              "context": "td",
+              "width": 22,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "qwG4q",
+                  "name": "icon-accordion",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "chevron_right",
+                  "library": "Material Symbols Rounded",
+                  "fill": "#8b949e"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "pdw4j",
+              "name": "td-loc",
+              "context": "td",
+              "width": 262,
+              "height": 44,
+              "gap": 6,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "y4QSII",
+                  "fill": "#e6edf3",
+                  "content": "Los Barrios, Centro Urbano",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 11,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "CPSyG",
+              "name": "td-price",
+              "context": "td",
+              "width": 80,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "FE4c4",
+                  "fill": "#3fb950",
+                  "content": "192.000 €",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 11,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "L8B1Gg",
+              "name": "td-surf",
+              "context": "td",
+              "width": 62,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "di0II",
+                  "fill": "#8b949e",
+                  "content": "158 m²",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "gkgdQ",
+              "name": "td-pricem2",
+              "context": "td",
+              "width": 72,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "d2oKk",
+                  "fill": "#e6edf3",
+                  "content": "1.215 €/m²",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 10.5,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "msj1u",
+              "name": "td-mediana",
+              "context": "td",
+              "width": 80,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "RTJNi",
+                  "fill": "#3fb950",
+                  "content": "-49% vs med",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 10.5,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "f4Iaii",
+              "name": "td-score",
+              "context": "td",
+              "width": 62,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "Jm1qP",
+                  "fill": "#e6edf3",
+                  "content": "90/100",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 11,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "bZY8G",
+              "name": "td-risk",
+              "context": "td",
+              "width": 104,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "s6YvNb",
+                  "fill": "#d29922",
+                  "content": "10 (Metodología)",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 10,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "XIu9L",
+              "name": "td-portal",
+              "context": "td",
+              "width": 76,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "Y7cKrq",
+                  "name": "tecnocasa",
+                  "fill": "#21262d",
+                  "cornerRadius": 4,
+                  "stroke": "#30363d",
+                  "strokeWidth": 1,
+                  "gap": 3,
+                  "padding": [
+                    2,
+                    6
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "wPEc7",
+                      "fill": "#8b949e",
+                      "content": "tecnocasa",
+                      "fontFamily": "Roboto Mono",
+                      "fontSize": 10,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "s44mn",
+              "name": "td-hitl",
+              "context": "td",
+              "width": 128,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "uiun5",
+                  "name": "badge-hitl",
+                  "fill": "#2d2206",
+                  "cornerRadius": 4,
+                  "stroke": "#bb8009",
+                  "strokeWidth": 1,
+                  "padding": [
+                    2,
+                    6
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "P2d7B",
+                      "fill": "#f2cc60",
+                      "content": "Pendiente Auditoría",
+                      "fontFamily": "Roboto Mono",
+                      "fontSize": 9.5,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "lZjVM",
+              "name": "td-action",
+              "context": "td",
+              "width": 78,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "HNTzN",
+                  "name": "btn-accordion",
+                  "fill": "#21262d",
+                  "cornerRadius": 5,
+                  "stroke": "#30363d",
+                  "strokeWidth": 1,
+                  "gap": 3,
+                  "padding": [
+                    3,
+                    6
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "S8WZCX",
+                      "fill": "#8b949e",
+                      "content": "Ver IA ▼",
+                      "fontFamily": "Roboto Mono",
+                      "fontSize": 9.5,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "ku7XT",
+          "name": "tr-8",
+          "context": "tr",
+          "width": "fill_container",
+          "height": 44,
+          "fill": "#161b22",
+          "stroke": "#30363d",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "padding": [
+            0,
+            12
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "M03uJn",
+              "name": "td-toggle",
+              "context": "td",
+              "width": 22,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "gaROB",
+                  "name": "icon-accordion",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "chevron_right",
+                  "library": "Material Symbols Rounded",
+                  "fill": "#8b949e"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "zz4ix",
+              "name": "td-loc",
+              "context": "td",
+              "width": 262,
+              "height": 44,
+              "gap": 6,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "MVj8I",
+                  "fill": "#e6edf3",
+                  "content": "San Roque, Área Residencial",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 11,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "k6rmTC",
+              "name": "td-price",
+              "context": "td",
+              "width": 80,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "t3g4w5",
+                  "fill": "#3fb950",
+                  "content": "199.000 €",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 11,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "u6sKQL",
+              "name": "td-surf",
+              "context": "td",
+              "width": 62,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "C7548Q",
+                  "fill": "#8b949e",
+                  "content": "137 m²",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "aMcbU",
+              "name": "td-pricem2",
+              "context": "td",
+              "width": 72,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "b9cm54",
+                  "fill": "#e6edf3",
+                  "content": "1.453 €/m²",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 10.5,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "AAoGc",
+              "name": "td-mediana",
+              "context": "td",
+              "width": 80,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "L5HF7s",
+                  "fill": "#3fb950",
+                  "content": "-39% vs med",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 10.5,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "sV1Zr",
+              "name": "td-score",
+              "context": "td",
+              "width": 62,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "kk3y2",
+                  "fill": "#e6edf3",
+                  "content": "90/100",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 11,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "BZAuy",
+              "name": "td-risk",
+              "context": "td",
+              "width": 104,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "JaDqx",
+                  "fill": "#d29922",
+                  "content": "10 (Metodología)",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 10,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "uI0jr",
+              "name": "td-portal",
+              "context": "td",
+              "width": 76,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "Ukov1",
+                  "name": "tecnocasa",
+                  "fill": "#21262d",
+                  "cornerRadius": 4,
+                  "stroke": "#30363d",
+                  "strokeWidth": 1,
+                  "gap": 3,
+                  "padding": [
+                    2,
+                    6
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "Ys8JJ",
+                      "fill": "#8b949e",
+                      "content": "tecnocasa",
+                      "fontFamily": "Roboto Mono",
+                      "fontSize": 10,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "J9TnIW",
+              "name": "td-hitl",
+              "context": "td",
+              "width": 128,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "LFSIJ",
+                  "name": "badge-hitl",
+                  "fill": "#2d2206",
+                  "cornerRadius": 4,
+                  "stroke": "#bb8009",
+                  "strokeWidth": 1,
+                  "padding": [
+                    2,
+                    6
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "Aqk7V",
+                      "fill": "#f2cc60",
+                      "content": "Pendiente Auditoría",
+                      "fontFamily": "Roboto Mono",
+                      "fontSize": 9.5,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "n523c",
+              "name": "td-action",
+              "context": "td",
+              "width": 78,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "yvg4e",
+                  "name": "btn-accordion",
+                  "fill": "#21262d",
+                  "cornerRadius": 5,
+                  "stroke": "#30363d",
+                  "strokeWidth": 1,
+                  "gap": 3,
+                  "padding": [
+                    3,
+                    6
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "WcQly",
+                      "fill": "#8b949e",
+                      "content": "Ver IA ▼",
+                      "fontFamily": "Roboto Mono",
+                      "fontSize": 9.5,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "SB8RO",
+          "name": "tr-9",
+          "context": "tr",
+          "width": "fill_container",
+          "height": 44,
+          "fill": "#161b22",
+          "stroke": "#30363d",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "padding": [
+            0,
+            12
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "VSrCh",
+              "name": "td-toggle",
+              "context": "td",
+              "width": 22,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "boZmC",
+                  "name": "icon-accordion",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "chevron_right",
+                  "library": "Material Symbols Rounded",
+                  "fill": "#8b949e"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "sp6HC",
+              "name": "td-loc",
+              "context": "td",
+              "width": 262,
+              "height": 44,
+              "gap": 6,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "DaCHE",
+                  "fill": "#e6edf3",
+                  "content": "Jerez de la Fra., Chapín - Campus Univ.",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 11,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "AKEuE",
+              "name": "td-price",
+              "context": "td",
+              "width": 80,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "bsOov",
+                  "fill": "#3fb950",
+                  "content": "200.000 €",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 11,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "zfpSs",
+              "name": "td-surf",
+              "context": "td",
+              "width": 62,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "Z9gFpD",
+                  "fill": "#8b949e",
+                  "content": "120 m²",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "y25QEm",
+              "name": "td-pricem2",
+              "context": "td",
+              "width": 72,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "xzQNK",
+                  "fill": "#e6edf3",
+                  "content": "1.667 €/m²",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 10.5,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "StySd",
+              "name": "td-mediana",
+              "context": "td",
+              "width": 80,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "JyXrp",
+                  "fill": "#3fb950",
+                  "content": "-30% vs med",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 10.5,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "yZEHt",
+              "name": "td-score",
+              "context": "td",
+              "width": 62,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "D64l0",
+                  "fill": "#e6edf3",
+                  "content": "90/100",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 11,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "kLTRz",
+              "name": "td-risk",
+              "context": "td",
+              "width": 104,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "W5L98q",
+                  "fill": "#d29922",
+                  "content": "10 (Metodología)",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 10,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "qcK5S",
+              "name": "td-portal",
+              "context": "td",
+              "width": 76,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "CotHV",
+                  "name": "tecnocasa",
+                  "fill": "#21262d",
+                  "cornerRadius": 4,
+                  "stroke": "#30363d",
+                  "strokeWidth": 1,
+                  "gap": 3,
+                  "padding": [
+                    2,
+                    6
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "bWcsF",
+                      "fill": "#8b949e",
+                      "content": "tecnocasa",
+                      "fontFamily": "Roboto Mono",
+                      "fontSize": 10,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "PbP19",
+              "name": "td-hitl",
+              "context": "td",
+              "width": 128,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "YOZ0l",
+                  "name": "badge-hitl",
+                  "fill": "#2d2206",
+                  "cornerRadius": 4,
+                  "stroke": "#bb8009",
+                  "strokeWidth": 1,
+                  "padding": [
+                    2,
+                    6
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "PwWSV",
+                      "fill": "#f2cc60",
+                      "content": "Pendiente Auditoría",
+                      "fontFamily": "Roboto Mono",
+                      "fontSize": 9.5,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "i3Bui8",
+              "name": "td-action",
+              "context": "td",
+              "width": 78,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "KyfdV",
+                  "name": "btn-accordion",
+                  "fill": "#21262d",
+                  "cornerRadius": 5,
+                  "stroke": "#30363d",
+                  "strokeWidth": 1,
+                  "gap": 3,
+                  "padding": [
+                    3,
+                    6
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "iKmgB",
+                      "fill": "#8b949e",
+                      "content": "Ver IA ▼",
+                      "fontFamily": "Roboto Mono",
+                      "fontSize": 9.5,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "EsZru",
+          "name": "tr-10",
+          "context": "tr",
+          "width": "fill_container",
+          "height": 44,
+          "fill": "#161b22",
+          "stroke": "#30363d",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "padding": [
+            0,
+            12
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "eVjeG",
+              "name": "td-toggle",
+              "context": "td",
+              "width": 22,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "VZw3U",
+                  "name": "icon-accordion",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "chevron_right",
+                  "library": "Material Symbols Rounded",
+                  "fill": "#8b949e"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Rwu5a",
+              "name": "td-loc",
+              "context": "td",
+              "width": 262,
+              "height": 44,
+              "gap": 6,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "w0OpYj",
+                  "fill": "#e6edf3",
+                  "content": "Chiclana de la Frontera, Residencial",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 11,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "O1qOg",
+              "name": "td-price",
+              "context": "td",
+              "width": 80,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "SqxDc",
+                  "fill": "#3fb950",
+                  "content": "209.990 €",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 11,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "KhGAf",
+              "name": "td-surf",
+              "context": "td",
+              "width": 62,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "LmlrM",
+                  "fill": "#8b949e",
+                  "content": "162 m²",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "DxWLv",
+              "name": "td-pricem2",
+              "context": "td",
+              "width": 72,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "k6EZV5",
+                  "fill": "#e6edf3",
+                  "content": "1.296 €/m²",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 10.5,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "nLQZY",
+              "name": "td-mediana",
+              "context": "td",
+              "width": 80,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "yenF6",
+                  "fill": "#3fb950",
+                  "content": "-45% vs med",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 10.5,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "ClUm6",
+              "name": "td-score",
+              "context": "td",
+              "width": 62,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "w6M7q9",
+                  "fill": "#e6edf3",
+                  "content": "90/100",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 11,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "t8xCn",
+              "name": "td-risk",
+              "context": "td",
+              "width": 104,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "KyguP",
+                  "fill": "#d29922",
+                  "content": "10 (Metodología)",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 10,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "A1YkE",
+              "name": "td-portal",
+              "context": "td",
+              "width": 76,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "lEdp2",
+                  "name": "tecnocasa",
+                  "fill": "#21262d",
+                  "cornerRadius": 4,
+                  "stroke": "#30363d",
+                  "strokeWidth": 1,
+                  "gap": 3,
+                  "padding": [
+                    2,
+                    6
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "pF1Qx",
+                      "fill": "#8b949e",
+                      "content": "tecnocasa",
+                      "fontFamily": "Roboto Mono",
+                      "fontSize": 10,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "rlkNJ",
+              "name": "td-hitl",
+              "context": "td",
+              "width": 128,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "i2Zhi",
+                  "name": "badge-hitl",
+                  "fill": "#2d2206",
+                  "cornerRadius": 4,
+                  "stroke": "#bb8009",
+                  "strokeWidth": 1,
+                  "padding": [
+                    2,
+                    6
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "lAuid",
+                      "fill": "#f2cc60",
+                      "content": "Pendiente Auditoría",
+                      "fontFamily": "Roboto Mono",
+                      "fontSize": 9.5,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "mUBvs",
+              "name": "td-action",
+              "context": "td",
+              "width": 78,
+              "height": 44,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "T9eel4",
+                  "name": "btn-accordion",
+                  "fill": "#21262d",
+                  "cornerRadius": 5,
+                  "stroke": "#30363d",
+                  "strokeWidth": 1,
+                  "gap": 3,
+                  "padding": [
+                    3,
+                    6
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "vqoWM",
+                      "fill": "#8b949e",
+                      "content": "Ver IA ▼",
+                      "fontFamily": "Roboto Mono",
+                      "fontSize": 9.5,
+                      "fontWeight": "600"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "OnXlb",
+      "name": "tfoot-pagination",
+      "context": "tfoot",
+      "width": "fill_container",
+      "height": 48,
+      "fill": "#161b22",
+      "stroke": "#30363d",
+      "strokeWidth": {
+        "top": 1
+      },
+      "padding": [
+        0,
+        16
+      ],
+      "justifyContent": "space_between",
+      "alignItems": "center",
+      "children": [
+        {
+          "type": "frame",
+          "id": "xPeTV",
+          "name": "pagination-info-group",
+          "gap": 16,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "b5Hk3",
+              "name": "text-showing",
+              "fill": "#8b949e",
+              "content": "Mostrando 1 - 10 de 124 inmuebles",
+              "fontFamily": "Roboto Mono",
+              "fontSize": 11,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "NjIDt",
+              "name": "rows-per-page-selector",
+              "fill": "#21262d",
+              "cornerRadius": 6,
+              "stroke": "#30363d",
+              "strokeWidth": 1,
+              "gap": 6,
+              "padding": [
+                4,
+                8
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "EwsKQ",
+                  "name": "label-rows",
+                  "fill": "#e6edf3",
+                  "content": "10 por pág.",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 10.5,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "icon",
+                  "id": "m9EYsy",
+                  "name": "icon-dropdown",
+                  "width": 14,
+                  "height": 14,
+                  "icon": "keyboard_arrow_down",
+                  "library": "Material Symbols Rounded",
+                  "fill": "#8b949e"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "Cp6YP",
+          "name": "pagination-controls",
+          "gap": 6,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "u2dPTM",
+              "name": "btn-prev",
+              "opacity": 0.5,
+              "fill": "#21262d",
+              "cornerRadius": 6,
+              "stroke": "#30363d",
+              "strokeWidth": 1,
+              "gap": 4,
+              "padding": [
+                5,
+                10
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "Q4aYa",
+                  "name": "icon-prev",
+                  "width": 14,
+                  "height": 14,
+                  "icon": "chevron_left",
+                  "library": "Material Symbols Rounded",
+                  "fill": "#8b949e"
+                },
+                {
+                  "type": "text",
+                  "id": "W9LfUV",
+                  "name": "label-prev",
+                  "fill": "#8b949e",
+                  "content": "Anterior",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "a1IwI",
+              "name": "page-numbers",
+              "gap": 4,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "rdiDw",
+                  "name": "page-1-active",
+                  "width": 28,
+                  "height": 28,
+                  "fill": "#1f6feb",
+                  "cornerRadius": 6,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "f4jbo",
+                      "fill": "#ffffff",
+                      "content": "1",
+                      "fontFamily": "Roboto Mono",
+                      "fontSize": 11,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "DgLg6",
+                  "name": "page-2",
+                  "width": 28,
+                  "height": 28,
+                  "fill": "#21262d",
+                  "cornerRadius": 6,
+                  "stroke": "#30363d",
+                  "strokeWidth": 1,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "u35C9i",
+                      "fill": "#e6edf3",
+                      "content": "2",
+                      "fontFamily": "Roboto Mono",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "QOuLj",
+                  "name": "page-3",
+                  "width": 28,
+                  "height": 28,
+                  "fill": "#21262d",
+                  "cornerRadius": 6,
+                  "stroke": "#30363d",
+                  "strokeWidth": 1,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "uZ62C",
+                      "fill": "#e6edf3",
+                      "content": "3",
+                      "fontFamily": "Roboto Mono",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "Q3sxUw",
+                  "name": "page-dots",
+                  "width": 20,
+                  "height": 28,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "rdafC",
+                      "fill": "#8b949e",
+                      "content": "...",
+                      "fontFamily": "Roboto Mono",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "veVFV",
+                  "name": "page-13",
+                  "width": 28,
+                  "height": 28,
+                  "fill": "#21262d",
+                  "cornerRadius": 6,
+                  "stroke": "#30363d",
+                  "strokeWidth": 1,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "asLd7",
+                      "fill": "#e6edf3",
+                      "content": "13",
+                      "fontFamily": "Roboto Mono",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "euz7A",
+              "name": "btn-next",
+              "fill": "#21262d",
+              "cornerRadius": 6,
+              "stroke": "#30363d",
+              "strokeWidth": 1,
+              "gap": 4,
+              "padding": [
+                5,
+                10
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "f8em8",
+                  "name": "label-next",
+                  "fill": "#e6edf3",
+                  "content": "Siguiente",
+                  "fontFamily": "Roboto Mono",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "icon",
+                  "id": "JlmEa",
+                  "name": "icon-next",
+                  "width": 14,
+                  "height": 14,
+                  "icon": "chevron_right",
+                  "library": "Material Symbols Rounded",
+                  "fill": "#e6edf3"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -88,6 +88,8 @@ def test_tui_english_translations() -> None:
     assert i18n.t("tui.col.address", "en") == "Address"
     assert i18n.t("tui.llm.none", "en") == "AI: not analyzed"
     assert i18n.t("tui.status.idle", "en") == "Idle"
+    assert i18n.t("tui.kpi.opportunities", "en") == "OPPORTUNITIES"
+    assert i18n.t("kpi.featured", "en") == "Featured Opportunities"
 
 
 def test_wizard_labels_translated() -> None:

@@ -1,0 +1,15 @@
+# Home-Ops OpenSpec Configuration
+project:
+  name: home-ops
+  description: Pipeline de búsqueda y scoring de vivienda personal
+  language: python
+  python_version: "3.11+"
+
+testing:
+  strict_tdd: true
+  runner: "uv run pytest"
+  lint: "uv run ruff check src tests"
+  typecheck: "uv run mypy src"
+
+review:
+  budget: 400
