@@ -59,6 +59,18 @@ def _paginate_tecnocasa(url: str, page_num: int) -> str:
     return f"{base}.html/pag-{page_num}"
 
 
+def _paginate_kleinanzeigen(url: str, page_num: int) -> str:
+    if page_num == 1:
+        return url
+    import re
+    if "/seite:" in url:
+        return re.sub(r"/seite:\d+/", f"/seite:{page_num}/", url)
+    m = re.search(r"(/c\d+l\d+)", url)
+    if m:
+        return url.replace(m.group(1), f"/seite:{page_num}" + m.group(1))
+    return f"{url}?seite={page_num}"
+
+
 PORTALS: dict[str, Portal] = {
     "idealista": Portal(
         name="idealista",
@@ -95,6 +107,12 @@ PORTALS: dict[str, Portal] = {
         domains=("njuskalo.hr",),
         parser="home_ops.scraper.njuskalo",
         paginate=_paginate_query_page,
+    ),
+    "kleinanzeigen": Portal(
+        name="kleinanzeigen",
+        domains=("kleinanzeigen.de",),
+        parser="home_ops.scraper.kleinanzeigen",
+        paginate=_paginate_kleinanzeigen,
     ),
 }
 

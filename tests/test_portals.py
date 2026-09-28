@@ -12,7 +12,7 @@ from home_ops.scraper.portals import (
 
 
 def test_portals_registry_contains_expected_portals() -> None:
-    expected_names = {"idealista", "fotocasa", "pisos", "tecnocasa", "habitaclia", "njuskalo"}
+    expected_names = {"idealista", "fotocasa", "pisos", "tecnocasa", "habitaclia", "njuskalo", "kleinanzeigen"}
     assert set(PORTALS.keys()) == expected_names
     for p in PORTALS.values():
         assert isinstance(p, Portal)
@@ -34,6 +34,8 @@ def test_portals_registry_contains_expected_portals() -> None:
         ("https://habitaclia.com/comprar/", "habitaclia"),
         ("https://www.njuskalo.hr/prodaja-stanova/", "njuskalo"),
         ("https://njuskalo.hr/prodaja-stanova/", "njuskalo"),
+        ("https://www.kleinanzeigen.de/s-wohnung-kaufen/berlin/c196l3331", "kleinanzeigen"),
+        ("https://kleinanzeigen.de/s-wohnung-kaufen/", "kleinanzeigen"),
     ],
 )
 def test_portal_for_url_valid_domains(url: str, expected_portal: str) -> None:
