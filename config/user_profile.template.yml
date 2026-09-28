@@ -1,6 +1,21 @@
 # Home-Ops User Profile Configuration
 # Copy this file and customize for your needs
 
+# Search intent configuration
+search:
+  country_code: "ES"
+  municipality: "Chiclana de la Frontera"
+  transaction: "buy"
+  max_price: 250000
+  min_area_sqm: 80
+  garage_preferred: true
+
+# Market localization
+market:
+  currency: "EUR"
+  area_unit: "m2"
+  timezone: "Europe/Madrid"
+
 # Portal configuration — scan one or more supported portals
 portal:
   idealista_url: "https://www.idealista.com/venta-viviendas/cadiz-provincia/"

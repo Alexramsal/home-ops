@@ -92,27 +92,39 @@ The daemon supports daily or interval schedules, daily alert quotas, catch-up re
 
 ## AI Agent Onboarding ("Clone & Talk")
 
-Home-Ops includes a native integration contract ([`AGENTS.md`](AGENTS.md)) compatible with Claude Code, Codex, OpenCode, Pi, Hermes, and any agent opening the repository.
+Describe the home. The agent handles the operational details.
 
 ```bash
 git clone https://github.com/Alexramsal/Home-Ops.git && cd Home-Ops && uv sync
 ```
 
-Open your AI agent in the repository and tell it in natural language:
-> *"Configure my property search in Cádiz with a maximum budget of €250,000 and 80 m² minimum"*
+Open a compatible coding agent in the project root, then say: *"Busco vivienda en Chiclana de la Frontera por menos de 250.000 €, mínimo 80 m² y preferiblemente garaje."* The agent confirms country, municipality, buy/rent, budget, surface and preferences.
 
-The agent will use validated CLI commands without directly querying the database or manually editing YAML:
+[`AGENTS.md`](AGENTS.md) is the operational contract. The CLI is the only validated write surface: no direct DuckDB queries or manual YAML edits.
+
+| Source state | Meaning |
+| --- | --- |
+| `candidate` | Relevant portal discovered for this location; not integrated. |
+| `supported` | One of the five runtime adapters. |
+| `verified` | `sources validate URL --config FILE` parsed a sample for the requested municipality. |
+| `blocked` | Portal rejected access or needs a change; no bypass. |
 
 | Command | Action |
 | --- | --- |
-| `uv run homeops profile validate` | Validate `user_profile.yml` structure and values. |
-| `uv run homeops profile set KEY VALUE` | Atomically update a configuration key (e.g. `scoring.thresholds.price_median`). |
-| `uv run homeops sources validate URL` | Test if a candidate URL belongs to a supported portal and parses listings. |
-| `uv run homeops sources add URL` | Validate and append a URL to `portal.urls` in `user_profile.yml`. |
-| `uv run homeops scan` | Run a full scrape → dedup → score → alert cycle. |
-| `uv run homeops status` | Inspect pipeline state and pending approvals in DuckDB. |
+| `uv run homeops profile init [--config FILE]` | Create a profile without overwriting an existing one. |
+| `uv run homeops profile set KEY VALUE [--config FILE]` | Atomically update a key: `search.max_price` is a search criterion/intent used when building sources; `scoring.price_median` is scoring threshold. |
+| `uv run homeops profile validate [--config FILE]` | Validate `user_profile.yml`. |
+| `uv run homeops sources validate URL [--config FILE]` | Verify supported URL, parseable sample and municipality. |
+| `uv run homeops sources add URL [--config FILE]` | Persist a verified URL in `portal.urls`. |
+| `uv run homeops scan` | Run scrape, deduplication, scoring and alert cycle. |
+| `uv run homeops status` | Inspect pipeline state and pending approvals. |
+| `uv run homeops approve LISTING_ID` | Approve a pending listing for alert delivery. |
 
-> 🔒 **Financial Privacy:** Sensitive financial data (income, savings, maximum mortgage payment) stays exclusively in local `.env` or `user_profile.yml` files. It is **never** sent in search URLs or to external property portals. If using a cloud-hosted agent, do not include salaries or bank details in the chat.
+Runtime adapters: Idealista, Fotocasa, Pisos.com, Tecnocasa and Habitaclia. The runtime does not yet apply a strict post-filter for `max_price`/`min_area_sqm`; verified URLs must include those filters when the portal supports them. Current validation covers Spain, EUR and m². A new portal can be researched and proposed as an explicit tested adapter with fixture, parser, tests and real validation; it is never integrated automatically. Other countries require verified adapters plus local currency, units, UI, persistence and policy; this is not worldwide support.
+
+Human control remains explicit: keep secrets local in `.env`; give one consolidated confirmation before verified sources and profile changes are saved; resolve CAPTCHAs or blocks without bypasses; retain final human-in-the-loop approval for every opportunity.
+
+> 🔒 **Financial Privacy:** Cloud-hosted agents process chat content. Do not paste salaries, savings, bank details, or tokens into the conversation. Keep sensitive financial data and credentials local in `.env` or `user_profile.yml`; never include them in search URLs or send them to external property portals.
 
 ## Quick start
 
@@ -178,8 +190,8 @@ Home-Ops keeps **secrets** and **preferences** separate:
 | Key | Default | Purpose |
 | --- | --- | --- |
 | `portal.urls` | `[idealista_url]` | Search URLs to scan across supported portals. |
-| `scoring.thresholds.min_score_to_alert` | `70` | Minimum score before a listing becomes alert-eligible. |
-| `scoring.thresholds.weights` | See scoring table | Per-dimension scoring weights. |
+| `scoring.min_score_to_alert` | `70` | Minimum score before a listing becomes alert-eligible. |
+| `scoring.weights` | See scoring table | Per-dimension scoring weights. |
 | `hitl_approval_required` | `true` | Require approval before alerting. |
 | `alert_schedule.daily_time` | `"09:00"` | Daily alert time. |
 | `alert_schedule.timezone` | `"Europe/Madrid"` | Schedule timezone. |
@@ -190,8 +202,9 @@ Home-Ops keeps **secrets** and **preferences** separate:
 
 | Command | Purpose |
 | --- | --- |
+| `homeops profile init` | Create a profile without overwriting an existing one. |
 | `homeops profile validate` | Validate `user_profile.yml` structure and values. |
-| `homeops profile set KEY VALUE` | Atomically update a configuration key (e.g. `scoring.thresholds.price_median`). |
+| `homeops profile set KEY VALUE` | Atomically update a configuration key (e.g. `scoring.price_median`). |
 | `homeops sources validate URL` | Test if a URL belongs to a supported portal and parses listings. |
 | `homeops sources add URL` | Validate and append a URL to `portal.urls` in `user_profile.yml`. |
 | `homeops scan` | Run a full scrape → dedup → score → alert cycle. |

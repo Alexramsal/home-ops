@@ -58,6 +58,13 @@ def _run_scan(config_path: Path | None = None, force: bool = False) -> None:
         listings: list[Listing] = []
         portal_errors: list[tuple[str, Exception]] = []
         successful_portals = 0
+        scraper_cfg = getattr(config, "scraper", None)
+        max_pages = (
+            scraper_cfg.max_pages_per_scan
+            if scraper_cfg is not None
+            and isinstance(getattr(scraper_cfg, "max_pages_per_scan", None), int)
+            else 5
+        )
         for purl in portal_urls:
             app_mod.console.print(f"[bold]Scanning {purl}...[/bold]")
             row = db.conn.execute("SELECT COUNT(*) FROM listings").fetchone()
@@ -65,10 +72,10 @@ def _run_scan(config_path: Path | None = None, force: bool = False) -> None:
             try:
                 if has_data:
                     new = subsequent_run(
-                        purl, db, max_pages=5, force=force
+                        purl, db, max_pages=max_pages, force=force
                     )
                 else:
-                    new = cold_start(purl)
+                    new = cold_start(purl, max_pages=max_pages)
             except Exception as exc:
                 app_mod.console.print(f"[yellow]Scraper failed ({purl}): {exc}[/yellow]")
                 portal_errors.append((purl, exc))
@@ -111,7 +118,19 @@ def _run_scan(config_path: Path | None = None, force: bool = False) -> None:
                     )
                     continue
 
-                if config.catastro.enabled:
+                catastro_cfg = getattr(config, "catastro", None)
+                catastro_enabled = (
+                    getattr(catastro_cfg, "enabled", False)
+                    if catastro_cfg is not None
+                    else False
+                )
+                search_cfg = getattr(config, "search", None)
+                country_code = (
+                    getattr(search_cfg, "country_code", "ES")
+                    if search_cfg is not None
+                    else "ES"
+                )
+                if catastro_enabled and country_code == "ES":
                     catastro.lookup(listing, config.portal_url, db)
 
                 # Optional LLM description enrichment (best-effort, opt-in).

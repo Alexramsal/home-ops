@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import subprocess
 import sys
+import zipfile
 from pathlib import Path
 
 import yaml
@@ -43,6 +44,56 @@ def _run(*args: str, cwd: Path | None = None) -> subprocess.CompletedProcess:
         text=True,
         cwd=cwd,
     )
+
+
+def test_init_creates_profile_from_template(tmp_path: Path) -> None:
+    p = tmp_path / "user_profile.yml"
+    assert not p.exists()
+    r = _run("profile", "init", "--config", str(p), cwd=tmp_path)
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert p.exists()
+    data = yaml.safe_load(p.read_text())
+    assert data["search"]["municipality"] == "Chiclana de la Frontera"
+    assert data["search"]["max_price"] == 250000
+
+
+def test_init_fails_if_profile_exists(tmp_path: Path) -> None:
+    p = tmp_path / "user_profile.yml"
+    p.write_text(PROFILE)
+    r = _run("profile", "init", "--config", str(p), cwd=tmp_path)
+    assert r.returncode == 1
+    assert "already exists" in (r.stdout + r.stderr).lower()
+
+
+def test_wheel_contains_profile_template(tmp_path: Path) -> None:
+    result = subprocess.run(
+        ["uv", "build", "--wheel", "--out-dir", str(tmp_path)],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    wheel = next(tmp_path.glob("*.whl"))
+    with zipfile.ZipFile(wheel) as archive:
+        assert "home_ops/config/user_profile.template.yml" in archive.namelist()
+
+
+def test_init_write_error_reports_original_error(monkeypatch, tmp_path: Path) -> None:
+    from typer.testing import CliRunner
+
+    import home_ops.cli.profile as profile
+    from home_ops.cli.app import app
+
+    def fail_write(dest: Path, content: str) -> None:
+        raise OSError("disk full")
+
+    monkeypatch.setattr(profile, "_copy_file_atomic", fail_write)
+    result = CliRunner().invoke(
+        app,
+        ["profile", "init", "--config", str(tmp_path / "profile.yml")],
+    )
+
+    assert result.exit_code == 1
+    assert "disk full" in result.output
 
 
 def test_validate_ok(tmp_path: Path) -> None:

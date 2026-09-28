@@ -15,11 +15,8 @@ from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 from home_ops.models.schema import Listing
 from home_ops.scraper.dedup import batch_known_hashes, compute_content_hash
-from home_ops.scraper.fotocasa import parse_listings as parse_fotocasa_listings
-from home_ops.scraper.habitaclia import parse_listings as parse_habitaclia_listings
-from home_ops.scraper.parse import parse_detail, parse_listings
-from home_ops.scraper.pisos import parse_listings as parse_pisos_listings
-from home_ops.scraper.tecnocasa import parse_listings as parse_tecnocasa_listings
+from home_ops.scraper.parse import parse_detail, parse_listings  # noqa: F401
+from home_ops.scraper.portals import PORTALS, portal_for_url, resolve_parser
 
 if TYPE_CHECKING:
     from home_ops.models.data_storage import DuckDBConnection
@@ -34,36 +31,19 @@ DETAIL_FETCH_CAP = 10
 
 def _portal_parser(url: str) -> tuple[str, Any]:
     """Resolve (portal_name, parse_listings_fn) from a search URL."""
-    if "fotocasa" in url:
-        return "fotocasa", parse_fotocasa_listings
-    if "habitaclia" in url:
-        return "habitaclia", parse_habitaclia_listings
-    if "tecnocasa" in url:
-        return "tecnocasa", parse_tecnocasa_listings
-    if "pisos.com" in url:
-        return "pisos", parse_pisos_listings
-    if "idealista" in url:
-        return "idealista", parse_listings
-    return "unknown", parse_listings
+    portal = portal_for_url(url)
+    if portal is None:
+        raise ValueError(f"Unsupported portal search URL: {url}")
+    return portal.name, resolve_parser(portal.name)
 
 
 def _paginate_url(url: str, portal: str, page_num: int) -> str:
-    """Build the URL for ``page_num`` of a portal search.
-
-    Idealista: ``?pagina=N``. Fotocasa: path suffix ``/l/N`` (the base URL
-    ends with ``/l``, verified against a live capture 2026-09-15).
-    """
+    """Build the URL for ``page_num`` of a portal search using portals registry."""
+    p = PORTALS.get(portal)
+    if p is not None and p.paginate is not None:
+        return p.paginate(url, page_num)
     if page_num == 1:
         return url
-    if portal == "fotocasa":
-        return f"{url.rstrip('/')}/{page_num}"
-    if portal == "habitaclia":
-        return f"{url.rstrip('/')}/{page_num}"
-    if portal == "tecnocasa":
-        base = url.removesuffix(".html")
-        return f"{base}.html/pag-{page_num}"
-    if portal == "pisos":
-        return f"{url.rstrip('/')}/{page_num}/"
     parsed = urlparse(url)
     qs = parse_qs(parsed.query, keep_blank_values=True)
     qs["pagina"] = [str(page_num)]
@@ -75,9 +55,7 @@ def _fetch_page_text(fetcher: Any, url: str) -> str:
     """Fetch a URL and return the page text content.
 
     ``real_chrome=True`` drives the system's installed Chrome (harder to
-    fingerprint than the bundled browser); ``solve_cloudflare=True`` clears
-    anti-bot challenges before returning. Both are what actually avoids the
-    Idealista 403 — the previous plain StealthyFetcher() call had neither.
+    fingerprint than the bundled browser).
 
     Args:
         fetcher: Scrapling's StealthyFetcher class (or a fetch-compatible stub).
@@ -89,7 +67,7 @@ def _fetch_page_text(fetcher: Any, url: str) -> str:
     Raises:
         RuntimeError: If the page is empty or has no text content.
     """
-    page = fetcher.fetch(url, real_chrome=True, solve_cloudflare=True)
+    page = fetcher.fetch(url, real_chrome=True)
     if page is None:
         raise RuntimeError(f"Fetcher returned None for {url}")
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import contextlib
+import importlib.resources
 import os
 import tempfile
 from pathlib import Path
@@ -23,7 +24,55 @@ ConfigOpt = Annotated[
     ),
 ]
 
+ConfigInitOpt = Annotated[
+    Path | None,
+    typer.Option(
+        "--config",
+        "-c",
+        help="Path for new user_profile.yml (default: user_profile.yml)",
+        dir_okay=False,
+        writable=True,
+    ),
+]
+
 profile_app = typer.Typer(help="Validate or update user_profile.yml.")
+
+
+@profile_app.command("init")
+def profile_init(config_path: ConfigInitOpt = None) -> None:
+    """Initialize a new profile from template. Fails if target file exists."""
+    import home_ops.cli.app as app_mod
+
+    dest = config_path if config_path is not None else Path.cwd() / "user_profile.yml"
+    if dest.exists():
+        app_mod.console.print(f"[bold red]Profile already exists:[/bold red] {dest}")
+        raise typer.Exit(code=1)
+
+    template_path = _resolve_template_path()
+    if not template_path.exists():
+        app_mod.console.print(f"[bold red]Template file not found:[/bold red] {template_path}")
+        raise typer.Exit(code=1)
+
+    try:
+        content = template_path.read_text(encoding="utf-8")
+        _copy_file_atomic(dest, content)
+    except Exception as exc:
+        app_mod.console.print(f"[bold red]Init failed:[/bold red] {exc}")
+        raise typer.Exit(code=1) from exc
+
+    app_mod.console.print(f"[bold green]Initialized profile:[/bold green] {dest}")
+
+
+def _resolve_template_path() -> Path:
+    cwd_template = Path.cwd() / "config" / "user_profile.template.yml"
+    if cwd_template.exists():
+        return cwd_template
+    repo_template = Path(__file__).resolve().parents[3] / "config" / "user_profile.template.yml"
+    if repo_template.exists():
+        return repo_template
+    return Path(
+        str(importlib.resources.files("home_ops.config").joinpath("user_profile.template.yml"))
+    )
 
 
 @profile_app.command("validate")
@@ -100,6 +149,20 @@ def _write_yaml_atomic(path: Path, data: dict[str, Any]) -> None:
     try:
         with os.fdopen(fd, "w") as f:
             yaml.safe_dump(data, f, default_flow_style=False, sort_keys=False, allow_unicode=True)
+        os.replace(tmp, path)
+    except BaseException:
+        with contextlib.suppress(OSError):
+            os.unlink(tmp)
+        raise
+
+
+def _copy_file_atomic(path: Path, content: str) -> None:
+    """Atomic text write: tmp file + os.replace."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp = tempfile.mkstemp(dir=path.parent, suffix=".yml.tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(content)
         os.replace(tmp, path)
     except BaseException:
         with contextlib.suppress(OSError):

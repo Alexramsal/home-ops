@@ -47,6 +47,9 @@ repository = "https://github.com/alexramsal/home-ops"
 [project.scripts]
 homeops = "home_ops.cli.app:app"
 
+[tool.hatch.build.targets.wheel.force-include]
+"config/user_profile.template.yml" = "home_ops/config/user_profile.template.yml"
+
 [tool.ruff]
 target-version = "py311"
 line-length = 100

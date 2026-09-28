@@ -73,7 +73,43 @@ def memory_db() -> duckdb.DuckDBPyConnection:
 # ===================================================================
 
 
-class TestScoreResult:
+class TestNonESCountryScoring:
+    """Scoring behavior when country_code != 'ES'."""
+
+    def test_non_es_renormalizes_weights_and_skips_affordability(self) -> None:
+        from home_ops.models.schema import Config, Listing, ScoringThresholds, SearchConfig
+        from home_ops.scorer.rules import RulesScorer
+
+        cfg = Config(
+            search=SearchConfig(country_code="FR", municipality="Paris"),
+            scoring=ScoringThresholds(
+                weights={
+                    "price": 0.35,
+                    "size": 0.25,
+                    "energy_cert": 0.15,
+                    "garage": 0.10,
+                    "affordability": 0.15,
+                }
+            ),
+        )
+        scorer = RulesScorer(cfg)
+        # Weights should sum to 1.0 without affordability
+        assert "affordability" not in scorer.weights
+        assert pytest.approx(sum(scorer.weights.values()), abs=1e-6) == 1.0
+
+        listing = Listing(
+            content_hash="fr_001",
+            price=Decimal("200000"),
+            m2=90.0,
+            certificado_energetico_present=True,
+            garage_price=Decimal("15000"),
+        )
+        result = scorer.score(listing)
+        dim_names = [d.name for d in result.dimensions]
+        assert "affordability" not in dim_names
+        assert result.cost_breakdown is None
+        assert result.scam_breakdown is None
+
     """ScoreResult dataclass construction."""
 
     def test_minimal_construction(self) -> None:

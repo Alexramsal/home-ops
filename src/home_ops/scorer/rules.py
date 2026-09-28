@@ -79,14 +79,24 @@ class RulesScorer:
             self.thresholds = cast("ScoringThresholds", scoring)
 
         self.weights = dict(self.thresholds.weights)
+        search = getattr(config, "search", None)
+        cc = getattr(search, "country_code", "ES") if search is not None else "ES"
+        self.country_code = cc if isinstance(cc, str) else "ES"
+
+        if self.country_code != "ES" and "affordability" in self.weights:
+            del self.weights["affordability"]
+            total_w = sum(self.weights.values())
+            if total_w > 0:
+                self.weights = {k: v / total_w for k, v in self.weights.items()}
+
         self._validate_weights()
         # Store configured euribor fallback (from config or hardcoded default)
         self._euribor_fallback = getattr(config, "euribor_rate", 3.5)
-        # Buyer protection is opt-in: only active when a real model is present
+        # Buyer protection is opt-in and Spain-specific: active when model present and country_code == "ES"
         buyer_protection = getattr(config, "buyer_protection", None)
         self._buyer_protection = (
             cast("BuyerProtectionConfig", buyer_protection)
-            if isinstance(buyer_protection, pydantic.BaseModel)
+            if isinstance(buyer_protection, pydantic.BaseModel) and self.country_code == "ES"
             else None
         )
 
@@ -175,9 +185,10 @@ class RulesScorer:
                 active_dim_keys.append(dim_key)
                 active_fields.append((dim_key, raw_val))
 
-        # Affordability is always active (uses config salary, not listing field)
-        active_fields.append(("affordability", raw_price))
-        active_dim_keys.append("affordability")
+        # Affordability is active only when country_code == "ES" (uses config salary, not listing field)
+        if self.country_code == "ES":
+            active_fields.append(("affordability", raw_price))
+            active_dim_keys.append("affordability")
 
         # Redistribute weights proportionally among active dimensions
         active_weights = self._compute_active_weights(active_dim_keys, weights_adjusted)

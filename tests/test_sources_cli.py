@@ -89,6 +89,24 @@ def test_add_source_fail_does_not_mutate_config(tmp_path: Path) -> None:
     assert p.read_text() == before
 
 
+def test_add_source_validates_against_destination_profile(tmp_path: Path) -> None:
+    from home_ops.cli.sources import add_source
+
+    p = tmp_path / "user_profile.yml"
+    p.write_text(
+        "search:\n"
+        "  municipality: Madrid\n"
+        "portal:\n"
+        "  urls: []\n"
+    )
+
+    ok, msg = add_source(p, PISOS_URL, fetcher=lambda url: PISOS_HTML_VALID)
+
+    assert ok is False
+    assert "Madrid" in msg
+    assert yaml.safe_load(p.read_text())["portal"]["urls"] == []
+
+
 def test_add_source_pass_appends_to_urls(tmp_path: Path) -> None:
     from home_ops.cli.sources import add_source
 

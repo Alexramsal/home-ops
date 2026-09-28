@@ -115,7 +115,40 @@ def test_load_env_excludes_dead_api_keys() -> None:
         tmp_path.unlink(missing_ok=True)
 
 
-def test_load_config_integration() -> None:
+def test_load_config_search_market_scraper_sections() -> None:
+    """GIVEN search, market, scraper blocks WHEN loaded THEN Config populated."""
+    yaml_data = {
+        "portal": {"idealista_url": "https://test.url"},
+        "search": {
+            "country_code": "ES",
+            "municipality": "Chiclana de la Frontera",
+            "max_price": 250000,
+            "min_area_sqm": 80,
+            "garage_preferred": True,
+        },
+        "market": {
+            "currency": "EUR",
+            "area_unit": "m2",
+            "timezone": "Europe/Madrid",
+        },
+        "scraper": {
+            "max_pages_per_scan": 3,
+        },
+    }
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
+        yaml.dump(yaml_data, f)
+        tmp_path = Path(f.name)
+
+    try:
+        config = load_config(tmp_path)
+        assert config.search.municipality == "Chiclana de la Frontera"
+        assert config.search.max_price == 250000
+        assert config.search.garage_preferred is True
+        assert config.market.currency == "EUR"
+        assert config.scraper.max_pages_per_scan == 3
+    finally:
+        tmp_path.unlink(missing_ok=True)
+
     """GIVEN valid YAML and .env WHEN load_config called THEN returns Config model."""
     yaml_data = {
         "portal": {"idealista_url": "https://test.url"},

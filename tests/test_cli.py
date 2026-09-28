@@ -442,7 +442,7 @@ class TestRunScan:
         with patch("home_ops.scraper.lifecycle.cold_start") as mock_cs:
             mock_cs.return_value = []
             _run_scan()
-            mock_cs.assert_called_once_with("https://test.url")
+            mock_cs.assert_called_once_with("https://test.url", max_pages=5)
 
     @patch("home_ops.cli.app.get_connection")
     @patch("home_ops.cli.app.load_config")

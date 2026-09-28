@@ -14,15 +14,16 @@ Home-Ops es un pipeline para búsqueda y scoring de vivienda personal:
 
 ## 2. Comandos CLI Reales
 
-> ⚠️ **IMPORTANTE PARA AGENTES:** Ejecutar **ÚNICAMENTE** los comandos CLI que existen actualmente (ver tabla de la Sección 2). Todos los subcomandos documentados (`setup`, `profile`, `sources`, `scan`, `status`, `approve`, etc.) son plenamente funcionales.
+> **IMPORTANTE PARA AGENTES:** Ejecutar únicamente comandos CLI existentes. El flujo documentado refleja los límites actuales del runtime.
 
 | Comando CLI | Descripción | Uso / Argumentos Reales |
 |---|---|---|
 | `uv run homeops setup` | Asistente interactivo de configuración inicial (`user_profile.yml` + `.env`). | `uv run homeops setup [--config FILE]` |
+| `uv run homeops profile init` | Crea un perfil inicial; no sobrescribe uno existente. | `uv run homeops profile init [--config FILE]` |
 | `uv run homeops profile validate` | Valida `user_profile.yml` (estructura y valores). Exit 0 si OK, 1 con errores. | `uv run homeops profile validate [--config FILE]` |
-| `uv run homeops profile set KEY VALUE` | Actualiza una clave de `user_profile.yml` (ruta con puntos, p. ej. `scoring.thresholds.price_median`); escritura atómica, conserva el resto. | `uv run homeops profile set KEY VALUE [--config FILE]` |
-| `uv run homeops sources validate URL` | Valida si una URL pertenece a un portal soportado y retorna ≥1 inmuebles parseables. | `uv run homeops sources validate URL` |
-| `uv run homeops sources add URL` | Valida una URL y, si pasa, la añade a `portal.urls` en `user_profile.yml` de forma atómica. | `uv run homeops sources add URL [--config FILE]` |
+| `uv run homeops profile set KEY VALUE` | Actualiza atómicamente una clave, conserva el resto. Claves: `scoring.price_median` (umbral de scoring), `search.max_price` (criterio/intención de búsqueda usado al construir fuentes). | `uv run homeops profile set KEY VALUE [--config FILE]` |
+| `uv run homeops sources validate URL` | Valida portal soportado, muestra parseable y municipio. | `uv run homeops sources validate URL [--config FILE]` |
+| `uv run homeops sources add URL` | Añade únicamente una URL validada a `portal.urls`. | `uv run homeops sources add URL [--config FILE]` |
 | `uv run homeops scan` | Ejecuta el pipeline completo (scrape → deduplicar → score → alertar). | `uv run homeops scan [CONFIG_PATH] [--force]` |
 | `uv run homeops status` | Muestra el estado del pipeline y métricas recientes en DuckDB (solo lectura). | `uv run homeops status [CONFIG_PATH]` |
 | `uv run homeops approve` | Aprueba un inmueble pendiente en el portal HITL para permitir su alerta. | `uv run homeops approve LISTING_ID [--config FILE]` |
@@ -36,14 +37,16 @@ Home-Ops es un pipeline para búsqueda y scoring de vivienda personal:
 
 ## 3. Flujo de Onboarding Conversacional
 
-Cuando el usuario interactúa con un agente para configurar Home-Ops ("configura mi búsqueda de vivienda en Cádiz", etc.):
+El usuario puede decir, por ejemplo, «Busco vivienda en Chiclana de la Frontera por menos de 250.000 €, mínimo 80 m² y preferiblemente garaje»; no necesita conocer guardrails técnicos.
 
-1. **Entender preferencias mediante conversación:** Interpretar o consultar ubicación, presupuesto máximo (`search.max_price` / `scoring.thresholds.price_median`), requisitos de vivienda y zonas/fuentes deseadas.
-2. **Aplicar configuración REAL:**
-   - Opción A (Conversacional): Leer y actualizar de forma atómica el archivo `user_profile.yml` preservando las claves y estructuras existentes.
-   - Opción B (Asistente CLI): Guiar al usuario para ejecutar `uv run homeops setup` si prefiere el asistente de terminal interactivo.
-3. **Continuidad del Perfil:** Mantener los valores existentes (umbrales de scoring, schedulers, credenciales) al hacer actualizaciones; NUNCA sobrescribir el archivo completo borradores de campos previos.
-4. **Confirmación Previa:** Solicitar confirmación explícita al usuario antes de guardar modificaciones en `user_profile.yml`.
+1. Detectar y confirmar país, municipio, compra/alquiler, presupuesto, superficie y preferencias.
+2. Si falta perfil, ejecutar `uv run homeops profile init [--config FILE]`; guardar cambios mediante `profile set`, nunca editando YAML manualmente. `search.max_price` es criterio/intención de búsqueda usado al construir fuentes; `scoring.price_median` es umbral independiente.
+3. Usar capacidades web del agente para descubrir portales relevantes para la ubicación, no una lista fija mundial. Clasificar cada fuente como `candidate`, `supported`, `verified` o `blocked`.
+4. `supported` significa uno de los cinco adaptadores runtime actuales: Idealista, Fotocasa, Pisos.com, Tecnocasa o Habitaclia. `verified` exige `sources validate URL --config FILE`, muestra parseable y municipio correcto.
+5. Informar las fuentes `blocked` sin intentar bypass. No tratar `candidate` desconocida como integrada; ofrecer crear un adaptador explícito con fixture, parser, tests, validación real y permiso del usuario.
+6. Tras una única confirmación consolidada del usuario, añadir solo fuentes `verified` con `sources add URL --config FILE`; persistirlas para no redescubrirlas en cada scan.
+
+El runtime está validado actualmente para España, EUR y m². Con `country != ES`, el código desactiva Catastro, Euríbor/affordability y protección fiscal del comprador española. Un país nuevo requiere adaptadores, moneda, unidad, UI, persistencia y política local verificadas; no aplicar impuestos españoles ni prometer soporte mundial.
 
 ---
 
@@ -85,6 +88,6 @@ Cuando el usuario interactúa con un agente para configurar Home-Ops ("configura
 
 ---
 
-## 6. Roadmap y Funcionalidades Futuras (En Desarrollo)
+## 6. Límites actuales
 
-No hay funcionalidades en desarrollo bloqueadas actualmente; todos los subcomandos descritos en la Sección 2 (`setup`, `profile`, `sources`, `scan`, `status`, `approve`, `tui`, `web`, `analytics`, `daemon`, `snapshots-reset`) están completamente implementados y listos para su uso por parte de los agentes.
+El runtime de fuentes está limitado a cinco adaptadores: Idealista, Fotocasa, Pisos.com, Tecnocasa y Habitaclia. El runtime no aplica aún postfiltro estricto de `max_price`/`min_area_sqm`; las URLs verificadas deben incorporar esos filtros cuando el portal lo permita. La validación actual cubre España, EUR y m²; otros países requieren trabajo explícito de adaptación y verificación. Portales bloqueados, CAPTCHAs y fuentes desconocidas no se sortean ni se consideran integrados automáticamente.

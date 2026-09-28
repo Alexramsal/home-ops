@@ -69,7 +69,24 @@ class TestPortalRouting:
         assert _paginate_url(url, portal, 2) == page_two
 
 
-class TestSnapshotDir:
+    def test_reject_unknown_url_before_fetch(self) -> None:
+        from home_ops.scraper.lifecycle import cold_start
+
+        with pytest.raises(ValueError, match="Unsupported portal"):
+            cold_start("https://www.unknown-portal.com/search")
+
+    def test_fetch_page_text_does_not_pass_solve_cloudflare(self) -> None:
+        from home_ops.scraper.lifecycle import _fetch_page_text
+
+        mock_fetcher = MagicMock()
+        mock_page = MagicMock()
+        mock_page.body.decode.return_value = "<html>test</html>"
+        mock_fetcher.fetch.return_value = mock_page
+
+        result = _fetch_page_text(mock_fetcher, "https://www.idealista.com/test")
+        assert result == "<html>test</html>"
+        mock_fetcher.fetch.assert_called_once_with("https://www.idealista.com/test", real_chrome=True)
+
     """Snapshot directory management tests."""
 
     def test_invalidate_snapshots_removes_dir(self, tmp_path: Path) -> None:
@@ -104,17 +121,19 @@ class TestColdStart:
 
         mock_fetch.side_effect = RuntimeError("Fetch failed")
         with pytest.raises(RuntimeError, match="Fetch failed"):
-            cold_start("https://example.com")
+            cold_start("https://www.idealista.com/test")
 
     @patch("home_ops.scraper.lifecycle._get_fetcher")
     @patch("home_ops.scraper.lifecycle._fetch_page_text")
-    @patch("home_ops.scraper.lifecycle.parse_listings")
+    @patch("home_ops.scraper.lifecycle.resolve_parser")
     def test_cold_start_delegates_to_parse_listings(
-        self, mock_parse: MagicMock, mock_fetch: MagicMock, mock_get_fetcher: MagicMock
+        self, mock_resolve: MagicMock, mock_fetch: MagicMock, mock_get_fetcher: MagicMock
     ) -> None:
         """GIVEN cold_start WHEN called THEN delegates to parse_listings."""
         from home_ops.scraper.lifecycle import cold_start
 
+        mock_parse = MagicMock()
+        mock_resolve.return_value = mock_parse
         mock_fetch.return_value = "<html>mock</html>"
         mock_parse.return_value = [
             {"external_id": "1", "url": "/x", "address": "addr",
@@ -131,13 +150,15 @@ class TestColdStart:
 
     @patch("home_ops.scraper.lifecycle._get_fetcher")
     @patch("home_ops.scraper.lifecycle._fetch_page_text")
-    @patch("home_ops.scraper.lifecycle.parse_listings")
+    @patch("home_ops.scraper.lifecycle.resolve_parser")
     def test_cold_start_pagination_multi_page(
-        self, mock_parse: MagicMock, mock_fetch: MagicMock, mock_get_fetcher: MagicMock
+        self, mock_resolve: MagicMock, mock_fetch: MagicMock, mock_get_fetcher: MagicMock
     ) -> None:
         """GIVEN max_pages=3 WHEN cold_start THEN fetches ?pagina=2 and ?pagina=3."""
         from home_ops.scraper.lifecycle import cold_start
 
+        mock_parse = MagicMock()
+        mock_resolve.return_value = mock_parse
         mock_fetch.return_value = "<html>mock</html>"
         mock_parse.side_effect = [
             [{"external_id": "1", "url": "/1", "address": "a",
@@ -162,14 +183,16 @@ class TestColdStart:
 
     @patch("home_ops.scraper.lifecycle._get_fetcher")
     @patch("home_ops.scraper.lifecycle._fetch_page_text")
-    @patch("home_ops.scraper.lifecycle.parse_listings")
+    @patch("home_ops.scraper.lifecycle.resolve_parser")
     def test_cold_start_handles_valueless_query_flag(
-        self, mock_parse: MagicMock, mock_fetch: MagicMock, mock_get_fetcher: MagicMock
+        self, mock_resolve: MagicMock, mock_fetch: MagicMock, mock_get_fetcher: MagicMock
     ) -> None:
         """GIVEN a URL with a valueless flag (e.g. ?debug) WHEN paginating
         THEN it doesn't crash — manual split('=',1) would ValueError here."""
         from home_ops.scraper.lifecycle import cold_start
 
+        mock_parse = MagicMock()
+        mock_resolve.return_value = mock_parse
         mock_fetch.return_value = "<html>mock</html>"
         mock_parse.side_effect = [
             [{"external_id": "1", "url": "/1", "address": "a",
@@ -189,13 +212,15 @@ class TestColdStart:
 
     @patch("home_ops.scraper.lifecycle._get_fetcher")
     @patch("home_ops.scraper.lifecycle._fetch_page_text")
-    @patch("home_ops.scraper.lifecycle.parse_listings")
+    @patch("home_ops.scraper.lifecycle.resolve_parser")
     def test_cold_start_early_stop_on_empty(
-        self, mock_parse: MagicMock, mock_fetch: MagicMock, mock_get_fetcher: MagicMock
+        self, mock_resolve: MagicMock, mock_fetch: MagicMock, mock_get_fetcher: MagicMock
     ) -> None:
         """GIVEN max_pages=5 but page 3 returns 0 WHEN cold_start THEN stops early."""
         from home_ops.scraper.lifecycle import cold_start
 
+        mock_parse = MagicMock()
+        mock_resolve.return_value = mock_parse
         mock_fetch.return_value = "<html>mock</html>"
         mock_parse.side_effect = [
             [{"external_id": "1", "url": "/1", "address": "a",
@@ -218,15 +243,17 @@ class TestColdStart:
 
     @patch("home_ops.scraper.lifecycle._get_fetcher")
     @patch("home_ops.scraper.lifecycle._fetch_page_text")
-    @patch("home_ops.scraper.lifecycle.parse_listings")
+    @patch("home_ops.scraper.lifecycle.resolve_parser")
     def test_cold_start_logs_sponsored(
-        self, mock_parse: MagicMock, mock_fetch: MagicMock, mock_get_fetcher: MagicMock
+        self, mock_resolve: MagicMock, mock_fetch: MagicMock, mock_get_fetcher: MagicMock
     ) -> None:
         """GIVEN parse returns listings WHEN cold_start THEN page progress logged."""
         import logging
 
         from home_ops.scraper.lifecycle import cold_start
 
+        mock_parse = MagicMock()
+        mock_resolve.return_value = mock_parse
         mock_fetch.return_value = "<html>mock</html>"
         mock_parse.return_value = [
             {"external_id": "1", "url": "/1", "address": "a",
@@ -271,9 +298,9 @@ _KNOWN_SET = {
     "e554ef4ae1ba05bf", "ef4fcdde01a91a8a",
 }
 
-BASE_URL = "https://example.com/search"
-PAGE2_URL = "https://example.com/search?pagina=2"
-PAGE3_URL = "https://example.com/search?pagina=3"
+BASE_URL = "https://www.idealista.com/search"
+PAGE2_URL = "https://www.idealista.com/search?pagina=2"
+PAGE3_URL = "https://www.idealista.com/search?pagina=3"
 HTML_P1 = "<html>page1</html>"
 HTML_P2 = "<html>page2</html>"
 HTML_P3 = "<html>page3</html>"
@@ -301,12 +328,12 @@ class TestSubsequentRun:
     @patch("home_ops.scraper.lifecycle._get_fetcher")
     @patch("home_ops.scraper.lifecycle._save_snapshot")
     @patch("home_ops.scraper.lifecycle._fetch_page_text")
-    @patch("home_ops.scraper.lifecycle.parse_listings")
+    @patch("home_ops.scraper.lifecycle.resolve_parser")
     @patch("home_ops.scraper.lifecycle.batch_known_hashes")
     def test_empty_page_returns_empty(
         self,
         mock_batch: MagicMock,
-        mock_parse: MagicMock,
+        mock_resolve: MagicMock,
         mock_fetch: MagicMock,
         mock_snap: MagicMock,
         mock_get_fetcher: MagicMock,
@@ -314,6 +341,8 @@ class TestSubsequentRun:
         """GIVEN empty page WHEN subsequent_run THEN returns empty list."""
         from home_ops.scraper.lifecycle import subsequent_run
 
+        mock_parse = MagicMock()
+        mock_resolve.return_value = mock_parse
         mock_fetch.side_effect = self._fetch_map({BASE_URL: HTML_P1})
         mock_parse.return_value = []
         result = subsequent_run(BASE_URL, MagicMock())
@@ -323,12 +352,12 @@ class TestSubsequentRun:
     @patch("home_ops.scraper.lifecycle._get_fetcher")
     @patch("home_ops.scraper.lifecycle._save_snapshot")
     @patch("home_ops.scraper.lifecycle._fetch_page_text")
-    @patch("home_ops.scraper.lifecycle.parse_listings")
+    @patch("home_ops.scraper.lifecycle.resolve_parser")
     @patch("home_ops.scraper.lifecycle.batch_known_hashes")
     def test_all_known_page1_early_stop(
         self,
         mock_batch: MagicMock,
-        mock_parse: MagicMock,
+        mock_resolve: MagicMock,
         mock_fetch: MagicMock,
         mock_snap: MagicMock,
         mock_get_fetcher: MagicMock,
@@ -336,6 +365,8 @@ class TestSubsequentRun:
         """GIVEN all known on page 1 WHEN subsequent_run THEN returns [] (early stop)."""
         from home_ops.scraper.lifecycle import subsequent_run
 
+        mock_parse = MagicMock()
+        mock_resolve.return_value = mock_parse
         mock_fetch.side_effect = self._fetch_map({BASE_URL: HTML_P1})
         mock_parse.return_value = _PAGE1_ALL_KNOWN
         mock_batch.side_effect = self._dup_for(_KNOWN_SET)
@@ -348,12 +379,12 @@ class TestSubsequentRun:
     @patch("home_ops.scraper.lifecycle._get_fetcher")
     @patch("home_ops.scraper.lifecycle._save_snapshot")
     @patch("home_ops.scraper.lifecycle._fetch_page_text")
-    @patch("home_ops.scraper.lifecycle.parse_listings")
+    @patch("home_ops.scraper.lifecycle.resolve_parser")
     @patch("home_ops.scraper.lifecycle.batch_known_hashes")
     def test_mixed_page1_returns_only_new(
         self,
         mock_batch: MagicMock,
-        mock_parse: MagicMock,
+        mock_resolve: MagicMock,
         mock_fetch: MagicMock,
         mock_snap: MagicMock,
         mock_get_fetcher: MagicMock,
@@ -361,6 +392,8 @@ class TestSubsequentRun:
         """GIVEN mixed known/new on page 1 WHEN subsequent_run THEN returns only new."""
         from home_ops.scraper.lifecycle import subsequent_run
 
+        mock_parse = MagicMock()
+        mock_resolve.return_value = mock_parse
         mock_fetch.side_effect = self._fetch_map({BASE_URL: HTML_P1})
         mock_parse.return_value = _PAGE1_MIXED
         mock_batch.side_effect = self._dup_for(_KNOWN_SET)
@@ -372,12 +405,12 @@ class TestSubsequentRun:
     @patch("home_ops.scraper.lifecycle._get_fetcher")
     @patch("home_ops.scraper.lifecycle._save_snapshot")
     @patch("home_ops.scraper.lifecycle._fetch_page_text")
-    @patch("home_ops.scraper.lifecycle.parse_listings")
+    @patch("home_ops.scraper.lifecycle.resolve_parser")
     @patch("home_ops.scraper.lifecycle.batch_known_hashes")
     def test_early_stop_on_page2(
         self,
         mock_batch: MagicMock,
-        mock_parse: MagicMock,
+        mock_resolve: MagicMock,
         mock_fetch: MagicMock,
         mock_snap: MagicMock,
         mock_get_fetcher: MagicMock,
@@ -385,6 +418,8 @@ class TestSubsequentRun:
         """GIVEN new on page 1, all known page 2 WHEN subsequent_run THEN stops at 2."""
         from home_ops.scraper.lifecycle import subsequent_run
 
+        mock_parse = MagicMock()
+        mock_resolve.return_value = mock_parse
         mock_fetch.side_effect = self._fetch_map({
             BASE_URL: HTML_P1,
             PAGE2_URL: HTML_P2,
@@ -405,12 +440,12 @@ class TestSubsequentRun:
     @patch("home_ops.scraper.lifecycle._get_fetcher")
     @patch("home_ops.scraper.lifecycle._save_snapshot")
     @patch("home_ops.scraper.lifecycle._fetch_page_text")
-    @patch("home_ops.scraper.lifecycle.parse_listings")
+    @patch("home_ops.scraper.lifecycle.resolve_parser")
     @patch("home_ops.scraper.lifecycle.batch_known_hashes")
     def test_force_fetches_all_pages(
         self,
         mock_batch: MagicMock,
-        mock_parse: MagicMock,
+        mock_resolve: MagicMock,
         mock_fetch: MagicMock,
         mock_snap: MagicMock,
         mock_get_fetcher: MagicMock,
@@ -418,6 +453,8 @@ class TestSubsequentRun:
         """GIVEN force=True and all known WHEN subsequent_run THEN fetches max_pages."""
         from home_ops.scraper.lifecycle import subsequent_run
 
+        mock_parse = MagicMock()
+        mock_resolve.return_value = mock_parse
         mock_fetch.side_effect = self._fetch_map({
             BASE_URL: HTML_P1,
             PAGE2_URL: HTML_P2,
@@ -434,12 +471,12 @@ class TestSubsequentRun:
     @patch("home_ops.scraper.lifecycle._get_fetcher")
     @patch("home_ops.scraper.lifecycle._save_snapshot")
     @patch("home_ops.scraper.lifecycle._fetch_page_text")
-    @patch("home_ops.scraper.lifecycle.parse_listings")
+    @patch("home_ops.scraper.lifecycle.resolve_parser")
     @patch("home_ops.scraper.lifecycle.batch_known_hashes")
     def test_fetch_failure_returns_partial(
         self,
         mock_batch: MagicMock,
-        mock_parse: MagicMock,
+        mock_resolve: MagicMock,
         mock_fetch: MagicMock,
         mock_snap: MagicMock,
         mock_get_fetcher: MagicMock,
@@ -447,6 +484,8 @@ class TestSubsequentRun:
         """GIVEN page 2 fetch fails WHEN subsequent_run THEN raises (no false success)."""
         from home_ops.scraper.lifecycle import subsequent_run
 
+        mock_parse = MagicMock()
+        mock_resolve.return_value = mock_parse
         mock_fetch.side_effect = self._fetch_map({BASE_URL: HTML_P1})
         mock_parse.return_value = _PAGE1_MIXED
         mock_batch.side_effect = self._dup_for(_KNOWN_SET)
@@ -468,12 +507,12 @@ class TestSubsequentRun:
     @patch("home_ops.scraper.lifecycle._get_fetcher")
     @patch("home_ops.scraper.lifecycle._save_snapshot")
     @patch("home_ops.scraper.lifecycle._fetch_page_text")
-    @patch("home_ops.scraper.lifecycle.parse_listings")
+    @patch("home_ops.scraper.lifecycle.resolve_parser")
     @patch("home_ops.scraper.lifecycle.batch_known_hashes")
     def test_snapshot_only_page1(
         self,
         mock_batch: MagicMock,
-        mock_parse: MagicMock,
+        mock_resolve: MagicMock,
         mock_fetch: MagicMock,
         mock_snap: MagicMock,
         mock_get_fetcher: MagicMock,
@@ -481,6 +520,8 @@ class TestSubsequentRun:
         """GIVEN 2 pages WHEN subsequent_run THEN snapshot only written for page 1."""
         from home_ops.scraper.lifecycle import subsequent_run
 
+        mock_parse = MagicMock()
+        mock_resolve.return_value = mock_parse
         mock_fetch.side_effect = self._fetch_map({
             BASE_URL: HTML_P1,
             PAGE2_URL: HTML_P2,
@@ -498,10 +539,10 @@ class TestSubsequentRun:
     @patch("home_ops.scraper.lifecycle._get_fetcher")
     @patch("home_ops.scraper.lifecycle._save_snapshot")
     @patch("home_ops.scraper.lifecycle._fetch_page_text")
-    @patch("home_ops.scraper.lifecycle.parse_listings")
+    @patch("home_ops.scraper.lifecycle.resolve_parser")
     def test_closed_db_connection_raises(
         self,
-        mock_parse: MagicMock,
+        mock_resolve: MagicMock,
         mock_fetch: MagicMock,
         mock_snap: MagicMock,
         mock_get_fetcher: MagicMock,
@@ -509,6 +550,8 @@ class TestSubsequentRun:
         """GIVEN closed DuckDBConnection WHEN subsequent_run THEN DatabaseError."""
         from home_ops.scraper.lifecycle import subsequent_run
 
+        mock_parse = MagicMock()
+        mock_resolve.return_value = mock_parse
         mock_fetch.side_effect = self._fetch_map({BASE_URL: HTML_P1})
         mock_parse.return_value = [{"content_hash": "test_hash", "url": ""}]
 

@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import logging
+import unicodedata
 from pathlib import Path
 from typing import Annotated, Any
 from urllib.parse import urlparse
 
 import typer
+
+from home_ops.scraper.portals import PORTALS, portal_for_url, resolve_parser
 
 ConfigOpt = Annotated[
     Path | None,
@@ -27,15 +30,16 @@ sources_app = typer.Typer(help="Validate candidate portal URLs or add them to us
 @sources_app.command("validate")
 def sources_validate(
     url: str = typer.Argument(..., help="Portal search URL to validate"),
+    config_path: ConfigOpt = None,
 ) -> None:
     """Validate a candidate portal search URL (domain + parser + >=1 item)."""
     import home_ops.cli.app as app_mod
 
-    ok, reason, count = validate_source(url)
+    ok, reason, count = validate_source(url, config_path=config_path)
     if not ok:
         app_mod.console.print(f"[bold red]FAIL:[/bold red] {reason}")
         raise typer.Exit(code=1)
-    app_mod.console.print(f"[bold green]PASS:[/bold green] portal={reason}, items={count}")
+    app_mod.console.print(f"[bold green]URL validada para portal {reason} (items={count})[/bold green]")
 
 
 @sources_app.command("add")
@@ -64,51 +68,68 @@ def sources_add(
 
 logger = logging.getLogger(__name__)
 
-SUPPORTED_PORTALS = ("idealista", "fotocasa", "pisos", "habitaclia", "tecnocasa")
+SUPPORTED_PORTALS = tuple(PORTALS.keys())
 
 
 def detect_portal(url: str) -> str | None:
     """Detect portal name from URL domain."""
-    netloc = urlparse(url).netloc.lower()
-    for p in SUPPORTED_PORTALS:
-        if p in netloc:
-            return p
-    return None
+    p = portal_for_url(url)
+    return p.name if p else None
 
 
-def _get_parser(portal: str) -> Any:
-    if portal == "idealista":
-        from home_ops.scraper import parse
-
-        return parse.parse_listings
-    if portal == "fotocasa":
-        from home_ops.scraper import fotocasa
-
-        return fotocasa.parse_listings
-    if portal == "pisos":
-        from home_ops.scraper import pisos
-
-        return pisos.parse_listings
-    if portal == "habitaclia":
-        from home_ops.scraper import habitaclia
-
-        return habitaclia.parse_listings
-    if portal == "tecnocasa":
-        from home_ops.scraper import tecnocasa
-
-        return tecnocasa.parse_listings
-    raise ValueError(f"No parser for portal: {portal}")
+def _get_parser(portal_name: str) -> Any:
+    return resolve_parser(portal_name)
 
 
-def validate_source(url: str, fetcher: Any = None) -> tuple[bool, str, int]:
+def _normalize(text: str) -> str:
+    nfkd = unicodedata.normalize("NFKD", text)
+    no_accents = "".join(c for c in nfkd if not unicodedata.combining(c)).lower()
+    return no_accents.replace("-", " ")
+
+
+def _municipality_matches(url: str, municipality: str) -> bool:
+    if not municipality:
+        return True
+    parsed = urlparse(url)
+    target = _normalize(parsed.path + " " + parsed.query)
+    muni_norm = _normalize(municipality)
+    return muni_norm in target
+
+
+def validate_source(
+    url: str,
+    config_path: Path | str | None = None,
+    fetcher: Any = None,
+) -> tuple[bool, str, int]:
     """Validate candidate portal URL.
 
     Returns (success, portal_or_reason, items_count).
     Does NOT bypass Cloudflare/anti-bot protection beyond standard fetcher.
     """
-    portal = detect_portal(url)
+    if fetcher is None and config_path is not None and not isinstance(config_path, (str, Path)):
+        fetcher = config_path
+        config_path = None
+    if isinstance(config_path, str):
+        config_path = Path(config_path)
+
+    portal = portal_for_url(url)
     if not portal:
         return False, f"Unsupported domain (must be one of: {', '.join(SUPPORTED_PORTALS)})", 0
+
+    municipality = ""
+    try:
+        from home_ops.cli.profile import _resolve_profile_path
+        from home_ops.config.loader import load_config
+
+        resolved_path = _resolve_profile_path(config_path)
+        if resolved_path.exists():
+            cfg = load_config(resolved_path)
+            municipality = cfg.search.municipality
+    except Exception:
+        pass
+
+    if municipality and not _municipality_matches(url, municipality):
+        return False, f"URL does not contain expected municipality '{municipality}'", 0
 
     if fetcher is None:
         try:
@@ -119,7 +140,6 @@ def validate_source(url: str, fetcher: Any = None) -> tuple[bool, str, int]:
         except Exception as exc:
             return False, f"Fetch failed: {exc}", 0
     else:
-        # For tests / injected fetchers (callable taking url -> html string or fetcher object)
         try:
             if callable(fetcher):
                 raw_html = fetcher(url)
@@ -136,15 +156,15 @@ def validate_source(url: str, fetcher: Any = None) -> tuple[bool, str, int]:
         return False, "Empty page response", 0
 
     try:
-        parser = _get_parser(portal)
+        parser = resolve_parser(portal.name)
         items = parser(html)
     except Exception as exc:
-        return False, f"Parse failed for {portal}: {exc}", 0
+        return False, f"Parse failed for {portal.name}: {exc}", 0
 
     if not items:
-        return False, f"Parsed 0 items from {portal} page", 0
+        return False, f"Parsed 0 items from {portal.name} page", 0
 
-    return True, portal, len(items)
+    return True, portal.name, len(items)
 
 
 def add_source(config_path: Path, url: str, fetcher: Any = None) -> tuple[bool, str]:
@@ -152,7 +172,7 @@ def add_source(config_path: Path, url: str, fetcher: Any = None) -> tuple[bool, 
 
     Atomic write; fails fast and does not mutate config on FAIL.
     """
-    ok, reason, count = validate_source(url, fetcher=fetcher)
+    ok, reason, count = validate_source(url, config_path=config_path, fetcher=fetcher)
     if not ok:
         return False, f"Validation failed: {reason}"
 

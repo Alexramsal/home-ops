@@ -5,7 +5,7 @@ from decimal import Decimal
 from typing import Any, Literal
 from zoneinfo import ZoneInfo, available_timezones
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 def _parse_timezone(tz_name: Any) -> ZoneInfo:
@@ -50,6 +50,65 @@ class Listing(BaseModel):
     )
 
 
+class SearchConfig(BaseModel):
+    """Search intent configuration for location and property criteria."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    country_code: str = "ES"
+    municipality: str = "Cádiz"
+    transaction: Literal["buy", "rent"] = "buy"
+    max_price: float = Field(default=250000.0, gt=0)
+    min_area_sqm: float = Field(default=80.0, gt=0)
+    garage_preferred: bool = False
+
+    @field_validator("country_code")
+    @classmethod
+    def validate_country_code(cls, v: str) -> str:
+        if not isinstance(v, str) or len(v) != 2 or not v.isupper():
+            raise ValueError(f"country_code must be uppercase ISO alpha-2 string, got '{v}'")
+        return v
+
+    @field_validator("municipality")
+    @classmethod
+    def validate_municipality(cls, v: str) -> str:
+        if not isinstance(v, str) or not v.strip():
+            raise ValueError("municipality cannot be empty")
+        return v.strip()
+
+
+class MarketConfig(BaseModel):
+    """Market localization configuration (currency, units, timezone)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    currency: str = "EUR"
+    area_unit: Literal["m2", "ft2"] = "m2"
+    timezone: str = "Europe/Madrid"
+
+    @field_validator("currency")
+    @classmethod
+    def validate_currency(cls, v: str) -> str:
+        if not isinstance(v, str) or len(v) != 3 or not v.isupper():
+            raise ValueError(f"currency must be uppercase ISO alpha-3 string, got '{v}'")
+        return v
+
+    @field_validator("timezone")
+    @classmethod
+    def validate_timezone(cls, v: str) -> str:
+        if v not in available_timezones():
+            raise ValueError(f"timezone '{v}' is not a valid IANA timezone.")
+        return v
+
+
+class ScraperConfig(BaseModel):
+    """Scraper behavior configuration."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    max_pages_per_scan: int = Field(default=5, ge=1, le=100)
+
+
 class BuyerProtectionConfig(BaseModel):
     """Buyer-protection configuration: scam weights, tax rates, mortgage limits.
 
@@ -64,7 +123,7 @@ class BuyerProtectionConfig(BaseModel):
             "andalucia": 0.07,
         }
     )
-    default_itp_rate: float = 0.08
+    default_itp_rate: float = Field(default=0.08, ge=0.0, le=1.0)
     scam_weights: dict[str, float] = Field(
         default_factory=lambda: {
             "red_flag_text": 40.0,
@@ -80,9 +139,19 @@ class BuyerProtectionConfig(BaseModel):
             r"pago\s+por\s+bizum",
         ]
     )
-    mortgage_income_ceiling: float = 0.35
-    down_payment_pct: float = 0.20
-    mortgage_years: int = 30
+    mortgage_income_ceiling: float = Field(default=0.35, ge=0.0, le=1.0)
+    down_payment_pct: float = Field(default=0.20, ge=0.0, le=1.0)
+    mortgage_years: int = Field(default=30, gt=0)
+
+    @field_validator("regional_itp_rates")
+    @classmethod
+    def validate_regional_itp_rates(cls, v: dict[str, float]) -> dict[str, float]:
+        for region, rate in v.items():
+            if not isinstance(rate, (int, float)) or rate < 0.0 or rate > 1.0:
+                raise ValueError(
+                    f"regional_itp_rates for '{region}' must be between 0.0 and 1.0, got {rate}"
+                )
+        return v
 
 
 class CatastroConfig(BaseModel):
@@ -192,6 +261,9 @@ class Config(BaseModel):
     euribor_rate: float = 3.5
     telegram_bot_token: str = ""
     telegram_chat_id: str = ""
+    search: SearchConfig = Field(default_factory=SearchConfig)
+    market: MarketConfig = Field(default_factory=MarketConfig)
+    scraper: ScraperConfig = Field(default_factory=ScraperConfig)
     scoring: ScoringThresholds | None = None
     alert_schedule: ScheduleConfig = Field(default_factory=ScheduleConfig)
     buyer_protection: BuyerProtectionConfig | None = None

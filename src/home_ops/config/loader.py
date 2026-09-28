@@ -13,8 +13,11 @@ from home_ops.models.schema import (
     CatastroConfig,
     Config,
     LlmConfig,
+    MarketConfig,
     ScheduleConfig,
     ScoringThresholds,
+    ScraperConfig,
+    SearchConfig,
 )
 
 
@@ -115,6 +118,18 @@ def load_config(config_path: Path | None = None, env_path: Path | None = None) -
         BuyerProtectionConfig(**buyer_raw) if buyer_raw else None
     )
 
+    # Parse search section; missing block falls back to defaults
+    search_raw = raw.get("search", {}) or {}
+    search = SearchConfig(**search_raw) if search_raw else SearchConfig()
+
+    # Parse market section; missing block falls back to defaults
+    market_raw = raw.get("market", {}) or {}
+    market = MarketConfig(**market_raw) if market_raw else MarketConfig()
+
+    # Parse scraper section; missing block falls back to defaults
+    scraper_raw = raw.get("scraper", {}) or {}
+    scraper = ScraperConfig(**scraper_raw) if scraper_raw else ScraperConfig()
+
     # Parse catastro section; missing block falls back to defaults
     catastro_raw = raw.get("catastro", {}) or {}
     catastro = CatastroConfig(**catastro_raw) if catastro_raw else CatastroConfig()
@@ -138,6 +153,9 @@ def load_config(config_path: Path | None = None, env_path: Path | None = None) -
     return Config(
         portal_url=portal_url,
         portal_urls=portal_urls,
+        search=search,
+        market=market,
+        scraper=scraper,
         scoring=scoring,
         alert_schedule=schedule_config,
         buyer_protection=buyer_protection,

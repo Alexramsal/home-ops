@@ -4,7 +4,15 @@ from decimal import Decimal
 
 import pytest
 
-from home_ops.models.schema import BuyerProtectionConfig, Config, Listing, ScheduleConfig
+from home_ops.models.schema import (
+    BuyerProtectionConfig,
+    Config,
+    Listing,
+    MarketConfig,
+    ScheduleConfig,
+    ScraperConfig,
+    SearchConfig,
+)
 
 
 class TestListing:
@@ -165,6 +173,104 @@ class TestConfig:
         cfg = Config()
         assert cfg.buyer_protection is None
 
+
+class TestSearchConfig:
+    """SearchConfig validation tests."""
+
+    def test_defaults(self) -> None:
+        sc = SearchConfig()
+        assert sc.country_code == "ES"
+        assert sc.municipality == "Cádiz"
+        assert sc.transaction == "buy"
+        assert sc.max_price == 250000.0
+        assert sc.min_area_sqm == 80.0
+        assert sc.garage_preferred is False
+
+    def test_custom_values(self) -> None:
+        sc = SearchConfig(
+            country_code="FR",
+            municipality="Paris",
+            transaction="rent",
+            max_price=1500.0,
+            min_area_sqm=45.0,
+            garage_preferred=True,
+        )
+        assert sc.country_code == "FR"
+        assert sc.municipality == "Paris"
+        assert sc.transaction == "rent"
+        assert sc.max_price == 1500.0
+        assert sc.min_area_sqm == 45.0
+        assert sc.garage_preferred is True
+
+    def test_invalid_country_code(self) -> None:
+        with pytest.raises(ValueError, match="country_code"):
+            SearchConfig(country_code="es")
+        with pytest.raises(ValueError, match="country_code"):
+            SearchConfig(country_code="ESP")
+
+    def test_invalid_municipality(self) -> None:
+        with pytest.raises(ValueError, match="municipality"):
+            SearchConfig(municipality="   ")
+
+    def test_extra_forbid(self) -> None:
+        with pytest.raises(ValueError):
+            SearchConfig(extra_field="test")  # type: ignore[call-arg]
+
+
+class TestMarketConfig:
+    """MarketConfig validation tests."""
+
+    def test_defaults(self) -> None:
+        mc = MarketConfig()
+        assert mc.currency == "EUR"
+        assert mc.area_unit == "m2"
+        assert mc.timezone == "Europe/Madrid"
+
+    def test_invalid_currency(self) -> None:
+        with pytest.raises(ValueError, match="currency"):
+            MarketConfig(currency="eur")
+
+    def test_invalid_timezone(self) -> None:
+        with pytest.raises(ValueError, match="timezone"):
+            MarketConfig(timezone="Invalid/Zone")
+
+    def test_extra_forbid(self) -> None:
+        with pytest.raises(ValueError):
+            MarketConfig(extra_field="test")  # type: ignore[call-arg]
+
+
+class TestScraperConfig:
+    """ScraperConfig validation tests."""
+
+    def test_defaults(self) -> None:
+        sc = ScraperConfig()
+        assert sc.max_pages_per_scan == 5
+
+    def test_out_of_bounds(self) -> None:
+        with pytest.raises(ValueError):
+            ScraperConfig(max_pages_per_scan=0)
+        with pytest.raises(ValueError):
+            ScraperConfig(max_pages_per_scan=101)
+
+    def test_extra_forbid(self) -> None:
+        with pytest.raises(ValueError):
+            ScraperConfig(extra_field="test")  # type: ignore[call-arg]
+
+
+class TestBuyerProtectionConfigValidations:
+    """BuyerProtectionConfig value validation tests."""
+
+    def test_invalid_rates(self) -> None:
+        with pytest.raises(ValueError):
+            BuyerProtectionConfig(default_itp_rate=1.5)
+        with pytest.raises(ValueError):
+            BuyerProtectionConfig(mortgage_income_ceiling=-0.1)
+        with pytest.raises(ValueError):
+            BuyerProtectionConfig(down_payment_pct=2.0)
+        with pytest.raises(ValueError):
+            BuyerProtectionConfig(mortgage_years=0)
+        with pytest.raises(ValueError):
+            BuyerProtectionConfig(regional_itp_rates={"test": 1.2})
 
 class TestScheduleConfig:
     """ScheduleConfig model tests."""
