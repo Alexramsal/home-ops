@@ -57,6 +57,11 @@ class TestPortalRouting:
                 "habitaclia",
                 "https://www.habitaclia.com/comprar/viviendas/cadiz-provincia/s/2",
             ),
+            (
+                "https://www.njuskalo.hr/prodaja-stanova/cakovec",
+                "njuskalo",
+                "https://www.njuskalo.hr/prodaja-stanova/cakovec?page=2",
+            ),
         ],
     )
     def test_dispatch_and_pagination(self, url: str, portal: str, page_two: str) -> None:

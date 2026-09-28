@@ -351,7 +351,11 @@ class TestAlertScheduleYAML:
             assert bp is not None
             assert bp.regional_itp_rates == {"madrid": 0.06, "valencia": 0.10}
             assert bp.default_itp_rate == 0.09
-            assert bp.scam_weights == {"red_flag_text": 50.0, "price_bait": 20.0, "missing_cert": 5.0}
+            assert bp.scam_weights == {
+                "red_flag_text": 50.0,
+                "price_bait": 20.0,
+                "missing_cert": 5.0,
+            }
             assert bp.red_flag_patterns == [r"solo\s+whatsapp", r"pago\s+por\sbizum"]
             assert bp.mortgage_income_ceiling == 0.30
             assert bp.down_payment_pct == 0.25
@@ -446,3 +450,27 @@ class TestAlertScheduleYAML:
             assert sched.max_alerts_per_day == 3
         finally:
             tmp_path.unlink(missing_ok=True)
+
+
+def test_profile_validate_rejects_non_list_urls(tmp_path: Path) -> None:
+    from home_ops.cli.profile import validate_profile
+
+    p = tmp_path / "user_profile.yml"
+    p.write_text("portal:\n  urls: 'not_a_list'\n")
+    errors = validate_profile(p)
+    assert len(errors) > 0
+    assert any("list" in e.lower() for e in errors)
+
+
+def test_loader_legacy_compat_missing_urls(tmp_path: Path) -> None:
+    p = tmp_path / "user_profile.yml"
+    p.write_text("portal:\n  idealista_url: https://legacy.com\n")
+    cfg = load_config(p)
+    assert cfg.portal_urls == ["https://legacy.com"]
+
+
+def test_loader_empty_urls_list(tmp_path: Path) -> None:
+    p = tmp_path / "user_profile.yml"
+    p.write_text("portal:\n  urls: []\n")
+    cfg = load_config(p)
+    assert cfg.portal_urls == []

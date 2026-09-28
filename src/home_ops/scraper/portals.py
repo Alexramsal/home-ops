@@ -20,6 +20,16 @@ class Portal:
     paginate: Callable[[str, int], str]
 
 
+def _paginate_query_page(url: str, page_num: int) -> str:
+    if page_num == 1:
+        return url
+    parsed = urlparse(url)
+    qs = parse_qs(parsed.query, keep_blank_values=True)
+    qs["page"] = [str(page_num)]
+    parsed = parsed._replace(query=urlencode(qs, doseq=True))
+    return urlunparse(parsed)
+
+
 def _paginate_query_pagina(url: str, page_num: int) -> str:
     if page_num == 1:
         return url
@@ -79,6 +89,12 @@ PORTALS: dict[str, Portal] = {
         domains=("habitaclia.com",),
         parser="home_ops.scraper.habitaclia",
         paginate=_paginate_slash_n,
+    ),
+    "njuskalo": Portal(
+        name="njuskalo",
+        domains=("njuskalo.hr",),
+        parser="home_ops.scraper.njuskalo",
+        paginate=_paginate_query_page,
     ),
 }
 

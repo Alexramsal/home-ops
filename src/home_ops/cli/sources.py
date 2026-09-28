@@ -39,7 +39,9 @@ def sources_validate(
     if not ok:
         app_mod.console.print(f"[bold red]FAIL:[/bold red] {reason}")
         raise typer.Exit(code=1)
-    app_mod.console.print(f"[bold green]URL validada para portal {reason} (items={count})[/bold green]")
+    app_mod.console.print(
+        f"[bold green]URL validada para portal {reason} (items={count})[/bold green]"
+    )
 
 
 @sources_app.command("add")
@@ -65,6 +67,30 @@ def sources_add(
         app_mod.console.print(f"[bold red]FAIL:[/bold red] {msg}")
         raise typer.Exit(code=1)
     app_mod.console.print(f"[bold green]SUCCESS:[/bold green] {msg}")
+
+
+@sources_app.command("clear")
+def sources_clear(
+    config_path: ConfigOpt = None,
+) -> None:
+    """Clear all portal search URLs in user_profile.yml."""
+    import home_ops.cli.app as app_mod
+    from home_ops.cli.profile import _resolve_profile_path
+
+    path = _resolve_profile_path(config_path)
+    if not path.exists():
+        app_mod.console.print(f"[bold red]Profile not found:[/bold red] {path}")
+        raise typer.Exit(code=1)
+
+    ok = clear_sources(path)
+    if not ok:
+        app_mod.console.print(
+            "[bold red]Clear failed:[/bold red] Profile or portal section invalid"
+        )
+        raise typer.Exit(code=1)
+
+    app_mod.console.print(f"[bold green]SUCCESS:[/bold green] Cleared portal URLs in {path}")
+
 
 logger = logging.getLogger(__name__)
 
@@ -191,3 +217,39 @@ def add_source(config_path: Path, url: str, fetcher: Any = None) -> tuple[bool, 
     urls.append(url)
     _write_yaml_atomic(config_path, data)
     return True, f"Added {url} to portal.urls (validated {count} items from {reason})"
+
+
+def clear_sources(config_path: Path) -> bool:
+    """Clear portal.urls and remove legacy portal.idealista_url in user_profile.yml.
+
+    Returns True if successfully cleared, False if profile does not exist or profile/portal is invalid.
+    """
+    if not config_path.exists():
+        return False
+
+    from home_ops.cli.profile import _read_yaml, _write_yaml_atomic
+
+    try:
+        data = _read_yaml(config_path)
+    except Exception:
+        return False
+
+    if not isinstance(data, dict):
+        return False
+
+    if "portal" in data:
+        if not isinstance(data["portal"], dict):
+            return False
+        portal_block = data["portal"]
+    else:
+        portal_block = {}
+        data["portal"] = portal_block
+
+    portal_block.pop("idealista_url", None)
+    portal_block["urls"] = []
+
+    try:
+        _write_yaml_atomic(config_path, data)
+        return True
+    except Exception:
+        return False

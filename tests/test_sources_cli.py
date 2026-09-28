@@ -93,12 +93,7 @@ def test_add_source_validates_against_destination_profile(tmp_path: Path) -> Non
     from home_ops.cli.sources import add_source
 
     p = tmp_path / "user_profile.yml"
-    p.write_text(
-        "search:\n"
-        "  municipality: Madrid\n"
-        "portal:\n"
-        "  urls: []\n"
-    )
+    p.write_text("search:\n  municipality: Madrid\nportal:\n  urls: []\n")
 
     ok, msg = add_source(p, PISOS_URL, fetcher=lambda url: PISOS_HTML_VALID)
 
@@ -134,6 +129,44 @@ def test_add_source_idempotent(tmp_path: Path) -> None:
     assert data["portal"]["urls"].count(PISOS_URL) == 1
 
 
+def test_clear_sources_removes_urls_and_legacy_alias(tmp_path: Path) -> None:
+    from home_ops.cli.sources import clear_sources
+
+    p = tmp_path / "user_profile.yml"
+    p.write_text("portal:\n  idealista_url: https://legacy\n  urls:\n  - https://one\n")
+    assert clear_sources(p) is True
+    data = yaml.safe_load(p.read_text())
+    assert data["portal"] == {"urls": []}
+
+
+def test_clear_sources_idempotent(tmp_path: Path) -> None:
+    from home_ops.cli.sources import clear_sources
+
+    p = tmp_path / "user_profile.yml"
+    p.write_text("portal:\n  urls: []\n")
+    assert clear_sources(p) is True
+    assert clear_sources(p) is True
+    data = yaml.safe_load(p.read_text())
+    assert data["portal"] == {"urls": []}
+
+
+def test_clear_sources_file_not_found(tmp_path: Path) -> None:
+    from home_ops.cli.sources import clear_sources
+
+    p = tmp_path / "nonexistent.yml"
+    assert clear_sources(p) is False
+
+
+def test_clear_sources_invalid_profile_does_not_mutate(tmp_path: Path) -> None:
+    from home_ops.cli.sources import clear_sources
+
+    p = tmp_path / "user_profile.yml"
+    p.write_text("portal: bad\n")
+    before = p.read_text()
+    assert clear_sources(p) is False
+    assert p.read_text() == before
+
+
 def test_cli_subcommands_registered() -> None:
     r = subprocess.run(
         [sys.executable, "-m", "home_ops.cli.app", "sources", "--help"],
@@ -143,3 +176,17 @@ def test_cli_subcommands_registered() -> None:
     assert r.returncode == 0
     assert "validate" in r.stdout
     assert "add" in r.stdout
+    assert "clear" in r.stdout
+
+
+def test_cli_sources_clear(tmp_path: Path) -> None:
+    p = tmp_path / "user_profile.yml"
+    p.write_text("portal:\n  idealista_url: https://legacy\n  urls:\n  - https://one\n")
+    r = subprocess.run(
+        [sys.executable, "-m", "home_ops.cli.app", "sources", "clear", "--config", str(p)],
+        capture_output=True,
+        text=True,
+    )
+    assert r.returncode == 0
+    data = yaml.safe_load(p.read_text())
+    assert data["portal"] == {"urls": []}

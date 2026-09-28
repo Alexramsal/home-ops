@@ -144,11 +144,17 @@ def load_config(config_path: Path | None = None, env_path: Path | None = None) -
     )
 
     portal_raw = raw.get("portal", {}) or {}
-    portal_url = portal_raw.get("idealista_url", "")
-    # Optional explicit multi-portal list; falls back to [idealista_url].
-    portal_urls = portal_raw.get("urls") or ([portal_url] if portal_url else [])
-    if not isinstance(portal_urls, list):
-        portal_urls = [str(portal_urls)]
+    if not isinstance(portal_raw, dict):
+        raise ValueError("portal section must be a mapping")
+
+    if "urls" in portal_raw and portal_raw["urls"] is not None:
+        portal_urls = portal_raw["urls"]
+        if not isinstance(portal_urls, list):
+            raise ValueError(f"portal.urls must be a list, got {type(portal_urls).__name__}")
+        portal_url = portal_urls[0] if portal_urls else ""
+    else:
+        portal_url = portal_raw.get("idealista_url", "")
+        portal_urls = [portal_url] if portal_url else []
 
     return Config(
         portal_url=portal_url,

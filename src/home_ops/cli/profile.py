@@ -175,6 +175,14 @@ def _coerce_value(raw: str, existing: Any) -> Any:
     if existing is None:
         # Try int, then float, then bool, then string
         return _coerce_fallback(raw)
+    if isinstance(existing, list):
+        try:
+            parsed = yaml.safe_load(raw)
+        except Exception as exc:
+            raise ValueError(f"Expected list, got: {raw!r}") from exc
+        if not isinstance(parsed, list):
+            raise ValueError(f"Expected list, got: {raw!r}")
+        return parsed
     if isinstance(existing, bool):
         low = raw.lower()
         if low in ("true", "yes", "1"):

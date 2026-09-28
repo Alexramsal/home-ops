@@ -11,8 +11,8 @@ from home_ops.scraper.portals import (
 )
 
 
-def test_portals_registry_contains_five_portals() -> None:
-    expected_names = {"idealista", "fotocasa", "pisos", "tecnocasa", "habitaclia"}
+def test_portals_registry_contains_expected_portals() -> None:
+    expected_names = {"idealista", "fotocasa", "pisos", "tecnocasa", "habitaclia", "njuskalo"}
     assert set(PORTALS.keys()) == expected_names
     for p in PORTALS.values():
         assert isinstance(p, Portal)
@@ -32,6 +32,8 @@ def test_portals_registry_contains_five_portals() -> None:
         ("https://tecnocasa.es/venta/", "tecnocasa"),
         ("https://www.habitaclia.com/comprar/viviendas/", "habitaclia"),
         ("https://habitaclia.com/comprar/", "habitaclia"),
+        ("https://www.njuskalo.hr/prodaja-stanova/", "njuskalo"),
+        ("https://njuskalo.hr/prodaja-stanova/", "njuskalo"),
     ],
 )
 def test_portal_for_url_valid_domains(url: str, expected_portal: str) -> None:
@@ -48,6 +50,7 @@ def test_portal_for_url_valid_domains(url: str, expected_portal: str) -> None:
         "https://pisos.com.attacker.com/pisos/",
         "https://tecnocasa.es.spoof.net/",
         "https://habitaclia.com.phishing.org/",
+        "https://njuskalo.hr.attacker.com/",
         "ftp://www.idealista.com/search",
         "file:///tmp/idealista.com",
         "javascript:alert(1)",
@@ -72,6 +75,8 @@ def test_portal_for_url_rejects_impostors_and_invalid_schemes(url: str) -> None:
         ("tecnocasa", "https://www.tecnocasa.es/piso/cadiz.html", 2, "https://www.tecnocasa.es/piso/cadiz.html/pag-2"),
         ("habitaclia", "https://www.habitaclia.com/comprar/s", 1, "https://www.habitaclia.com/comprar/s"),
         ("habitaclia", "https://www.habitaclia.com/comprar/s", 2, "https://www.habitaclia.com/comprar/s/2"),
+        ("njuskalo", "https://www.njuskalo.hr/prodaja-stanova", 1, "https://www.njuskalo.hr/prodaja-stanova"),
+        ("njuskalo", "https://www.njuskalo.hr/prodaja-stanova", 2, "https://www.njuskalo.hr/prodaja-stanova?page=2"),
     ],
 )
 def test_portal_pagination(portal_name: str, url: str, page_num: int, expected_url: str) -> None:

@@ -176,3 +176,38 @@ def test_set_invalid_type_rejected(tmp_path: Path) -> None:
     r = _run("profile", "set", "euribor_rate", "abc", "--config", str(p), cwd=tmp_path)
     assert r.returncode == 1
     assert p.read_text() == before  # atomic: nothing written on failure
+
+
+def test_set_list_coercion_ok(tmp_path: Path) -> None:
+    p = tmp_path / "user_profile.yml"
+    p.write_text(PROFILE)
+    r = _run("profile", "set", "portal.urls", "[]", "--config", str(p), cwd=tmp_path)
+    assert r.returncode == 0, r.stdout + r.stderr
+    data = yaml.safe_load(p.read_text())
+    assert data["portal"]["urls"] == []
+
+
+def test_set_list_coercion_elements(tmp_path: Path) -> None:
+    p = tmp_path / "user_profile.yml"
+    p.write_text(PROFILE)
+    r = _run(
+        "profile",
+        "set",
+        "portal.urls",
+        "['https://www.pisos.com/test/']",
+        "--config",
+        str(p),
+        cwd=tmp_path,
+    )
+    assert r.returncode == 0, r.stdout + r.stderr
+    data = yaml.safe_load(p.read_text())
+    assert data["portal"]["urls"] == ["https://www.pisos.com/test/"]
+
+
+def test_set_list_invalid_rejected(tmp_path: Path) -> None:
+    p = tmp_path / "user_profile.yml"
+    p.write_text(PROFILE)
+    before = p.read_text()
+    r = _run("profile", "set", "portal.urls", "not_a_list", "--config", str(p), cwd=tmp_path)
+    assert r.returncode == 1
+    assert p.read_text() == before
