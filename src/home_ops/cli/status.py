@@ -2,12 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 from rich.table import Table
 
 
-def _display_status(config: Any) -> None:
+def _display_status() -> None:
     """Query the database and print a status summary."""
     import home_ops.cli.app as app_mod
 

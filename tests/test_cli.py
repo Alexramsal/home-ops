@@ -240,8 +240,6 @@ class TestDisplayStatus:
 
     def test_display_empty_db(self) -> None:
         """GIVEN empty DB WHEN _display_status THEN shows zeros."""
-        from home_ops.models.schema import Config
-
         with patch("home_ops.cli.app.get_connection") as mock_conn:
             mock_db = MagicMock()
             mock_conn.return_value.__enter__.return_value = mock_db
@@ -252,13 +250,10 @@ class TestDisplayStatus:
             ]
             mock_db.conn.execute.return_value.fetchall.return_value = []
 
-            config = Config()
-            _display_status(config)  # should not raise
+            _display_status()  # should not raise
 
     def test_display_with_data(self) -> None:
         """GIVEN DB with listings WHEN _display_status THEN shows counts."""
-        from home_ops.models.schema import Config
-
         with patch("home_ops.cli.app.get_connection") as mock_conn:
             mock_db = MagicMock()
             mock_conn.return_value.__enter__.return_value = mock_db
@@ -267,7 +262,7 @@ class TestDisplayStatus:
                 ("2024-01-15 10:00:00",),  # MAX(fetched_at)
             ]
             mock_db.conn.execute.return_value.fetchall.return_value = []
-            _display_status(Config())
+            _display_status()
 
 
 class TestGetDbPath:

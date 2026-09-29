@@ -200,7 +200,7 @@ class SetupWizard(ModalScreen[bool]):
                         with Vertical(id=_section_id(name), classes="section"):
                             for fid, _label, _path, pwd in _FIELD_SPECS[name]:
                                 label = _LABELS.get(fid, {}).get(self.locale, _label)
-                                value = self._initial_value(fid, _label, _path)
+                                value = self._initial_value(_path)
                                 if not _path:
                                     yield Button(label, id=fid)
                                 elif fid == "language":
@@ -231,7 +231,7 @@ class SetupWizard(ModalScreen[bool]):
             yield Button(t("wizard.cancel", self.locale), id="cancel")
         yield Footer()
 
-    def _initial_value(self, fid: str, label: str, path: tuple[str, ...]) -> str:
+    def _initial_value(self, path: tuple[str, ...]) -> str:
         """Pull the widget's pre-fill value out of the loaded state."""
         if not path:
             return ""

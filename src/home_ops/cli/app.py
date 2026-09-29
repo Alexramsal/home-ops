@@ -133,8 +133,8 @@ def scan(
 def status(config_path: ConfigPathArg = None) -> None:
     """Show pipeline state and recent listings."""
     try:
-        config = load_config(config_path)
-        _display_status(config)
+        load_config(config_path)
+        _display_status()
     except Exception as exc:
         console.print(f"[bold red]Status failed:[/bold red] {exc}")
         raise typer.Exit(code=1) from exc
