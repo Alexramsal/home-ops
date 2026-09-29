@@ -10,6 +10,7 @@ from urllib.parse import urlparse
 
 import typer
 
+from home_ops.scraper.challenge import detect_challenge
 from home_ops.scraper.portals import PORTALS, portal_for_url, resolve_parser
 
 ConfigOpt = Annotated[
@@ -180,6 +181,10 @@ def validate_source(
 
     if not html or not html.strip():
         return False, "Empty page response", 0
+
+    challenge = detect_challenge(html, url=url)
+    if challenge.detected:
+        return False, f"Anti-bot challenge detected: {challenge.kind.value} ({challenge.details})", 0
 
     try:
         parser = resolve_parser(portal.name)
