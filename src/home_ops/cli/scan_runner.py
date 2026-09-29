@@ -26,6 +26,8 @@ class PortalStats:
     rej_missing_m2: int = 0
     duplicados: int = 0
     nuevos: int = 0
+    status: str = "pending"
+    detail: str = ""
 
     @property
     def rej_sin_datos(self) -> int:
@@ -52,7 +54,7 @@ def _scam_fields_from_result(
     return scam_flags, scam_risk_score, total_acquisition_cost
 
 
-def _run_scan(config_path: Path | None = None, force: bool = False) -> None:
+def _run_scan(config_path: Path | None = None, force: bool = False) -> str:
     """Orchestrate one pipeline scan cycle."""
     import home_ops.cli.app as app_mod
 
@@ -80,7 +82,7 @@ def _run_scan(config_path: Path | None = None, force: bool = False) -> None:
             else [config.portal_url]
         )
         listings: list[Listing] = []
-        portal_errors: list[tuple[str, Exception]] = []
+        had_portal_errors = False
         successful_portals = 0
         scraper_cfg = getattr(config, "scraper", None)
         max_pages = (
@@ -94,8 +96,10 @@ def _run_scan(config_path: Path | None = None, force: bool = False) -> None:
             default_pname = p_obj.name if p_obj else "idealista"
             portal_stats.setdefault(default_pname, PortalStats())
 
-            app_mod.console.print(f"[bold]Scanning {purl}...[/bold]")
-            row = db.conn.execute("SELECT COUNT(*) FROM listings").fetchone()
+            app_mod.console.print("[bold]Scanning portal...[/bold]")
+            row = db.conn.execute(
+                "SELECT COUNT(*) FROM listings WHERE portal = ?", [default_pname]
+            ).fetchone()
             has_data = row is not None and row[0] is not None and row[0] != 0
             try:
                 if has_data:
@@ -105,18 +109,38 @@ def _run_scan(config_path: Path | None = None, force: bool = False) -> None:
                 else:
                     new = cold_start(purl, max_pages=max_pages)
             except Exception as exc:
-                app_mod.console.print(f"[yellow]Scraper failed ({purl}): {exc}[/yellow]")
-                portal_errors.append((purl, exc))
+                from home_ops.scraper.lifecycle import ChallengeDetectedError
+
+                is_challenge = isinstance(exc, ChallengeDetectedError)
+                p_st = portal_stats[default_pname]
+                if p_st.status not in {"pending", "blocked", "error"}:
+                    p_st.status = "partial"
+                    p_st.detail = "some sources failed"
+                else:
+                    p_st.status = "blocked" if is_challenge else "error"
+                    p_st.detail = "challenge detected" if is_challenge else "scraper failed"
+                app_mod.console.print("[yellow]Scraper failed[/yellow]")
+                had_portal_errors = True
                 continue
             successful_portals += 1
+            p_st = portal_stats[default_pname]
+            if p_st.status in {"blocked", "error"}:
+                p_st.status = "partial"
+                p_st.detail = "some sources failed"
+            elif p_st.status != "partial":
+                p_st.status = "ok" if new else ("unchanged" if has_data else "empty")
+                p_st.detail = "" if new else ("no new listings" if has_data else "no listings")
             for item in new:
                 if not item.portal:
                     item.portal = default_pname
-                portal_stats.setdefault(item.portal, PortalStats())
+                item_stats = portal_stats.setdefault(item.portal, PortalStats())
+                if item_stats.status not in {"blocked", "error", "partial"}:
+                    item_stats.status = "ok"
+                    item_stats.detail = ""
             listings.extend(new)
 
-        if not successful_portals and portal_errors:
-            raise portal_errors[0][1]
+        if not successful_portals and had_portal_errors:
+            raise RuntimeError("All configured portal scans failed") from None
 
         # 2. Filter listings based on search criteria
         all_raw_listings = listings
@@ -507,6 +531,8 @@ def _run_scan(config_path: Path | None = None, force: bool = False) -> None:
         table.add_column("Rej. Sin datos", justify="right")
         table.add_column("Duplicados", justify="right")
         table.add_column("Nuevos", justify="right")
+        table.add_column("Estado")
+        table.add_column("Detalle")
 
         for p_name, p_st in portal_stats.items():
             table.add_row(
@@ -518,6 +544,8 @@ def _run_scan(config_path: Path | None = None, force: bool = False) -> None:
                 str(p_st.rej_sin_datos),
                 str(p_st.duplicados),
                 str(p_st.nuevos),
+                p_st.status,
+                p_st.detail,
             )
 
         app_mod.console.print(table)
@@ -525,13 +553,15 @@ def _run_scan(config_path: Path | None = None, force: bool = False) -> None:
         finished_at = datetime.now(UTC)
         listings_found = sum(s.vistos for s in portal_stats.values())
         listings_new = sum(s.nuevos for s in portal_stats.values())
+        run_status = "partial" if had_portal_errors else "success"
         db.record_scraping_run(
             started_at=started_at,
             finished_at=finished_at,
             listings_found=listings_found,
             listings_new=listings_new,
             alerts_sent=alerts_sent,
-            status="success",
+            status=run_status,
         )
 
     app_mod.console.print("[bold green]Pipeline scan complete.[/bold green]")
+    return run_status

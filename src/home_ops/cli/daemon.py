@@ -152,7 +152,7 @@ def _run_daemon_cycle_locked(
         # Get last completed run for schedule computation
         last_row = db.conn.execute(
             "SELECT finished_at FROM scraping_runs "
-            "WHERE status IN ('success', 'failed') ORDER BY id DESC LIMIT 1"
+            "WHERE status IN ('success', 'partial', 'failed') ORDER BY id DESC LIMIT 1"
         ).fetchone()
         last_run: datetime | None = last_row[0] if last_row else None
 
@@ -175,7 +175,8 @@ def _run_daemon_cycle_locked(
     # Execute the pipeline outside the DB context manager
     status = "success"
     try:
-        run_fn(config_path)  # run_fn accepts config_path; None = auto-discover
+        result = run_fn(config_path)  # run_fn accepts config_path; None = auto-discover
+        status = "partial" if result == "partial" else "success"
     except BaseException as exc:
         logger.error("Daemon cycle: pipeline failed: %s", exc)
         status = "failed"
@@ -214,7 +215,7 @@ def _run_daemon_inner_loop(
         db.init_db()
         last_row = db.conn.execute(
             "SELECT finished_at FROM scraping_runs "
-            "WHERE status IN ('success', 'failed') ORDER BY id DESC LIMIT 1"
+            "WHERE status IN ('success', 'partial', 'failed') ORDER BY id DESC LIMIT 1"
         ).fetchone()
         last_run: datetime | None = last_row[0] if last_row else None
 

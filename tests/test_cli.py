@@ -287,6 +287,77 @@ class TestRunScan:
     @patch("home_ops.cli.app.get_connection")
     @patch("home_ops.scraper.lifecycle.subsequent_run")
     @patch("home_ops.scraper.lifecycle.cold_start")
+    def test_run_scan_returns_success(
+        self,
+        mock_cold_start: MagicMock,
+        mock_subsequent_run: MagicMock,
+        mock_get_conn: MagicMock,
+    ) -> None:
+        """GIVEN all configured portals succeed WHEN _run_scan THEN returns 'success'."""
+        mock_db = MagicMock()
+        mock_db.conn.execute.return_value.fetchone.return_value = (0,)
+        mock_get_conn.return_value.__enter__.return_value = mock_db
+        mock_cold_start.return_value = []
+
+        with patch("home_ops.cli.app.load_config") as mock_load:
+            mock_load.return_value.portal_url = "https://test.url"
+            mock_load.return_value.portal_urls = ["https://test.url"]
+            mock_load.return_value.hitl_approval_required = False
+            mock_load.return_value.telegram_chat_id = ""
+
+            status = _run_scan()
+
+        assert status == "success"
+
+    @patch("home_ops.cli.app.get_connection")
+    @patch("home_ops.scraper.lifecycle.cold_start")
+    def test_run_scan_returns_partial_on_source_failure(
+        self,
+        mock_cold_start: MagicMock,
+        mock_get_conn: MagicMock,
+    ) -> None:
+        """GIVEN one portal fails and one succeeds WHEN _run_scan THEN returns 'partial'."""
+        mock_db = MagicMock()
+        mock_db.conn.execute.return_value.fetchone.return_value = (0,)
+        mock_get_conn.return_value.__enter__.return_value = mock_db
+        mock_cold_start.side_effect = [RuntimeError("portal 1 failed"), []]
+
+        with patch("home_ops.cli.app.load_config") as mock_load:
+            mock_load.return_value.portal_urls = [
+                "https://www.idealista.com/a",
+                "https://www.fotocasa.es/b",
+            ]
+            mock_load.return_value.hitl_approval_required = False
+            mock_load.return_value.telegram_chat_id = ""
+
+            status = _run_scan()
+
+        assert status == "partial"
+
+    @patch("home_ops.cli.app.get_connection")
+    @patch("home_ops.scraper.lifecycle.cold_start")
+    def test_run_scan_raises_when_all_fail(
+        self,
+        mock_cold_start: MagicMock,
+        mock_get_conn: MagicMock,
+    ) -> None:
+        """GIVEN all configured portals fail WHEN _run_scan THEN raises RuntimeError."""
+        mock_db = MagicMock()
+        mock_db.conn.execute.return_value.fetchone.return_value = (0,)
+        mock_get_conn.return_value.__enter__.return_value = mock_db
+        mock_cold_start.side_effect = RuntimeError("failed")
+
+        with patch("home_ops.cli.app.load_config") as mock_load:
+            mock_load.return_value.portal_urls = ["https://www.idealista.com/a"]
+            mock_load.return_value.hitl_approval_required = False
+            mock_load.return_value.telegram_chat_id = ""
+
+            with pytest.raises(RuntimeError, match="All configured portal scans failed"):
+                _run_scan()
+
+    @patch("home_ops.cli.app.get_connection")
+    @patch("home_ops.scraper.lifecycle.subsequent_run")
+    @patch("home_ops.scraper.lifecycle.cold_start")
     def test_run_scan_creates_db(
         self,
         mock_cold_start: MagicMock,
@@ -311,6 +382,226 @@ class TestRunScan:
     @patch("home_ops.cli.app.get_connection")
     @patch("home_ops.scraper.lifecycle.subsequent_run")
     @patch("home_ops.scraper.lifecycle.cold_start")
+    def test_partial_challenge_then_success(
+        self, mock_cold_start: MagicMock, mock_subsequent_run: MagicMock,
+        mock_get_conn: MagicMock,
+    ) -> None:
+        from io import StringIO
+
+        from rich.console import Console
+
+        from home_ops.models.schema import Listing
+        from home_ops.scraper.lifecycle import ChallengeDetectedError
+
+        db = MagicMock()
+        db.conn.execute.return_value.fetchone.return_value = (0,)
+        mock_get_conn.return_value.__enter__.return_value = db
+        mock_cold_start.side_effect = [
+            ChallengeDetectedError("x", "https://a", "blocked"),
+            [Listing(content_hash="x", url="https://b", portal="idealista")],
+        ]
+        output = StringIO()
+        with patch("home_ops.cli.app.console", Console(file=output, width=180)), patch(
+            "home_ops.cli.app.load_config"
+        ) as load:
+            load.return_value.portal_urls = [
+                "https://www.idealista.com/a",
+                "https://www.idealista.com/b",
+            ]
+            load.return_value.hitl_approval_required = False
+            load.return_value.telegram_chat_id = ""
+            _run_scan()
+
+        rendered = output.getvalue()
+        assert "partial" in rendered
+        assert "some sources failed" in rendered
+        db.record_scraping_run.assert_called_once()
+        assert db.record_scraping_run.call_args.kwargs["status"] == "partial"
+
+    @patch("home_ops.cli.app.get_connection")
+    @patch("home_ops.scraper.lifecycle.cold_start")
+    def test_partial_generic_failure_then_success(
+        self, mock_cold_start: MagicMock, mock_get_conn: MagicMock,
+    ) -> None:
+        from io import StringIO
+
+        from rich.console import Console
+
+        db = MagicMock()
+        db.conn.execute.return_value.fetchone.return_value = (0,)
+        mock_get_conn.return_value.__enter__.return_value = db
+        mock_cold_start.side_effect = [RuntimeError("secret"), []]
+        output = StringIO()
+        with patch("home_ops.cli.app.console", Console(file=output, width=180)), patch(
+            "home_ops.cli.app.load_config"
+        ) as load:
+            load.return_value.portal_urls = [
+                "https://www.idealista.com/a",
+                "https://www.fotocasa.es/b",
+            ]
+            load.return_value.hitl_approval_required = False
+            load.return_value.telegram_chat_id = ""
+            _run_scan()
+
+        rendered = output.getvalue()
+        assert "error" in rendered
+        assert "empty" in rendered
+        assert "secret" not in rendered
+        assert db.record_scraping_run.call_args.kwargs["status"] == "partial"
+
+    @patch("home_ops.cli.app.get_connection")
+    @patch("home_ops.scraper.lifecycle.cold_start")
+    def test_partial_success_then_failure_same_portal(
+        self, mock_cold_start: MagicMock, mock_get_conn: MagicMock,
+    ) -> None:
+        from io import StringIO
+
+        from rich.console import Console
+
+        db = MagicMock()
+        db.conn.execute.return_value.fetchone.return_value = (0,)
+        mock_get_conn.return_value.__enter__.return_value = db
+        mock_cold_start.side_effect = [[], RuntimeError("secret")]
+        output = StringIO()
+        with patch("home_ops.cli.app.console", Console(file=output, width=180)), patch(
+            "home_ops.cli.app.load_config"
+        ) as load:
+            load.return_value.portal_urls = [
+                "https://www.idealista.com/a",
+                "https://www.idealista.com/b",
+            ]
+            load.return_value.hitl_approval_required = False
+            load.return_value.telegram_chat_id = ""
+            _run_scan()
+
+        rendered = output.getvalue()
+        assert "partial" in rendered
+        assert "some sources failed" in rendered
+        assert "secret" not in rendered
+        assert db.record_scraping_run.call_args.kwargs["status"] == "partial"
+
+    @patch("home_ops.cli.app.get_connection")
+    @patch("home_ops.scraper.lifecycle.subsequent_run", return_value=[])
+    @patch("home_ops.scraper.lifecycle.cold_start", return_value=[])
+    def test_portal_specific_cold_start(
+        self,
+        mock_cold_start: MagicMock,
+        mock_subsequent_run: MagicMock,
+        mock_get_conn: MagicMock,
+    ) -> None:
+        from io import StringIO
+
+        from rich.console import Console
+
+        from home_ops.models.schema import Listing
+
+        db = DuckDBConnection(":memory:")
+        db.connect()
+        db.init_db()
+        db.insert_listing(
+            Listing(
+                content_hash="idealista-existing",
+                url="https://www.idealista.com/x",
+                portal="idealista",
+            )
+        )
+        mock_get_conn.return_value.__enter__.return_value = db
+        output = StringIO()
+        with patch("home_ops.cli.app.console", Console(file=output, width=180)), patch(
+            "home_ops.cli.app.load_config"
+        ) as load:
+            load.return_value.portal_urls = [
+                "https://www.idealista.com/a", "https://www.fotocasa.es/b"
+            ]
+            load.return_value.hitl_approval_required = False
+            load.return_value.telegram_chat_id = ""
+            _run_scan()
+
+        mock_subsequent_run.assert_called_once()
+        mock_cold_start.assert_called_once()
+        assert "fotocasa" in output.getvalue()
+        assert "empty" in output.getvalue()
+        assert "unchanged" in output.getvalue()
+
+    @patch("home_ops.cli.app.get_connection")
+    @patch("home_ops.scraper.lifecycle.cold_start", return_value=[])
+    def test_empty_portal_is_success(
+        self, mock_cold_start: MagicMock, mock_get_conn: MagicMock,
+    ) -> None:
+        from io import StringIO
+
+        from rich.console import Console
+
+        db = MagicMock()
+        db.conn.execute.return_value.fetchone.return_value = (0,)
+        mock_get_conn.return_value.__enter__.return_value = db
+        output = StringIO()
+        with patch("home_ops.cli.app.console", Console(file=output, width=180)), patch(
+            "home_ops.cli.app.load_config"
+        ) as load:
+            load.return_value.portal_url = "https://a"
+            load.return_value.hitl_approval_required = False
+            load.return_value.telegram_chat_id = ""
+            _run_scan()
+
+        assert "empty" in output.getvalue()
+        assert db.record_scraping_run.call_args.kwargs["status"] == "success"
+
+    @patch("home_ops.cli.app.get_connection")
+    @patch("home_ops.scraper.lifecycle.subsequent_run", return_value=[])
+    def test_incremental_empty_is_unchanged(
+        self, mock_subsequent_run: MagicMock, mock_get_conn: MagicMock,
+    ) -> None:
+        from io import StringIO
+
+        from rich.console import Console
+
+        db = MagicMock()
+        db.conn.execute.return_value.fetchone.return_value = (1,)
+        mock_get_conn.return_value.__enter__.return_value = db
+        output = StringIO()
+        with patch("home_ops.cli.app.console", Console(file=output, width=180)), patch(
+            "home_ops.cli.app.load_config"
+        ) as load:
+            load.return_value.portal_url = "https://www.idealista.com/a"
+            load.return_value.hitl_approval_required = False
+            load.return_value.telegram_chat_id = ""
+            _run_scan()
+
+        assert "unchanged" in output.getvalue()
+        assert "no new listings" in output.getvalue()
+        assert db.record_scraping_run.call_args.kwargs["status"] == "success"
+
+    @patch("home_ops.cli.app.get_connection")
+    @patch("home_ops.scraper.lifecycle.cold_start", return_value=[])
+    def test_all_portals_success_status_success(
+        self, mock_cold_start: MagicMock, mock_get_conn: MagicMock,
+    ) -> None:
+        from io import StringIO
+
+        from rich.console import Console
+
+        db = MagicMock()
+        db.conn.execute.return_value.fetchone.return_value = (0,)
+        mock_get_conn.return_value.__enter__.return_value = db
+        output = StringIO()
+        with patch("home_ops.cli.app.console", Console(file=output, width=180)), patch(
+            "home_ops.cli.app.load_config"
+        ) as load:
+            load.return_value.portal_urls = [
+                "https://www.idealista.com/a",
+                "https://www.fotocasa.es/b",
+            ]
+            load.return_value.hitl_approval_required = False
+            load.return_value.telegram_chat_id = ""
+            _run_scan()
+
+        assert output.getvalue().count("empty") >= 2
+        assert db.record_scraping_run.call_args.kwargs["status"] == "success"
+
+    @patch("home_ops.cli.app.get_connection")
+    @patch("home_ops.scraper.lifecycle.subsequent_run")
+    @patch("home_ops.scraper.lifecycle.cold_start")
     def test_run_scan_with_challenge_failure(
         self, mock_cold_start: MagicMock, mock_subsequent_run: MagicMock,
         mock_get_conn: MagicMock,
@@ -327,7 +618,9 @@ class TestRunScan:
             mock_load.return_value.portal_url = "https://test.url"
             mock_load.return_value.hitl_approval_required = False
             mock_load.return_value.telegram_chat_id = ""
-            with pytest.raises(ChallengeDetectedError):
+            with pytest.raises(
+                RuntimeError, match="^All configured portal scans failed$"
+            ):
                 _run_scan()
 
     @patch("home_ops.cli.app.get_connection")
@@ -339,7 +632,7 @@ class TestRunScan:
         mock_subsequent_run: MagicMock,
         mock_get_conn: MagicMock,
     ) -> None:
-        """GIVEN cold_start raises WHEN _run_scan THEN exception re-raised."""
+        """GIVEN all portals fail WHEN _run_scan THEN public error is raised."""
         mock_db = MagicMock()
         mock_db.conn.execute.return_value.fetchone.return_value = (0,)
         mock_get_conn.return_value.__enter__.return_value = mock_db
@@ -350,8 +643,35 @@ class TestRunScan:
             mock_load.return_value.hitl_approval_required = False
             mock_load.return_value.telegram_chat_id = ""
 
-            with pytest.raises(RuntimeError, match="Network error"):
+            with pytest.raises(
+                RuntimeError, match="^All configured portal scans failed$"
+            ) as exc_info:
                 _run_scan()
+
+        assert str(exc_info.value) == "All configured portal scans failed"
+        assert "Network error" not in str(exc_info.value)
+
+    @patch("home_ops.cli.app.get_connection")
+    @patch("home_ops.scraper.lifecycle.cold_start")
+    def test_scan_all_failures_hide_scraper_details(
+        self, mock_cold_start: MagicMock, mock_get_conn: MagicMock
+    ) -> None:
+        mock_db = MagicMock()
+        mock_db.conn.execute.return_value.fetchone.return_value = (0,)
+        mock_get_conn.return_value.__enter__.return_value = mock_db
+        mock_cold_start.side_effect = RuntimeError(
+            "secret-token https://sensitive.example challenge details"
+        )
+
+        with patch("home_ops.cli.app.load_config") as mock_load:
+            mock_load.return_value.portal_url = "https://sensitive.example"
+            result = runner.invoke(app, ["scan"])
+
+        assert result.exit_code == 1
+        assert "Pipeline failed: All configured portal scans failed" in result.output
+        assert "secret-token" not in result.output
+        assert "https://sensitive.example" not in result.output
+        assert "challenge details" not in result.output
 
     @patch("home_ops.cli.app.get_connection")
     def test_run_scan_alert_failure_writes_failed_status(
@@ -1368,6 +1688,87 @@ class TestRunDaemonCycle:
         run_fn.assert_called_once()
 
     @patch("home_ops.cli.app.get_connection")
+    def test_run_daemon_cycle_sets_partial_status(self, mock_get_conn: MagicMock) -> None:
+        """GIVEN run_fn returns 'partial' WHEN _run_daemon_cycle THEN status='partial'."""
+        from home_ops.cli.app import _run_daemon_cycle
+        from home_ops.models.schema import Config, ScheduleConfig
+
+        db = DuckDBConnection(":memory:")
+        db.connect()
+        db.init_db()
+        mock_get_conn.return_value.__enter__.return_value = db
+
+        run_fn = MagicMock(return_value="partial")
+        config = Config(alert_schedule=ScheduleConfig(timezone="UTC"))
+        now = datetime(2026, 6, 18, 9, 0, 0, tzinfo=UTC)
+
+        result = _run_daemon_cycle(config, run_fn=run_fn, now=now)
+
+        assert result is True
+        row = db.conn.execute(
+            "SELECT status FROM scraping_runs ORDER BY id DESC LIMIT 1"
+        ).fetchone()
+        assert row is not None
+        assert row[0] == "partial"
+
+    @patch("home_ops.cli.app.get_connection")
+    def test_run_daemon_cycle_none_return_compatibility_success(
+        self, mock_get_conn: MagicMock
+    ) -> None:
+        """GIVEN run_fn returns None WHEN _run_daemon_cycle THEN status='success'."""
+        from home_ops.cli.app import _run_daemon_cycle
+        from home_ops.models.schema import Config, ScheduleConfig
+
+        db = DuckDBConnection(":memory:")
+        db.connect()
+        db.init_db()
+        mock_get_conn.return_value.__enter__.return_value = db
+
+        run_fn = MagicMock(return_value=None)
+        config = Config(alert_schedule=ScheduleConfig(timezone="UTC"))
+        now = datetime(2026, 6, 18, 9, 0, 0, tzinfo=UTC)
+
+        result = _run_daemon_cycle(config, run_fn=run_fn, now=now)
+
+        assert result is True
+        row = db.conn.execute(
+            "SELECT status FROM scraping_runs ORDER BY id DESC LIMIT 1"
+        ).fetchone()
+        assert row is not None
+        assert row[0] == "success"
+
+    @patch("home_ops.cli.app.get_connection")
+    def test_run_daemon_cycle_recognizes_partial_as_last_run(
+        self, mock_get_conn: MagicMock
+    ) -> None:
+        """GIVEN last run status was 'partial' WHEN _run_daemon_cycle THEN computes schedule from it."""
+        from home_ops.cli.app import _run_daemon_cycle
+        from home_ops.models.schema import Config
+
+        db = DuckDBConnection(":memory:")
+        db.connect()
+        db.init_db()
+        # Insert prior partial run
+        db.conn.execute(
+            "INSERT INTO scraping_runs (started_at, finished_at, status) "
+            "VALUES (?, ?, 'partial')",
+            [
+                datetime(2026, 6, 17, 9, 0, 0, tzinfo=UTC),
+                datetime(2026, 6, 17, 9, 5, 0, tzinfo=UTC),
+            ],
+        )
+        mock_get_conn.return_value.__enter__.return_value = db
+
+        run_fn = MagicMock()
+        config = Config()
+        now = datetime(2026, 6, 18, 6, 0, 0, tzinfo=UTC)  # 06:00, before 09:00
+
+        result = _run_daemon_cycle(config, run_fn=run_fn, now=now)
+
+        assert result is False
+        run_fn.assert_not_called()
+
+    @patch("home_ops.cli.app.get_connection")
     def test_run_daemon_cycle_sets_failed_on_exception(self, mock_get_conn: MagicMock) -> None:
         """GIVEN run_fn raises exception WHEN _run_daemon_cycle THEN status='failed'."""
         from home_ops.cli.app import _run_daemon_cycle
@@ -1532,14 +1933,19 @@ class TestScanObservability:
         )
         mock_cold_start.return_value = [l1, l2]
 
-        result = runner.invoke(app, ["scan"])
+        from io import StringIO
+
+        from rich.console import Console
+
+        output = StringIO()
+        with patch("home_ops.cli.app.console", Console(file=output, width=180)):
+            result = runner.invoke(app, ["scan"])
         assert result.exit_code == 0
 
-        # Verify Rich table output columns present
-        assert "Desglose de Scraping por Portal" in result.output
-        assert "Vistos" in result.output
-        assert "Precio" in result.output
-        assert "Nuevos" in result.output
+        rendered = output.getvalue()
+        assert "Desglose de Scraping por Portal" in rendered
+        for heading in ("Vistos", "Precio", "Nuevos", "Estado", "Detalle"):
+            assert heading in rendered
 
         # Verify scraping_runs record created in DB
         rows = db.conn.execute("SELECT listings_found, listings_new, status FROM scraping_runs").fetchall()
