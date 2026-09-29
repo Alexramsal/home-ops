@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+import json
+import urllib.parse
+import urllib.request
+
 import typer
 from rich.console import Console
 
@@ -16,26 +20,52 @@ cadastre_app = typer.Typer(help="Official cadastre provider inspection.")
 adapter_app = typer.Typer(help="Portal adapter verification.")
 
 
+def _geocode_location(location: str) -> str | None:
+    params = urllib.parse.urlencode({
+        "q": location,
+        "format": "jsonv2",
+        "addressdetails": "1",
+        "limit": "1",
+    })
+    request = urllib.request.Request(
+        f"https://nominatim.openstreetmap.org/search?{params}",
+        headers={"User-Agent": "Home-Ops/0.1 (location-inspect)"},
+    )
+    with urllib.request.urlopen(request, timeout=10) as response:
+        results = json.load(response)
+    if not results:
+        return None
+    country_code = results[0].get("address", {}).get("country_code", "").upper()
+    return country_code or None
+
+
 @location_app.command("inspect")
 def location_inspect(
     location: str = typer.Argument(..., help="Country code (ISO-2) or municipality name"),
 ) -> None:
     """Inspect location, default currency, units, timezone, and national rules."""
-    loc_clean = location.strip().upper()
+    municipality = location.strip()
+    loc_clean = municipality.upper()
     if loc_clean in COUNTRY_DEFAULTS:
         country_code = loc_clean
-        _, currency, timezone, area_unit = COUNTRY_DEFAULTS[loc_clean]
-        municipality = location.strip()
     elif len(loc_clean) == 2:
-        country_code = loc_clean
-        currency = "EUR"
-        timezone = "UTC"
-        area_unit = "m2"
-        municipality = location.strip()
+        console.print(f"[bold red]Error:[/bold red] Country '{municipality}' is not supported.")
+        raise typer.Exit(code=1)
     else:
-        country_code = "ES"
-        _, currency, timezone, area_unit = COUNTRY_DEFAULTS["ES"]
-        municipality = location.strip()
+        try:
+            geocoded_country = _geocode_location(municipality)
+        except Exception as exc:
+            console.print(f"[bold red]Error:[/bold red] Geocoding failed: {exc}")
+            raise typer.Exit(code=1) from exc
+        if not geocoded_country:
+            console.print(f"[bold red]Error:[/bold red] Could not geocode '{municipality}'.")
+            raise typer.Exit(code=1)
+        if geocoded_country not in COUNTRY_DEFAULTS:
+            console.print(f"[bold red]Error:[/bold red] Country '{geocoded_country}' is not supported.")
+            raise typer.Exit(code=1)
+        country_code = geocoded_country
+
+    _, currency, timezone, area_unit = COUNTRY_DEFAULTS[country_code]
 
     is_es = country_code in ("ES", "SPAIN")
     gates_status = "Active" if is_es else "Inactive"
