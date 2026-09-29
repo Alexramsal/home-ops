@@ -266,6 +266,11 @@ def set_profile_value(path: Path, key_path: str, raw_value: str) -> None:
         )
 
     existing = current[leaf]
+    if key_path == "market.area_unit":
+        raw_value = {
+            "m²": "m2", "m^2": "m2", "sqm": "m2", "sq m": "m2",
+            "ft²": "ft2", "ft^2": "ft2", "sqft": "ft2", "sq ft": "ft2",
+        }.get(raw_value, raw_value)
     current[leaf] = _coerce_value(raw_value, existing)
 
     _write_yaml_atomic(path, data)

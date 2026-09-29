@@ -45,9 +45,49 @@ def test_parse_listings_maps_item_fields() -> None:
     assert it["url"] == "/es/comprar/vivienda/chiclana/parking/187417980/d"
 
 
+def test_parse_listings_maps_current_item_shape() -> None:
+    html = _fake_html(
+        [
+            {
+                "id": 190491403,
+                "detailUrl": "/x",
+                "price": 650000,
+                "features": [
+                    {"key": "surface", "value": 85},
+                    {"key": "rooms", "value": 3},
+                    {"key": "floor", "value": 2},
+                ],
+                "location": "Madrid, Madrid",
+                "address": {"ubication": "Chamberí, Madrid", "locality": "Madrid"},
+            }
+        ]
+    )
+
+    it = parse_listings(html)[0]
+
+    assert it["external_id"] == "190491403"
+    assert it["price"] == 650000
+    assert it["m2"] == 85
+    assert it["rooms"] == 3
+    assert it["floor"] == "2"
+    assert it["address"] == "Chamberí, Madrid"
+    assert it["url"] == "/x"
+
+
 def test_parse_listings_empty_on_no_json() -> None:
     assert parse_listings("<html><body>no state</body></html>") == []
     assert parse_listings("") == []
+
+
+def test_parse_listings_empty_when_nested_state_is_not_a_dict() -> None:
+    for value in ("not-a-dict", [], None):
+        state = {"initialSearch": {"result": {"resultsV2": value}}}
+        html = (
+            '<script type="application/json">'
+            f"{json.dumps(state)}"
+            "</script>"
+        )
+        assert parse_listings(html) == []
 
 
 def test_parse_listings_skips_bad_items() -> None:

@@ -1,4 +1,4 @@
-"""Multi-country Cadastre / Land Registry Information System for Home-Ops."""
+"""Official cadastre and land-registry portals by country."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class CadastreProvider:
-    """Official Cadastre or Land Registry provider for a specific country."""
+    """Fuente oficial localizada; Home-Ops solo consulta automáticamente cuando is_automated=True y existe cliente runtime (actualmente ES); otros manual/regional."""
 
     country_code: str
     country_name: str
@@ -18,69 +18,60 @@ class CadastreProvider:
     is_automated: bool
 
 
+def _provider(code: str, name: str, authority: str, url: str, description: str) -> CadastreProvider:
+    return CadastreProvider(code, name, authority, url, None, description, False)
+
+
 CADASTRE_REGISTRY: dict[str, CadastreProvider] = {
     "ES": CadastreProvider(
-        country_code="ES",
-        country_name="España",
-        authority_name="Sede Electrónica del Catastro (Ministerio de Hacienda)",
-        portal_url="https://www meic.catastro.minhap.es/",
-        api_url="https://ovc.catastro.meh.es/ovcservweb/OVCSWLocalizacionRC/OVCCallejero.asmx/Consulta_DNPLOC",
-        description="Consulta pública de referencia catastral, superficie construida, uso y antigüedad.",
-        is_automated=True,
+        "ES",
+        "España",
+        "Sede Electrónica del Catastro",
+        "https://www.sedecatastro.gob.es/",
+        "https://ovc.catastro.meh.es/ovcservweb/OVCSWLocalizacionRC/OVCCallejero.asmx/Consulta_DNPLOC",
+        "Cartografía, referencia catastral, superficies y valoración catastral; no acredita titularidad ni cargas jurídicas.",
+        True,
     ),
-    "DE": CadastreProvider(
-        country_code="DE",
-        country_name="Deutschland",
-        authority_name="BORIS-D / Gutachterausschüsse / Grundbuchamt",
-        portal_url="https://www.gutachterausschuesse-online.de/",
-        api_url=None,
-        description="Bodenrichtwerte und Immobilienmarktberichte der amtlichen Gutachterausschüsse.",
-        is_automated=False,
+    "US": _provider(
+        "US",
+        "United States",
+        "Decentralized State & County Assessors",
+        "https://www.usa.gov/state-local-governments",
+        "Sistema descentralizado; los registros de propiedad, parcelas e impuestos son gestionados localmente por condados/municipios.",
     ),
+    "DE": _provider("DE", "Deutschland", "BORIS-D / Gutachterausschüsse", "https://www.boris-d.de/", "Valores del suelo y valoración oficial; el Grundbuch acredita titularidad y cargas."),
+    "HR": _provider("HR", "Hrvatska", "Državna geodetska uprava / ZIS", "https://oss.uredjenazemlja.hr/", "Catastro y registro de la propiedad para consulta manual; titularidad y cargas constan en el registro jurídico."),
     "FR": CadastreProvider(
-        country_code="FR",
-        country_name="France",
-        authority_name="Cadastre.gouv.fr & Etalab DVF (Demandes de Valeurs Foncières)",
-        portal_url="https://cadastre.gouv.fr/",
-        api_url="https://app.dvf.etalab.gouv.fr/",
-        description="Consultation du plan cadastral français et historique public des ventes foncières.",
-        is_automated=True,
+        "FR",
+        "France",
+        "Direction générale des finances publiques",
+        "https://www.cadastre.gouv.fr/",
+        "https://app.dvf.etalab.gouv.fr/",
+        "Plan catastral y datos parcelarios; el Service de la publicité foncière acredita derechos y cargas.",
+        False,
     ),
-    "HR": CadastreProvider(
-        country_code="HR",
-        country_name="Hrvatska",
-        authority_name="Katastar.hr / Zajednički informacijski sustav (ZIS)",
-        portal_url="https://www.katastar.hr/",
-        api_url=None,
-        description="Javni uvid u katastarske podatke i posjedovne listove Republike Hrvatske.",
-        is_automated=False,
-    ),
-    "UK": CadastreProvider(
-        country_code="UK",
-        country_name="United Kingdom",
-        authority_name="HM Land Registry",
-        portal_url="https://www.gov.uk/government/organisations/land-registry",
-        api_url="https://landregistry.data.gov.uk/",
-        description="Official land title, price paid data, and property boundary registration.",
-        is_automated=True,
-    ),
-    "US": CadastreProvider(
-        country_code="US",
-        country_name="United States",
-        authority_name="County Assessor / Public Records GIS",
-        portal_url="https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html",
-        api_url=None,
-        description="County assessor property assessment records, parcel maps, and tax appraisal data.",
-        is_automated=False,
-    ),
+    "GB": _provider("GB", "United Kingdom", "HM Land Registry", "https://www.gov.uk/government/organisations/land-registry", "Registro jurídico de títulos, titularidad y cargas en Inglaterra y Gales; no es un catastro fiscal único del Reino Unido."),
+    "IT": _provider("IT", "Italia", "Agenzia delle Entrate Catasto/Conservatoria", "https://www.agenziaentrate.gov.it/portale/", "Catastro y Conservatoria: datos catastrales y publicidad inmobiliaria jurídica sobre titularidad y cargas."),
+    "PT": _provider("PT", "Portugal", "Predial Online + Direção-Geral do Território", "https://www.predialonline.pt/", "Predial Online ofrece registro jurídico; DGT ofrece cartografía y datos territoriales."),
+    "NL": _provider("NL", "Nederland", "Kadaster", "https://www.kadaster.nl/", "Catastro, mapas y registro jurídico de titularidad y cargas."),
+    "BE": _provider("BE", "Belgique", "CadGIS / SPF Finances + Sécurité juridique", "https://finances.belgium.be/fr/E-services/CadGIS", "CadGIS ofrece parcelas y cartografía; la seguridad jurídica acredita titularidad y cargas."),
+    "AT": _provider("AT", "Österreich", "Grundbuch / Bundesamt für Eich- und Vermessungswesen", "https://www.justiz.gv.at/", "Grundbuch registra titularidad y cargas; BEV ofrece cartografía y catastro."),
+    "PL": _provider("PL", "Polska", "Geoportal EGiB + Elektroniczne Księgi Wieczyste", "https://www.geoportal.gov.pl/", "EGiB ofrece parcelas y cartografía; Elektroniczne Księgi Wieczyste ofrece titularidad y cargas jurídicas."),
+    "CZ": _provider("CZ", "Česko", "Český úřad zeměměřický a katastrální", "https://nahlizenidokn.cuzk.cz/", "Catastro inmobiliario oficial, incluyendo parcelas, titularidad y cargas consultables manualmente."),
+    "IE": _provider("IE", "Ireland", "Tailte Éireann", "https://tailte.ie/", "Mapas y registro de títulos inmobiliarios; consulta manual de titularidad y cargas."),
+    "SE": _provider("SE", "Sverige", "Lantmäteriet", "https://www.lantmateriet.se/", "Mapas, datos de propiedades y registro inmobiliario oficial de titularidad y cargas."),
+    "GR": _provider("GR", "Ελλάδα", "Ελληνικό Κτηματολόγιο", "https://www.ktimatologio.gr/", "Catastro nacional, mapas y registro de derechos inmobiliarios y cargas."),
 }
+
+# UK remains a compatibility alias; both keys reference one provider.
+CADASTRE_REGISTRY["UK"] = CADASTRE_REGISTRY["GB"]
 
 
 def get_cadastre_provider(country_code: str) -> CadastreProvider | None:
-    """Return the official cadastre provider for a country code (uppercase)."""
+    """Resolve an ISO code case-insensitively, accepting UK as GB alias."""
     if not country_code:
         return None
-    return CADASTRE_REGISTRY.get(country_code.upper())
+    return CADASTRE_REGISTRY.get(country_code.strip().upper())
 
 
 __all__ = ["CadastreProvider", "CADASTRE_REGISTRY", "get_cadastre_provider"]

@@ -2,8 +2,8 @@
 
 Fotocasa is a React SPA: the listing cards are NOT in the DOM — they live in
 a JSON blob inside ``<script type="application/json">`` (the app's initial
-state). The important path (verified against a live capture of
-``cadiz-provincia``, 2026-09-15) is::
+state). The important path (verified with ordinary Scrapling fetch, Madrid
+capital URL, HTTP 200, 2026-09-29) is::
 
     initialSearch.result.resultsV2.items -> list[dict]
 
@@ -47,39 +47,88 @@ def _extract_items(html: str) -> list[dict[str, Any]]:
         data = json.loads(m.group(1))
     except json.JSONDecodeError:
         return []
-    items = data.get("initialSearch", {}).get("result", {}).get("resultsV2", {}).get(
-        "items", []
-    )
+    if not isinstance(data, dict):
+        return []
+    initial_search = data.get("initialSearch")
+    if not isinstance(initial_search, dict):
+        return []
+    result = initial_search.get("result")
+    if not isinstance(result, dict):
+        return []
+    results_v2 = result.get("resultsV2")
+    if not isinstance(results_v2, dict):
+        return []
+    items = results_v2.get("items")
     return items if isinstance(items, list) else []
 
 
 def _item_to_dict(item: dict[str, Any]) -> dict[str, Any]:
     """Map one fotocasa item to the shared raw-listing dict contract."""
-    price = item.get("price") or {}
-    features = item.get("features") or {}
-    location = item.get("location") or {}
-    detail_url = item.get("detailUrl") or ""
-    # external_id: fotocasa ids look like "1_187417980"
-    raw_id = str(item.get("id") or "")
+    raw_price = item.get("price")
+    price: int | float | None = None
+    if isinstance(raw_price, dict):
+        p = raw_price.get("amount")
+        if isinstance(p, (int, float)):
+            price = p
+    elif isinstance(raw_price, (int, float)):
+        price = raw_price
+
+    raw_features = item.get("features")
+    features: dict[str, Any] = {}
+    if isinstance(raw_features, dict):
+        features = raw_features
+    elif isinstance(raw_features, list):
+        for entry in raw_features:
+            if isinstance(entry, dict) and isinstance(entry.get("key"), str):
+                features[entry["key"]] = entry.get("value")
+
+    raw_location = item.get("location")
+    raw_address = item.get("address")
+    address = ""
+
+    if isinstance(raw_address, dict):
+        ubication = raw_address.get("ubication")
+        locality = raw_address.get("locality")
+        loc_str = raw_location if isinstance(raw_location, str) else raw_address.get("location")
+
+        if isinstance(ubication, str) and ubication:
+            address = ubication
+        elif isinstance(loc_str, str) and loc_str:
+            address = loc_str
+        elif isinstance(locality, str) and locality:
+            address = locality
+    elif isinstance(raw_address, str) and raw_address:
+        address = raw_address
+    elif isinstance(raw_location, dict):
+        addr_part = raw_location.get("address")
+        zone_part = raw_location.get("zone")
+        if isinstance(addr_part, str) and isinstance(zone_part, str) and addr_part and zone_part:
+            address = f"{addr_part}, {zone_part}"
+        elif isinstance(addr_part, str):
+            address = addr_part
+        elif isinstance(zone_part, str):
+            address = zone_part
+    elif isinstance(raw_location, str):
+        address = raw_location
+
+    detail_url = item.get("detailUrl") if isinstance(item.get("detailUrl"), str) else ""
+
+    raw_id_val = item.get("id")
+    raw_id = str(raw_id_val) if raw_id_val is not None else ""
     external_id = raw_id.split("_")[-1] if "_" in raw_id else raw_id
 
-    address = location.get("address") or ""
-    zone = location.get("zone") or ""
-    if address and zone:
-        address = f"{address}, {zone}"
+    floor_val = features.get("floor") if isinstance(features, dict) else None
 
     return {
         "external_id": external_id or None,
         "url": detail_url,
         "address": address,
-        "price": price.get("amount"),
-        "m2": features.get("surface"),
-        "rooms": features.get("rooms"),
-        "floor": str(features["floor"]) if features.get("floor") is not None else None,
-        "description": item.get("description", ""),
+        "price": price,
+        "m2": features.get("surface") if isinstance(features, dict) else None,
+        "rooms": features.get("rooms") if isinstance(features, dict) else None,
+        "floor": str(floor_val) if floor_val is not None else None,
+        "description": item.get("description") if isinstance(item.get("description"), str) else "",
         "portal": _PORTAL,
-        # fotocasa has no garage-price concept in search results; the detail
-        # page would, but we don't fetch it separately yet.
         "price_includes_garage": False,
         "garage_price": None,
         "certificado_energetico_present": None,

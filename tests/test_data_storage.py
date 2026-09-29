@@ -46,6 +46,16 @@ class TestDuckDBConnection:
         finally:
             conn.close()
 
+    def test_connect_creates_parent_directory(self, tmp_path: Path) -> None:
+        """GIVEN missing parent WHEN connect THEN directory and DB exist."""
+        db_file = tmp_path / "missing" / "nested" / "test.duckdb"
+        conn = DuckDBConnection(db_file)
+        conn.connect()
+        try:
+            assert db_file.exists()
+        finally:
+            conn.close()
+
     def test_connect_file_based(self, tmp_path: Path) -> None:
         """GIVEN file-based path WHEN connect THEN connection works."""
         db_file = tmp_path / "test.duckdb"

@@ -72,6 +72,8 @@ class DuckDBConnection:
         In-memory databases (:memory:) skip WAL pragma entirely.
         """
         try:
+            if self.db_path != _IN_MEMORY:
+                Path(self.db_path).parent.mkdir(parents=True, exist_ok=True)
             self._conn = duckdb.connect(self.db_path)
             if self.db_path != _IN_MEMORY:
                 with suppress(Exception):

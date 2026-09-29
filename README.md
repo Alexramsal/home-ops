@@ -25,7 +25,7 @@ Finding a good flat in Spain is a timing problem as much as a search problem. Ho
 
 | | What it does |
 | --- | --- |
-| 🔎 **Collect** | Scan Idealista, Fotocasa, Pisos.com, Tecnocasa and Habitaclia independently. |
+| 🔎 **Collect** | Scan Idealista, Fotocasa, Pisos.com, Tecnocasa, Habitaclia, Njuškalo and Kleinanzeigen independently. |
 | 🧠 **Score** | Rank listings across five weighted dimensions based on your profile. |
 | 🛡️ **Enrich** | Optionally add LLM analysis and Catastro OVC cross-checks. |
 | ✅ **Approve** | Keep an optional human-in-the-loop gate before Telegram alerts. |
@@ -73,7 +73,7 @@ Every listing receives a weighted score from five dimensions. The weights live i
 ## Features
 
 ### Multi-portal collection
-Idealista, Fotocasa, Pisos.com, Tecnocasa and Habitaclia can be scanned in one run. Each source fails independently, so a problem in one portal does not block the rest of the pipeline.
+Idealista, Fotocasa, Pisos.com, Tecnocasa, Habitaclia, Njuškalo and Kleinanzeigen can be scanned in one run. Each source fails independently, so a problem in one portal does not block the rest of the pipeline.
 
 ### Content-hash deduplication
 Listings are fingerprinted by content so repeated observations do not become repeated alerts. Only genuinely new inventory is promoted through the alert path.
@@ -105,9 +105,9 @@ Open a compatible coding agent in the project root, then say: *"Busco vivienda e
 | Source state | Meaning |
 | --- | --- |
 | `candidate` | Relevant portal discovered for this location; not integrated. |
-| `supported` | One of the five runtime adapters. |
+| `supported` | One of the 7 runtime adapters. |
 | `verified` | `sources validate URL --config FILE` parsed a sample for the requested municipality. |
-| `blocked` | Portal rejected access or needs a change; no bypass. |
+| `blocked` | Access failed or adaptation could not be verified; report the exact failure and offer an alternative source. |
 
 | Command | Action |
 | --- | --- |
@@ -120,9 +120,15 @@ Open a compatible coding agent in the project root, then say: *"Busco vivienda e
 | `uv run homeops status` | Inspect pipeline state and pending approvals. |
 | `uv run homeops approve LISTING_ID` | Approve a pending listing for alert delivery. |
 
-Runtime adapters: Idealista, Fotocasa, Pisos.com, Tecnocasa and Habitaclia. The runtime does not yet apply a strict post-filter for `max_price`/`min_area_sqm`; verified URLs must include those filters when the portal supports them. Current validation covers Spain, EUR and m². A new portal can be researched and proposed as an explicit tested adapter with fixture, parser, tests and real validation; it is never integrated automatically. Other countries require verified adapters plus local currency, units, UI, persistence and policy; this is not worldwide support.
+Runtime adapters: Idealista, Fotocasa, Pisos.com, Tecnocasa, Habitaclia, Njuškalo and Kleinanzeigen. `max_price`/`min_area_sqm` express search intent and URL filters, not strict runtime post-filters; verified URLs must include them when supported. Dated manual live validations may exist outside the suite; reproducible repository support requires fixtures/tests plus live `sources validate` during Clone & Talk. No versioned smoke or successful scan is promised while a portal blocks access.
 
-Human control remains explicit: keep secrets local in `.env`; give one consolidated confirmation before verified sources and profile changes are saved; resolve CAPTCHAs or blocks without bypasses; retain final human-in-the-loop approval for every opportunity.
+After one consolidated user confirmation, Clone & Talk handles a local portal without an adapter by inspecting permitted real HTML/JSON, selecting the cheapest permitted strategy, then having the repository agent implement and verify a shared-contract parser with registration and pagination, a sanitized fixture and TDD tests, real `sources validate`, and a smoke scan. Only then is the source `verified` and persisted. Failure means `blocked`, with the exact error and an alternative source. Runtime code does not generate unsafe dynamic adapters.
+
+Permitted anti-bot ladder: ordinary fetch; embedded JSON/state or public API; supported `Scrapling StealthyFetcher` with a real browser; an authorized browser using the user's own profile; alternative source. An authorized browser may execute page JavaScript within its isolation for rendering; never download or execute external scripts/binaries in shell or host. Respect ToS, robots, rate limits and legal basis. Do not automate or solve CAPTCHAs, use anti-CAPTCHA services, use another person's cookies, sessions or credentials, or evade authentication, paywalls or access controls. Do not use `solve_cloudflare=True` unless a future explicit decision identifies a Cloudflare challenge. A 403 does not warrant infinite retries.
+
+For cadastre or land-registry data, use `home_ops.cadastre.registry` to identify access. Cadastre, maps and valuation differ from the legal registry of ownership and encumbrances. Automate only through a public, tested runtime client; otherwise use manual or regional access. An absent country needs a tested official entry before support is claimed.
+
+Human control remains explicit: keep secrets local in `.env`; give one consolidated confirmation before verified sources and profile changes are saved; retain final human-in-the-loop approval for every opportunity.
 
 > 🔒 **Financial Privacy:** Cloud-hosted agents process chat content. Do not paste salaries, savings, bank details, or tokens into the conversation. Keep sensitive financial data and credentials local in `.env` or `user_profile.yml`; never include them in search URLs or send them to external property portals.
 

@@ -7,9 +7,14 @@ import sys
 import zipfile
 from pathlib import Path
 
+import pytest
 import yaml
 
 PROFILE = (
+    "market:\n"
+    "  currency: EUR\n"
+    "  area_unit: m2\n"
+    "  timezone: Europe/Madrid\n"
     "portal:\n"
     "  idealista_url: https://www.idealista.com/venta-viviendas/cadiz-provincia/\n"
     "  urls:\n"
@@ -157,6 +162,39 @@ def test_set_string_ok(tmp_path: Path) -> None:
     assert r.returncode == 0, r.stdout + r.stderr
     data = yaml.safe_load(p.read_text())
     assert data["alert_schedule"]["timezone"] == "Europe/London"
+
+
+@pytest.mark.parametrize(
+    ("raw_unit", "canonical"),
+    [
+        ("m²", "m2"),
+        ("m^2", "m2"),
+        ("sqm", "m2"),
+        ("sq m", "m2"),
+        ("ft²", "ft2"),
+        ("ft^2", "ft2"),
+        ("sqft", "ft2"),
+        ("sq ft", "ft2"),
+    ],
+)
+def test_set_market_area_unit_normalizes_aliases(
+    tmp_path: Path, raw_unit: str, canonical: str
+) -> None:
+    p = tmp_path / "user_profile.yml"
+    p.write_text(PROFILE)
+    r = _run("profile", "set", "market.area_unit", raw_unit, "--config", str(p), cwd=tmp_path)
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert yaml.safe_load(p.read_text())["market"]["area_unit"] == canonical
+
+
+def test_set_market_area_unit_unknown_remains_invalid(tmp_path: Path) -> None:
+    p = tmp_path / "user_profile.yml"
+    p.write_text(PROFILE)
+    r = _run("profile", "set", "market.area_unit", "yards", "--config", str(p), cwd=tmp_path)
+    assert r.returncode == 0, r.stdout + r.stderr
+    validation = _run("profile", "validate", "--config", str(p), cwd=tmp_path)
+    assert validation.returncode == 1
+    assert "area_unit" in (validation.stdout + validation.stderr)
 
 
 def test_set_invalid_key_rejected(tmp_path: Path) -> None:
