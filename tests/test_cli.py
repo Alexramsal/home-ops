@@ -520,6 +520,7 @@ class TestScanScamPersistence:
             Listing,
             ScheduleConfig,
             ScoringThresholds,
+            SearchConfig,
         )
 
         db = DuckDBConnection(":memory:")
@@ -527,6 +528,7 @@ class TestScanScamPersistence:
         db.init_db()
         mock_get_conn.return_value.__enter__.return_value = db
         mock_load_config.return_value.portal_url = "https://test.url"
+        mock_load_config.return_value.search = SearchConfig(max_price=500000.0, min_area_sqm=80.0)
         mock_load_config.return_value.scoring = ScoringThresholds(min_score_to_alert=0)
         mock_load_config.return_value.hitl_approval_required = False
         mock_load_config.return_value.telegram_chat_id = ""
@@ -585,6 +587,7 @@ class TestScanScamPersistence:
             Listing,
             ScheduleConfig,
             ScoringThresholds,
+            SearchConfig,
         )
 
         db = DuckDBConnection(":memory:")
@@ -592,6 +595,7 @@ class TestScanScamPersistence:
         db.init_db()
         mock_get_conn.return_value.__enter__.return_value = db
         mock_load_config.return_value.portal_url = "https://test.url"
+        mock_load_config.return_value.search = SearchConfig(max_price=500000.0, min_area_sqm=80.0)
         mock_load_config.return_value.scoring = ScoringThresholds(min_score_to_alert=95)
         mock_load_config.return_value.hitl_approval_required = False
         mock_load_config.return_value.telegram_chat_id = ""

@@ -86,7 +86,31 @@ def _run_scan(config_path: Path | None = None, force: bool = False) -> None:
         if not successful_portals and portal_errors:
             raise portal_errors[0][1]
 
-        # 2. Process new listings (if any)
+        # 2. Filter listings based on search criteria
+        if listings:
+            from home_ops.models.schema import SearchConfig
+            from home_ops.scraper.filter import filter_listings
+
+            search_cfg = getattr(config, "search", None)
+            if not isinstance(search_cfg, SearchConfig):
+                search_cfg = SearchConfig()
+
+            listings, filter_stats = filter_listings(listings, search_cfg)
+            if filter_stats.total_seen > 0:
+                total_rejected = (
+                    filter_stats.rejected_price
+                    + filter_stats.rejected_m2
+                    + filter_stats.rejected_missing_price
+                    + filter_stats.rejected_missing_m2
+                )
+                if total_rejected > 0:
+                    app_mod.console.print(
+                        f"  [yellow]Filtered {total_rejected}/{filter_stats.total_seen} listings "
+                        f"(price: {filter_stats.rejected_price}, m2: {filter_stats.rejected_m2}, "
+                        f"missing_price: {filter_stats.rejected_missing_price}, missing_m2: {filter_stats.rejected_missing_m2})[/yellow]"
+                    )
+
+        # 3. Process new listings (if any)
         from home_ops.analytics import zone_from_portal_url
 
         zone = zone_from_portal_url(portal_urls[0])
