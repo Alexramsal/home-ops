@@ -131,6 +131,23 @@ class TestColdStart:
     @patch("home_ops.scraper.lifecycle._get_fetcher")
     @patch("home_ops.scraper.lifecycle._fetch_page_text")
     @patch("home_ops.scraper.lifecycle.resolve_parser")
+    def test_cold_start_skips_perfdrive_challenge(
+        self, mock_resolve: MagicMock, mock_fetch: MagicMock, mock_get_fetcher: MagicMock
+    ) -> None:
+        """Challenge pages must not reach portal parsers."""
+        from home_ops.scraper.lifecycle import ChallengeDetectedError, cold_start
+
+        mock_parse = MagicMock()
+        mock_resolve.return_value = mock_parse
+        mock_fetch.return_value = "<script src='https://validate.perfdrive.com/captcha'></script>"
+
+        with pytest.raises(ChallengeDetectedError, match="PERFDRIVE"):
+            cold_start("https://www.idealista.com/test", max_pages=1)
+        mock_parse.assert_not_called()
+
+    @patch("home_ops.scraper.lifecycle._get_fetcher")
+    @patch("home_ops.scraper.lifecycle._fetch_page_text")
+    @patch("home_ops.scraper.lifecycle.resolve_parser")
     def test_cold_start_delegates_to_parse_listings(
         self, mock_resolve: MagicMock, mock_fetch: MagicMock, mock_get_fetcher: MagicMock
     ) -> None:
@@ -329,6 +346,23 @@ class TestSubsequentRun:
         return lambda conn, hashes: {h for h in hashes if h in known}
 
     # -- tests -------------------------------------------------------------
+
+    @patch("home_ops.scraper.lifecycle._get_fetcher")
+    @patch("home_ops.scraper.lifecycle._save_snapshot")
+    @patch("home_ops.scraper.lifecycle._fetch_page_text")
+    @patch("home_ops.scraper.lifecycle.resolve_parser")
+    def test_page1_challenge_preserves_snapshot(
+        self, mock_resolve: MagicMock, mock_fetch: MagicMock,
+        mock_snap: MagicMock, mock_get_fetcher: MagicMock,
+    ) -> None:
+        from home_ops.scraper.lifecycle import ChallengeDetectedError, subsequent_run
+
+        mock_resolve.return_value = MagicMock()
+        mock_fetch.return_value = "<script src='https://validate.perfdrive.com/captcha'></script>"
+        with pytest.raises(ChallengeDetectedError):
+            subsequent_run(BASE_URL, MagicMock())
+        mock_resolve.return_value.assert_not_called()
+        mock_snap.assert_not_called()
 
     @patch("home_ops.scraper.lifecycle._get_fetcher")
     @patch("home_ops.scraper.lifecycle._save_snapshot")
@@ -564,6 +598,28 @@ class TestSubsequentRun:
         with pytest.raises(RuntimeError):
             subsequent_run(BASE_URL, closed_db)
 
+
+    @patch("home_ops.scraper.lifecycle._get_fetcher")
+    @patch("home_ops.scraper.lifecycle._save_snapshot")
+    @patch("home_ops.scraper.lifecycle._fetch_page_text")
+    @patch("home_ops.scraper.lifecycle.resolve_parser")
+    @patch("home_ops.scraper.lifecycle.batch_known_hashes")
+    def test_page2_challenge_keeps_page1(
+        self, mock_batch: MagicMock, mock_resolve: MagicMock,
+        mock_fetch: MagicMock, mock_snap: MagicMock, mock_get_fetcher: MagicMock,
+    ) -> None:
+        from home_ops.scraper.lifecycle import subsequent_run
+
+        mock_resolve.return_value = lambda html: _PAGE1_MIXED
+        mock_fetch.side_effect = self._fetch_map({
+            BASE_URL: HTML_P1,
+            PAGE2_URL: "<script src='https://validate.perfdrive.com/captcha'></script>",
+        })
+        mock_batch.side_effect = self._dup_for(_KNOWN_SET)
+        result = subsequent_run(BASE_URL, MagicMock(), max_pages=2)
+        assert len(result) == 1
+        assert result[0].content_hash == "07e82d979e4fc0bf"
+        mock_snap.assert_called_once()
 
 class TestEnrichment:
     """Detail-page enrichment: sequential spacing, fetch cap, and degrade."""

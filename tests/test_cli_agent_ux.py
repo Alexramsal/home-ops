@@ -75,3 +75,10 @@ def test_adapter_verify_unsupported() -> None:
     result = runner.invoke(app, ["adapter", "verify", "unsupported_portal"])
     assert result.exit_code == 1
     assert "unsupported_portal" in result.output
+
+
+def test_profile_module_does_not_export_location_app() -> None:
+    import home_ops.cli.profile as profile_mod
+
+    assert not hasattr(profile_mod, "location_app")
+    assert not hasattr(profile_mod, "location_inspect")

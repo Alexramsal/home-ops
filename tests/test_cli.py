@@ -311,6 +311,28 @@ class TestRunScan:
     @patch("home_ops.cli.app.get_connection")
     @patch("home_ops.scraper.lifecycle.subsequent_run")
     @patch("home_ops.scraper.lifecycle.cold_start")
+    def test_run_scan_with_challenge_failure(
+        self, mock_cold_start: MagicMock, mock_subsequent_run: MagicMock,
+        mock_get_conn: MagicMock,
+    ) -> None:
+        from home_ops.scraper.lifecycle import ChallengeDetectedError
+
+        mock_db = MagicMock()
+        mock_db.conn.execute.return_value.fetchone.return_value = (0,)
+        mock_get_conn.return_value.__enter__.return_value = mock_db
+        mock_cold_start.side_effect = ChallengeDetectedError(
+            "PERFDRIVE", "https://test.url", "blocked"
+        )
+        with patch("home_ops.cli.app.load_config") as mock_load:
+            mock_load.return_value.portal_url = "https://test.url"
+            mock_load.return_value.hitl_approval_required = False
+            mock_load.return_value.telegram_chat_id = ""
+            with pytest.raises(ChallengeDetectedError):
+                _run_scan()
+
+    @patch("home_ops.cli.app.get_connection")
+    @patch("home_ops.scraper.lifecycle.subsequent_run")
+    @patch("home_ops.scraper.lifecycle.cold_start")
     def test_run_scan_with_cold_start_failure(
         self,
         mock_cold_start: MagicMock,

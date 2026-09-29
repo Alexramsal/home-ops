@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING, Any, cast
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 from home_ops.models.schema import Listing
+from home_ops.scraper.challenge import detect_challenge
 from home_ops.scraper.dedup import batch_known_hashes, compute_content_hash
 from home_ops.scraper.parse import parse_detail, parse_listings  # noqa: F401
 from home_ops.scraper.portals import PORTALS, portal_for_url, resolve_parser
@@ -22,6 +23,17 @@ if TYPE_CHECKING:
     from home_ops.models.data_storage import DuckDBConnection
 
 logger = logging.getLogger(__name__)
+
+
+class ChallengeDetectedError(RuntimeError):
+    """A portal challenge blocked the initial search page."""
+
+    def __init__(self, kind: str, url: str, details: str) -> None:
+        self.kind = kind
+        self.url = url
+        self.details = details
+        super().__init__(f"{kind} challenge at {url}: {details}")
+
 
 SNAPSHOT_DIR = Path("data/snapshots")
 
@@ -229,6 +241,20 @@ def cold_start(url: str, zone: str = "", max_pages: int = 5) -> list[Listing]:
             logger.error("Page %d fetch failed: %s — stopping pagination", page_num, exc)
             raise
 
+        challenge = detect_challenge(html, url=page_url)
+        if challenge.detected:
+            if page_num == 1:
+                raise ChallengeDetectedError(
+                    challenge.kind.value, page_url, challenge.details
+                )
+            logger.warning(
+                "Challenge %s at %s: stopping pagination: %s",
+                challenge.kind.value,
+                page_url,
+                challenge.details,
+            )
+            break
+
         raw_dicts = parse(html)
         logger.info("Page %d: found %d listings", page_num, len(raw_dicts))
 
@@ -298,7 +324,20 @@ def subsequent_run(
             logger.error("Failed to fetch page %d: %s — aborting run", page_num, exc)
             raise
 
-        # Page 1 always updates snapshot
+        challenge = detect_challenge(html, url=page_url)
+        if challenge.detected:
+            if page_num == 1:
+                raise ChallengeDetectedError(
+                    challenge.kind.value, page_url, challenge.details
+                )
+            logger.warning(
+                "Challenge %s at %s: stopping pagination: %s",
+                challenge.kind.value,
+                page_url,
+                challenge.details,
+            )
+            break
+
         if page_num == 1:
             _save_snapshot(snap, html)
 
