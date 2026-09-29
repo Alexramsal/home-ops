@@ -37,6 +37,88 @@ ConfigInitOpt = Annotated[
 
 profile_app = typer.Typer(help="Validate or update user_profile.yml.")
 
+COUNTRY_DEFAULTS: dict[str, tuple[str, str, str, str]] = {
+    "ES": ("España", "EUR", "Europe/Madrid", "m2"),
+    "DE": ("Deutschland", "EUR", "Europe/Berlin", "m2"),
+    "HR": ("Hrvatska", "EUR", "Europe/Zagreb", "m2"),
+    "FR": ("France", "EUR", "Europe/Paris", "m2"),
+    "US": ("United States", "USD", "America/New_York", "ft2"),
+    "GB": ("United Kingdom", "GBP", "Europe/London", "m2"),
+    "UK": ("United Kingdom", "GBP", "Europe/London", "m2"),
+    "IT": ("Italia", "EUR", "Europe/Rome", "m2"),
+    "PT": ("Portugal", "EUR", "Europe/Lisbon", "m2"),
+    "NL": ("Nederland", "EUR", "Europe/Amsterdam", "m2"),
+    "BE": ("Belgique", "EUR", "Europe/Brussels", "m2"),
+    "AT": ("Österreich", "EUR", "Europe/Vienna", "m2"),
+    "PL": ("Polska", "PLN", "Europe/Warsaw", "m2"),
+    "CZ": ("Česko", "CZK", "Europe/Prague", "m2"),
+    "IE": ("Ireland", "EUR", "Europe/Dublin", "m2"),
+    "SE": ("Sverige", "SEK", "Europe/Stockholm", "m2"),
+    "GR": ("Ελλάδα", "EUR", "Europe/Athens", "m2"),
+}
+
+location_app = typer.Typer(help="Inspect location and national gate settings.")
+
+
+@location_app.command("inspect")
+def location_inspect(
+    location_arg: Annotated[
+        str | None,
+        typer.Argument(
+            metavar="[COUNTRY_CODE_OR_MUNICIPALITY]",
+            help="ISO 2-letter country code or municipality name",
+        ),
+    ] = None,
+    config_path: ConfigOpt = None,
+) -> None:
+    """Inspect country/municipality location metadata and national gates status."""
+    import home_ops.cli.app as app_mod
+    from home_ops.cadastre.registry import get_cadastre_provider
+
+    municipality: str | None = None
+    code: str = "ES"
+
+    if location_arg:
+        arg_stripped = location_arg.strip()
+        if len(arg_stripped) == 2 and arg_stripped.isalpha():
+            code = arg_stripped.upper()
+        else:
+            municipality = arg_stripped
+            code = "ES"
+    else:
+        try:
+            from home_ops.config.loader import load_config
+            cfg = load_config(config_path)
+            code = cfg.search.country_code
+        except Exception:
+            code = "ES"
+
+    provider = get_cadastre_provider(code)
+    c_info = COUNTRY_DEFAULTS.get(code)
+
+    if c_info:
+        country_name, currency, timezone, area_unit = c_info
+    elif provider:
+        country_name = provider.country_name
+        currency, timezone, area_unit = "EUR", "UTC", "m2"
+    else:
+        country_name = code
+        currency, timezone, area_unit = "EUR", "UTC", "m2"
+
+    if code == "ES":
+        gates_status = "Active / Activados (Catastro: activo, Euríbor/Affordability: activo, Protección fiscal: activo)"
+    else:
+        gates_status = f"Inactive / Desactivados (country_code '{code}' != 'ES': Catastro, Euríbor/Affordability y Protección fiscal desactivados)"
+
+    if municipality:
+        app_mod.console.print(f"[bold]Municipio:[/bold] {municipality}")
+    app_mod.console.print(f"[bold]País / Country:[/bold] {code} ({country_name})")
+    app_mod.console.print(f"[bold]Moneda / Currency:[/bold] {currency}")
+    app_mod.console.print(f"[bold]Zona Horaria / Timezone:[/bold] {timezone}")
+    app_mod.console.print(f"[bold]Unidad Superficie / Area Unit:[/bold] {area_unit}")
+    app_mod.console.print(f"[bold]Gates Nacionales / National Gates:[/bold] {gates_status}")
+
+
 
 @profile_app.command("init")
 def profile_init(config_path: ConfigInitOpt = None) -> None:

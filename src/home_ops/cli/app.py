@@ -19,6 +19,7 @@ import typer
 from rich.console import Console
 
 from home_ops.alerter.telegram import TelegramAlerter
+from home_ops.cli.agent_ux import adapter_app, cadastre_app, location_app
 from home_ops.cli.analytics import _display_analytics
 from home_ops.cli.daemon import (
     _get_daily_alert_count,
@@ -72,6 +73,9 @@ console = Console()
 
 app.add_typer(profile_app, name="profile")
 app.add_typer(sources_app, name="sources")
+app.add_typer(location_app, name="location")
+app.add_typer(cadastre_app, name="cadastre")
+app.add_typer(adapter_app, name="adapter")
 
 # Shared Typer argument/option types
 ConfigPathArg = Annotated[
