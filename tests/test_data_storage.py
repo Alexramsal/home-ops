@@ -3,6 +3,7 @@
 Tests use in-memory DuckDB database to avoid file I/O.
 """
 
+from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
 
@@ -257,6 +258,50 @@ class TestNewTables:
         ).fetchone()
         assert count is not None
         assert count[0] == 2
+
+
+class TestRecordScrapingRun:
+    """Tests for record_scraping_run method on DuckDBConnection."""
+
+    def test_record_scraping_run_returns_id_and_stores_data(self, db: DuckDBConnection) -> None:
+        """GIVEN start/finish timestamps and counts WHEN record_scraping_run THEN returns id and persists data."""
+        start = datetime(2026, 3, 30, 10, 0, 0, tzinfo=UTC)
+        finish = datetime(2026, 3, 30, 10, 5, 0, tzinfo=UTC)
+
+        run_id = db.record_scraping_run(
+            started_at=start,
+            finished_at=finish,
+            listings_found=15,
+            listings_new=5,
+            alerts_sent=2,
+            status="success",
+        )
+
+        assert isinstance(run_id, int)
+        assert run_id > 0
+
+        row = db.conn.execute(
+            "SELECT started_at, finished_at, listings_found, listings_new, alerts_sent, status "
+            "FROM scraping_runs WHERE id = ?",
+            [run_id],
+        ).fetchone()
+
+        assert row is not None
+        assert row[2] == 15
+        assert row[3] == 5
+        assert row[4] == 2
+        assert row[5] == "success"
+
+    def test_record_scraping_run_default_status(self, db: DuckDBConnection) -> None:
+        """GIVEN status omitted WHEN record_scraping_run THEN defaults to 'success'."""
+        start = datetime(2026, 3, 30, 10, 0, 0, tzinfo=UTC)
+        finish = datetime(2026, 3, 30, 10, 1, 0, tzinfo=UTC)
+
+        run_id = db.record_scraping_run(start, finish, 0, 0, 0)
+
+        row = db.conn.execute("SELECT status FROM scraping_runs WHERE id = ?", [run_id]).fetchone()
+        assert row is not None
+        assert row[0] == "success"
 
 
 class TestInsertListing:

@@ -2,14 +2,34 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
+
+from rich.table import Table
 
 from home_ops.enricher import catastro, llm_analyzer
 from home_ops.models.schema import Listing
 from home_ops.scorer import RulesScorer
 from home_ops.scorer.models import AcquisitionCostBreakdown, ScoreResult
+from home_ops.scraper.portals import portal_for_url
+
+
+@dataclass
+class PortalStats:
+    vistos: int = 0
+    aceptados: int = 0
+    rej_precio: int = 0
+    rej_m2: int = 0
+    rej_missing_price: int = 0
+    rej_missing_m2: int = 0
+    duplicados: int = 0
+    nuevos: int = 0
+
+    @property
+    def rej_sin_datos(self) -> int:
+        return self.rej_missing_price + self.rej_missing_m2
 
 
 def _scam_fields_from_result(
@@ -35,6 +55,10 @@ def _scam_fields_from_result(
 def _run_scan(config_path: Path | None = None, force: bool = False) -> None:
     """Orchestrate one pipeline scan cycle."""
     import home_ops.cli.app as app_mod
+
+    started_at = datetime.now(UTC)
+    alerts_sent = 0
+    portal_stats: dict[str, PortalStats] = {}
 
     config = app_mod.load_config(config_path)
 
@@ -66,6 +90,10 @@ def _run_scan(config_path: Path | None = None, force: bool = False) -> None:
             else 5
         )
         for purl in portal_urls:
+            p_obj = portal_for_url(purl)
+            default_pname = p_obj.name if p_obj else "idealista"
+            portal_stats.setdefault(default_pname, PortalStats())
+
             app_mod.console.print(f"[bold]Scanning {purl}...[/bold]")
             row = db.conn.execute("SELECT COUNT(*) FROM listings").fetchone()
             has_data = row is not None and row[0] is not None and row[0] != 0
@@ -81,34 +109,55 @@ def _run_scan(config_path: Path | None = None, force: bool = False) -> None:
                 portal_errors.append((purl, exc))
                 continue
             successful_portals += 1
+            for item in new:
+                if not item.portal:
+                    item.portal = default_pname
+                portal_stats.setdefault(item.portal, PortalStats())
             listings.extend(new)
 
         if not successful_portals and portal_errors:
             raise portal_errors[0][1]
 
         # 2. Filter listings based on search criteria
-        if listings:
+        all_raw_listings = listings
+        listings = []
+        if all_raw_listings:
             from home_ops.models.schema import SearchConfig
-            from home_ops.scraper.filter import filter_listings
+            from home_ops.scraper.filter import filter_listing
 
             search_cfg = getattr(config, "search", None)
             if not isinstance(search_cfg, SearchConfig):
                 search_cfg = SearchConfig()
 
-            listings, filter_stats = filter_listings(listings, search_cfg)
-            if filter_stats.total_seen > 0:
-                total_rejected = (
-                    filter_stats.rejected_price
-                    + filter_stats.rejected_m2
-                    + filter_stats.rejected_missing_price
-                    + filter_stats.rejected_missing_m2
+            total_rejected = 0
+            for listing in all_raw_listings:
+                p_st = portal_stats.setdefault(listing.portal or "idealista", PortalStats())
+                p_st.vistos += 1
+                is_ok, reason = filter_listing(listing, search_cfg)
+                if is_ok:
+                    p_st.aceptados += 1
+                    listings.append(listing)
+                else:
+                    total_rejected += 1
+                    if reason == "price_exceeded":
+                        p_st.rej_precio += 1
+                    elif reason == "area_insufficient":
+                        p_st.rej_m2 += 1
+                    elif reason == "missing_price":
+                        p_st.rej_missing_price += 1
+                    elif reason == "missing_m2":
+                        p_st.rej_missing_m2 += 1
+
+            if total_rejected > 0:
+                rej_price = sum(s.rej_precio for s in portal_stats.values())
+                rej_m2 = sum(s.rej_m2 for s in portal_stats.values())
+                rej_missing_p = sum(s.rej_missing_price for s in portal_stats.values())
+                rej_missing_m = sum(s.rej_missing_m2 for s in portal_stats.values())
+                app_mod.console.print(
+                    f"  [yellow]Filtered {total_rejected}/{len(all_raw_listings)} listings "
+                    f"(price: {rej_price}, m2: {rej_m2}, "
+                    f"missing_price: {rej_missing_p}, missing_m2: {rej_missing_m})[/yellow]"
                 )
-                if total_rejected > 0:
-                    app_mod.console.print(
-                        f"  [yellow]Filtered {total_rejected}/{filter_stats.total_seen} listings "
-                        f"(price: {filter_stats.rejected_price}, m2: {filter_stats.rejected_m2}, "
-                        f"missing_price: {filter_stats.rejected_missing_price}, missing_m2: {filter_stats.rejected_missing_m2})[/yellow]"
-                    )
 
         # 3. Process new listings (if any)
         from home_ops.analytics import zone_from_portal_url
@@ -121,6 +170,8 @@ def _run_scan(config_path: Path | None = None, force: bool = False) -> None:
             ] = []
 
             for listing in listings:
+                p_st = portal_stats.setdefault(listing.portal or "idealista", PortalStats())
+
                 # Append-only price observation: recorded for EVERY seen
                 # listing (new or duplicate) so price evolution over time
                 # is captured even though listings itself is deduped.
@@ -135,8 +186,9 @@ def _run_scan(config_path: Path | None = None, force: bool = False) -> None:
 
                 if inserted_id is not None:
                     listing.id = inserted_id
-
-                if inserted_id is None:
+                    p_st.nuevos += 1
+                else:
+                    p_st.duplicados += 1
                     app_mod.console.print(
                         f"  [dim]Skipped (duplicate): {listing.address or listing.url}[/dim]"
                     )
@@ -255,6 +307,7 @@ def _run_scan(config_path: Path | None = None, force: bool = False) -> None:
                     [listing.content_hash, status],
                 )
                 if success:
+                    alerts_sent += 1
                     app_mod.console.print(
                         f"  [green]Alert sent:[/green] {listing.address or listing.url} "
                         f"(score {score:.1f})"
@@ -331,6 +384,7 @@ def _run_scan(config_path: Path | None = None, force: bool = False) -> None:
 
             success = alerter.send_alert(listing, score, flags, score_result.cost_breakdown)
             if success:
+                alerts_sent += 1
                 db.conn.execute(
                     "UPDATE pending_approvals SET alerted = TRUE WHERE listing_id = ?",
                     [listing_id],
@@ -432,6 +486,7 @@ def _run_scan(config_path: Path | None = None, force: bool = False) -> None:
                 [status, datetime.now(UTC).replace(tzinfo=None), queued_id],
             )
             if success:
+                alerts_sent += 1
                 app_mod.console.print(
                     f"  [green]Alert sent (queued re-attempt):[/green] "
                     f"{listing.address or listing.url} (score {score_value:.1f})"
@@ -441,5 +496,42 @@ def _run_scan(config_path: Path | None = None, force: bool = False) -> None:
                     f"  [red]Alert failed (queued re-attempt):[/red] "
                     f"{listing.address or listing.url} (score {score_value:.1f})"
                 )
+
+        # Print Rich breakdown table per portal
+        table = Table(title="Desglose de Scraping por Portal")
+        table.add_column("Portal", style="cyan")
+        table.add_column("Vistos", justify="right")
+        table.add_column("Aceptados", justify="right")
+        table.add_column("Rej. Precio", justify="right")
+        table.add_column("Rej. m2", justify="right")
+        table.add_column("Rej. Sin datos", justify="right")
+        table.add_column("Duplicados", justify="right")
+        table.add_column("Nuevos", justify="right")
+
+        for p_name, p_st in portal_stats.items():
+            table.add_row(
+                p_name,
+                str(p_st.vistos),
+                str(p_st.aceptados),
+                str(p_st.rej_precio),
+                str(p_st.rej_m2),
+                str(p_st.rej_sin_datos),
+                str(p_st.duplicados),
+                str(p_st.nuevos),
+            )
+
+        app_mod.console.print(table)
+
+        finished_at = datetime.now(UTC)
+        listings_found = sum(s.vistos for s in portal_stats.values())
+        listings_new = sum(s.nuevos for s in portal_stats.values())
+        db.record_scraping_run(
+            started_at=started_at,
+            finished_at=finished_at,
+            listings_found=listings_found,
+            listings_new=listings_new,
+            alerts_sent=alerts_sent,
+            status="success",
+        )
 
     app_mod.console.print("[bold green]Pipeline scan complete.[/bold green]")

@@ -1454,3 +1454,74 @@ class TestNextRunTimeDailyModeDST:
         result = _next_run_time(sched, last_run=last_run, now=now)
         expected = datetime(2026, 6, 18, 14, 0, 0, tzinfo=UTC)
         assert result == expected
+
+
+class TestScanObservability:
+    """Tests for scan execution observability run recording and Rich breakdown table."""
+
+    @patch("home_ops.scraper.lifecycle.subsequent_run")
+    @patch("home_ops.cli.app.load_config")
+    @patch("home_ops.cli.app.get_connection")
+    @patch("home_ops.scraper.lifecycle.cold_start")
+    def test_scan_records_scraping_run_and_displays_portal_table(
+        self,
+        mock_cold_start: MagicMock,
+        mock_get_conn: MagicMock,
+        mock_load_config: MagicMock,
+        mock_subsequent: MagicMock,
+    ) -> None:
+        """GIVEN scan execution WHEN completed THEN records run in DB and prints portal breakdown table."""
+        from home_ops.models.data_storage import DuckDBConnection
+        from home_ops.models.schema import (
+            Config,
+            Listing,
+            SearchConfig,
+        )
+
+        db = DuckDBConnection(":memory:")
+        db.connect()
+        db.init_db()
+        mock_get_conn.return_value.__enter__.return_value = db
+
+        cfg = Config(
+            portal_url="https://idealista.com/buscar",
+            portal_urls=["https://idealista.com/buscar"],
+            search=SearchConfig(max_price=200000.0, min_area_sqm=50.0),
+            hitl_approval_required=False,
+            telegram_chat_id="",
+            telegram_bot_token="",
+        )
+        mock_load_config.return_value = cfg
+
+        # Return two listings from scraper: one accepted, one rejected by price
+        l1 = Listing(
+            content_hash="obs_001",
+            url="https://idealista.com/1",
+            price=Decimal("150000"),
+            m2=60.0,
+            portal="idealista",
+        )
+        l2 = Listing(
+            content_hash="obs_002",
+            url="https://idealista.com/2",
+            price=Decimal("300000"),  # > max_price 200000
+            m2=60.0,
+            portal="idealista",
+        )
+        mock_cold_start.return_value = [l1, l2]
+
+        result = runner.invoke(app, ["scan"])
+        assert result.exit_code == 0
+
+        # Verify Rich table output columns present
+        assert "Desglose de Scraping por Portal" in result.output
+        assert "Vistos" in result.output
+        assert "Precio" in result.output
+        assert "Nuevos" in result.output
+
+        # Verify scraping_runs record created in DB
+        rows = db.conn.execute("SELECT listings_found, listings_new, status FROM scraping_runs").fetchall()
+        assert len(rows) == 1
+        assert rows[0][0] == 2  # 2 seen (vistos)
+        assert rows[0][1] == 1  # 1 new (l1 inserted)
+        assert rows[0][2] == "success"

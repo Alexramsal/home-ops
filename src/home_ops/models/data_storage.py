@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 from collections.abc import Generator
 from contextlib import contextmanager, suppress
+from datetime import datetime
 from decimal import Decimal
 from pathlib import Path
 from typing import Any
@@ -226,6 +227,33 @@ class DuckDBConnection:
                 observed_at TIMESTAMP DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')
             );
         """)
+
+    def record_scraping_run(
+        self,
+        started_at: datetime,
+        finished_at: datetime,
+        listings_found: int,
+        listings_new: int,
+        alerts_sent: int,
+        status: str = "success",
+    ) -> int:
+        """Record a scraping execution run and return its inserted ID."""
+        try:
+            result = self.conn.execute(
+                """
+                INSERT INTO scraping_runs (
+                    started_at, finished_at, listings_found, listings_new, alerts_sent, status
+                ) VALUES (?, ?, ?, ?, ?, ?)
+                RETURNING id;
+                """,
+                [started_at, finished_at, listings_found, listings_new, alerts_sent, status],
+            )
+            row = result.fetchone()
+            if row is None or row[0] is None:
+                raise RuntimeError("Failed to retrieve inserted scraping_run id")
+            return int(row[0])
+        except Exception as exc:
+            raise RuntimeError(f"Failed to record scraping run: {exc}") from exc
 
     def record_price_observation(
         self,
