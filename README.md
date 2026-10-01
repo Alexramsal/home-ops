@@ -105,7 +105,7 @@ Open a compatible coding agent in the project root, then say: *"Busco vivienda e
 | Source state | Meaning |
 | --- | --- |
 | `candidate` | Relevant portal discovered for this location; not integrated. |
-| `supported` | One of the 8 runtime adapters. |
+| `supported` | One of the 14 runtime adapters (Idealista, Fotocasa, Pisos.com, Tecnocasa, Habitaclia, Njuškalo, Kleinanzeigen, Bien’ici, Green-Acres, Funda, ERA, Mäklarhuset, Nieruchomosci-online, Sreality, Daft). |
 | `verified` | `sources validate URL --config FILE` parsed a sample for the requested municipality. |
 | `blocked` | Access failed or adaptation could not be verified; report the exact failure and offer an alternative source. |
 
@@ -120,7 +120,7 @@ Open a compatible coding agent in the project root, then say: *"Busco vivienda e
 | `uv run homeops status` | Inspect pipeline state and pending approvals. |
 | `uv run homeops approve LISTING_ID` | Approve a pending listing for alert delivery. |
 
-Runtime adapters (8): Idealista, Fotocasa, Pisos.com, Tecnocasa, Habitaclia, Njuškalo (Croatia), Kleinanzeigen (Germany) and Bien’ici (France). `max_price`/`min_area_sqm` express search intent in URLs and are applied as strict runtime post-filters (`home_ops.scraper.filter`); verified URLs must include them when supported. An ingested listing or link may later be removed or blocked; availability is never eternal. Dated manual live validations may exist outside the suite; reproducible repository support requires fixtures/tests plus live `sources validate` during Clone & Talk. No versioned smoke or successful scan is promised while a portal blocks access.
+Runtime adapters (14): Idealista, Fotocasa, Pisos.com, Tecnocasa, Habitaclia, Njuškalo (Croatia), Kleinanzeigen (Germany), Bien’ici (France), Green-Acres (UK/IT/PT/AT/GR), Funda (Netherlands), ERA (Belgium), Mäklarhuset (Sweden), Nieruchomosci-online (Poland), Sreality (Czechia) and Daft (Ireland). `max_price`/`min_area_sqm` express search intent in URLs and are applied as strict runtime post-filters (`home_ops.scraper.filter`); verified URLs must include them when supported. An ingested listing or link may later be removed or blocked; availability is never eternal. Dated manual live validations may exist outside the suite; reproducible repository support requires fixtures/tests plus live `sources validate` during Clone & Talk. No versioned smoke or successful scan is promised while a portal blocks access.
 
 After one consolidated user confirmation, Clone & Talk handles a local portal without an adapter by inspecting permitted real HTML/JSON, selecting the cheapest permitted strategy, then having the repository agent implement and verify a shared-contract parser with registration and pagination, a sanitized fixture and TDD tests, real `sources validate`, and a smoke scan. Only then is the source `verified` and persisted. Failure means `blocked`, with the exact error and an alternative source. Runtime code does not generate unsafe dynamic adapters.
 
@@ -211,6 +211,9 @@ Home-Ops keeps **secrets** and **preferences** separate:
 | `homeops profile init` | Create a profile without overwriting an existing one. |
 | `homeops profile validate` | Validate `user_profile.yml` structure and values. |
 | `homeops profile set KEY VALUE` | Atomically update a configuration key (e.g. `scoring.price_median`). |
+| `homeops location inspect <loc>` | Geocode location (ISO/municipality) via Nominatim. |
+| `homeops cadastre show <country>` | Inspect cadastral registry provider for a country. |
+| `homeops adapter verify <portal>` | Verify parser engine registration for a supported portal. |
 | `homeops sources validate URL` | Test if a URL belongs to a supported portal and parses listings. |
 | `homeops sources add URL` | Validate and append a URL to `portal.urls` in `user_profile.yml`. |
 | `homeops scan` | Run a full scrape → dedup → score → alert cycle. |
@@ -245,9 +248,9 @@ home-ops/
 
 The codebase is built under strict senior engineering guidelines:
 
-- **858 Automated Tests**: Unit, integration, CLI, TUI, web and scraper parsers.
-- **85.17% Test Coverage**: Far exceeding the 70% CI coverage budget.
-- **Ruff clean; Mypy clean** across 51 source files.
+- **896 Automated Tests**: Unit, integration, CLI, TUI, web and scraper parsers across 15 countries.
+- **84.25% Test Coverage**: Far exceeding the 70% CI coverage budget.
+- **Ruff clean; Mypy clean** across 58 source files.
 - **Modular CLI Architecture**: Single-responsibility submodules (`scan_runner`, `daemon`, `status`, `analytics`, `profile`, `sources`).
 - **Strict Static Typing & Linting**: `mypy` zero-errors and `ruff` formatting.
 
