@@ -71,6 +71,16 @@ def _paginate_kleinanzeigen(url: str, page_num: int) -> str:
     return f"{url}?seite={page_num}"
 
 
+def _paginate_green_acres(url: str, page_num: int) -> str:
+    if page_num == 1:
+        return url
+    parsed = urlparse(url)
+    qs = parse_qs(parsed.query, keep_blank_values=True)
+    qs["p_n"] = [str(page_num)]
+    parsed = parsed._replace(query=urlencode(qs, doseq=True))
+    return urlunparse(parsed)
+
+
 def _paginate_bienici(url: str, page_num: int) -> str:
     if page_num == 1:
         return url
@@ -139,6 +149,12 @@ PORTALS: dict[str, Portal] = {
         parser="home_ops.scraper.kleinanzeigen",
         paginate=_paginate_kleinanzeigen,
     ),
+    "green_acres": Portal(
+        name="green_acres",
+        domains=("green-acres.co.uk", "green-acres.it", "green-acres.pt", "green-acres.at", "green-acres.gr"),
+        parser="home_ops.scraper.green_acres",
+        paginate=_paginate_green_acres,
+    ),
     "bienici": Portal(
         name="bienici",
         domains=("bienici.com",),
@@ -165,6 +181,8 @@ def portal_for_url(url: str) -> Portal | None:
     for portal in PORTALS.values():
         for d in portal.domains:
             if host == d or host.endswith("." + d):
+                if portal.name == "green_acres" and parsed.scheme != "https":
+                    return None
                 return portal
 
     return None

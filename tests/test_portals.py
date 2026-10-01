@@ -12,7 +12,7 @@ from home_ops.scraper.portals import (
 
 
 def test_portals_registry_contains_expected_portals() -> None:
-    expected_names = {"idealista", "fotocasa", "pisos", "tecnocasa", "habitaclia", "njuskalo", "kleinanzeigen", "bienici"}
+    expected_names = {"idealista", "fotocasa", "pisos", "tecnocasa", "habitaclia", "njuskalo", "kleinanzeigen", "green_acres", "bienici"}
     assert set(PORTALS.keys()) == expected_names
     for p in PORTALS.values():
         assert isinstance(p, Portal)
@@ -37,12 +37,17 @@ def test_portals_registry_contains_expected_portals() -> None:
         ("https://www.kleinanzeigen.de/s-wohnung-kaufen/berlin/c196l3331", "kleinanzeigen"),
         ("https://kleinanzeigen.de/s-wohnung-kaufen/", "kleinanzeigen"),
         ("https://www.bienici.com/recherche/achat", "bienici"),
+        ("https://www.green-acres.it/property-for-sale/milano", "green_acres"),
     ],
 )
 def test_portal_for_url_valid_domains(url: str, expected_portal: str) -> None:
     portal = portal_for_url(url)
     assert portal is not None
     assert portal.name == expected_portal
+
+
+def test_green_acres_rejects_http() -> None:
+    assert portal_for_url("http://www.green-acres.it/property-for-sale/milano") is None
 
 
 @pytest.mark.parametrize(
@@ -81,6 +86,7 @@ def test_portal_for_url_rejects_impostors_and_invalid_schemes(url: str) -> None:
         ("habitaclia", "https://www.habitaclia.com/comprar/s", 2, "https://www.habitaclia.com/comprar/s/2"),
         ("njuskalo", "https://www.njuskalo.hr/prodaja-stanova", 1, "https://www.njuskalo.hr/prodaja-stanova"),
         ("njuskalo", "https://www.njuskalo.hr/prodaja-stanova", 2, "https://www.njuskalo.hr/prodaja-stanova?page=2"),
+        ("green_acres", "https://www.green-acres.it/property-for-sale/milano", 2, "https://www.green-acres.it/property-for-sale/milano?p_n=2"),
     ],
 )
 def test_portal_pagination(portal_name: str, url: str, page_num: int, expected_url: str) -> None:
