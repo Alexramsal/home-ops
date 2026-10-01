@@ -203,6 +203,34 @@ class TestColdStart:
         # 3 pagination fetches (pages 1-3) + 2 enrichment detail fetches
         assert mock_fetch.call_count == 5
 
+    @patch("home_ops.scraper.lifecycle._enrich_new_listings")
+    @patch(
+        "home_ops.scraper.lifecycle._paginate_url",
+        return_value="https://www.idealista.com/search",
+    )
+    @patch("home_ops.scraper.lifecycle._get_fetcher")
+    @patch("home_ops.scraper.lifecycle._fetch_page_text")
+    @patch("home_ops.scraper.lifecycle.resolve_parser")
+    def test_cold_start_stops_on_repeated_page_url(
+        self, mock_resolve: MagicMock, mock_fetch: MagicMock,
+        mock_get_fetcher: MagicMock, mock_paginate: MagicMock,
+        mock_enrich: MagicMock,
+    ) -> None:
+        from home_ops.scraper.lifecycle import cold_start
+
+        mock_resolve.return_value = MagicMock(return_value=[{
+            "external_id": "1", "url": "/1", "address": "a", "price": None,
+            "m2": None, "rooms": None, "floor": None, "description": "",
+            "portal": "idealista", "price_includes_garage": False,
+            "garage_price": None, "certificado_energetico_present": None,
+        }])
+        mock_fetch.return_value = "<html>mock</html>"
+
+        result = cold_start("https://www.idealista.com/search", max_pages=5)
+
+        assert len(result) == 1
+        mock_fetch.assert_called_once()
+
     @patch("home_ops.scraper.lifecycle._get_fetcher")
     @patch("home_ops.scraper.lifecycle._fetch_page_text")
     @patch("home_ops.scraper.lifecycle.resolve_parser")
@@ -440,6 +468,29 @@ class TestSubsequentRun:
         result = subsequent_run(BASE_URL, MagicMock(), max_pages=1)
         assert len(result) == 1
         assert result[0].content_hash == "07e82d979e4fc0bf"
+
+    @patch("home_ops.scraper.lifecycle._enrich_new_listings")
+    @patch("home_ops.scraper.lifecycle._paginate_url", return_value=BASE_URL)
+    @patch("home_ops.scraper.lifecycle._get_fetcher")
+    @patch("home_ops.scraper.lifecycle._save_snapshot")
+    @patch("home_ops.scraper.lifecycle._fetch_page_text")
+    @patch("home_ops.scraper.lifecycle.resolve_parser")
+    @patch("home_ops.scraper.lifecycle.batch_known_hashes")
+    def test_subsequent_run_stops_on_repeated_page_url(
+        self, mock_batch: MagicMock, mock_resolve: MagicMock,
+        mock_fetch: MagicMock, mock_snap: MagicMock, mock_get_fetcher: MagicMock,
+        mock_paginate: MagicMock, mock_enrich: MagicMock,
+    ) -> None:
+        from home_ops.scraper.lifecycle import subsequent_run
+
+        mock_resolve.return_value = MagicMock(return_value=_PAGE1_MIXED)
+        mock_fetch.return_value = HTML_P1
+        mock_batch.side_effect = self._dup_for(set())
+
+        result = subsequent_run(BASE_URL, MagicMock(), max_pages=5, force=True)
+
+        assert len(result) == len(_PAGE1_MIXED)
+        mock_fetch.assert_called_once()
 
     @patch("home_ops.scraper.lifecycle._get_fetcher")
     @patch("home_ops.scraper.lifecycle._save_snapshot")

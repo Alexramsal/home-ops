@@ -229,10 +229,15 @@ def cold_start(url: str, zone: str = "", max_pages: int = 5) -> list[Listing]:
     first_page = True
 
     all_listings: list[Listing] = []
+    seen_page_urls: set[str] = set()
     page_num = 0
 
     for page_num in range(1, max_pages + 1):
         page_url = _paginate_url(url, portal, page_num)
+        if page_url in seen_page_urls:
+            logger.info("Page URL already seen: %s — stopping pagination", page_url)
+            break
+        seen_page_urls.add(page_url)
         logger.info("Fetching page %d: %s", page_num, page_url)
 
         try:
@@ -313,9 +318,14 @@ def subsequent_run(
     snap = SNAPSHOT_DIR / f"{portal}_{datetime.now().strftime('%Y%m%d')}.snap"
 
     new_listings: list[Listing] = []
+    seen_page_urls: set[str] = set()
 
     for page_num in range(1, max_pages + 1):
         page_url = _paginate_url(url, portal, page_num)
+        if page_url in seen_page_urls:
+            logger.info("Page URL already seen: %s — stopping pagination", page_url)
+            break
+        seen_page_urls.add(page_url)
 
         # Fetch
         try:

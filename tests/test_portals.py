@@ -12,7 +12,7 @@ from home_ops.scraper.portals import (
 
 
 def test_portals_registry_contains_expected_portals() -> None:
-    expected_names = {"idealista", "fotocasa", "pisos", "tecnocasa", "habitaclia", "njuskalo", "kleinanzeigen", "green_acres", "bienici"}
+    expected_names = {"idealista", "fotocasa", "pisos", "tecnocasa", "habitaclia", "njuskalo", "kleinanzeigen", "green_acres", "bienici", "funda", "era", "maklarhuset"}
     assert set(PORTALS.keys()) == expected_names
     for p in PORTALS.values():
         assert isinstance(p, Portal)
@@ -102,3 +102,11 @@ def test_resolve_parser() -> None:
 
     with pytest.raises(ValueError, match="Unknown portal"):
         resolve_parser("nonexistent")
+
+@pytest.mark.parametrize("name", ["funda", "era", "maklarhuset"])
+def test_new_portals_require_https_and_keep_page_url(name: str) -> None:
+    portal = PORTALS[name]
+    url = f"https://www.{portal.domains[0]}/search"
+    assert portal_for_url(url) is portal
+    assert portal_for_url(url.replace("https://", "http://")) is None
+    assert portal.paginate(url, 2) == url

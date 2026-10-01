@@ -161,6 +161,9 @@ PORTALS: dict[str, Portal] = {
         parser="home_ops.scraper.bienici",
         paginate=_paginate_bienici,
     ),
+    "funda": Portal("funda", ("funda.nl",), "home_ops.scraper.funda", lambda url, page: url),
+    "era": Portal("era", ("era.be",), "home_ops.scraper.era", lambda url, page: url),
+    "maklarhuset": Portal("maklarhuset", ("maklarhuset.se",), "home_ops.scraper.maklarhuset", lambda url, page: url),
 }
 
 
@@ -181,7 +184,7 @@ def portal_for_url(url: str) -> Portal | None:
     for portal in PORTALS.values():
         for d in portal.domains:
             if host == d or host.endswith("." + d):
-                if portal.name == "green_acres" and parsed.scheme != "https":
+                if portal.name in {"green_acres", "funda", "era", "maklarhuset"} and parsed.scheme != "https":
                     return None
                 return portal
 

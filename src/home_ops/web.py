@@ -35,6 +35,9 @@ _PORTAL_BASES = {
     "tecnocasa": "https://www.tecnocasa.es",
     "habitaclia": "https://www.habitaclia.com",
     "bienici": "https://www.bienici.com",
+    "funda": "https://www.funda.nl",
+    "era": "https://www.era.be",
+    "maklarhuset": "https://www.maklarhuset.se",
 }
 
 
