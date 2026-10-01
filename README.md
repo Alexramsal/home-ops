@@ -25,9 +25,9 @@ Finding a good home is a timing problem as much as a search problem. Home-Ops is
 
 | | What it does |
 | --- | --- |
-| 🔎 **Collect** | Scan supported international adapters (Idealista, Fotocasa, Pisos.com, Tecnocasa, Habitaclia, Njuškalo, Kleinanzeigen, Bien’ici, Green-Acres, Funda, ERA, Mäklarhuset, Nieruchomosci-online, Sreality, Daft). |
+| 🔎 **Collect** | Let the agent discover, adapt and validate relevant property portals for the requested location. |
 | 🧠 **Score** | Rank listings across five weighted dimensions based on your profile. |
-| 🛡️ **Enrich** | Optionally add LLM analysis and Catastro OVC cross-checks. |
+| 🛡️ **Enrich** | Optionally add LLM analysis and country-aware cadastral checks where supported. |
 | ✅ **Approve** | Keep an optional human-in-the-loop gate before Telegram alerts. |
 | 📊 **Measure** | Persist the pipeline in DuckDB and expose real metrics through the dashboard. |
 | ⏱️ **Automate** | Run daily or at intervals with quotas, catch-up recovery and overlap protection. |
@@ -49,7 +49,7 @@ flowchart LR
     H --> I[Public dashboard]
 
     B -. optional .-> J[LLM enrichment]
-    B -. optional .-> K[Catastro OVC]
+    B -. optional .-> K[Country-aware cadastre]
     J --> H
     K --> H
 ```
@@ -73,7 +73,7 @@ Every listing receives a weighted score from five dimensions. The weights live i
 ## Features
 
 ### Multi-portal collection
-Supported international adapters—including Idealista, Fotocasa, Pisos.com, Tecnocasa, Habitaclia, Njuškalo, Kleinanzeigen, Bien’ici, Green-Acres, Funda, ERA, Mäklarhuset, Nieruchomosci-online, Sreality and Daft—can be scanned in one run. Each source fails independently, so a problem in one portal does not block the rest of the pipeline.
+The agent starts from the requested country and municipality, discovers relevant local portals, and validates each source before use. Fifteen built-in adapters provide reusable coverage; unknown portals follow the explicit adaptation and test workflow. Each source fails independently, so one blocked portal does not stop the rest of the pipeline.
 
 ### Content-hash deduplication
 Listings are fingerprinted by content so repeated observations do not become repeated alerts. Only genuinely new inventory is promoted through the alert path.
@@ -105,7 +105,7 @@ Open a compatible coding agent in the project root, then say: *"Busco vivienda e
 | Source state | Meaning |
 | --- | --- |
 | `candidate` | Relevant portal discovered for this location; not integrated. |
-| `supported` | One of the 14 runtime adapters (Idealista, Fotocasa, Pisos.com, Tecnocasa, Habitaclia, Njuškalo, Kleinanzeigen, Bien’ici, Green-Acres, Funda, ERA, Mäklarhuset, Nieruchomosci-online, Sreality, Daft). |
+| `supported` | One of the 15 built-in runtime adapters. |
 | `verified` | `sources validate URL --config FILE` parsed a sample for the requested municipality. |
 | `blocked` | Access failed or adaptation could not be verified; report the exact failure and offer an alternative source. |
 
@@ -120,7 +120,7 @@ Open a compatible coding agent in the project root, then say: *"Busco vivienda e
 | `uv run homeops status` | Inspect pipeline state and pending approvals. |
 | `uv run homeops approve LISTING_ID` | Approve a pending listing for alert delivery. |
 
-Runtime adapters (14): Idealista, Fotocasa, Pisos.com, Tecnocasa, Habitaclia, Njuškalo (Croatia), Kleinanzeigen (Germany), Bien’ici (France), Green-Acres (UK/IT/PT/AT/GR), Funda (Netherlands), ERA (Belgium), Mäklarhuset (Sweden), Nieruchomosci-online (Poland), Sreality (Czechia) and Daft (Ireland). `max_price`/`min_area_sqm` express search intent in URLs and are applied as strict runtime post-filters (`home_ops.scraper.filter`); verified URLs must include them when supported. An ingested listing or link may later be removed or blocked; availability is never eternal. Dated manual live validations may exist outside the suite; reproducible repository support requires fixtures/tests plus live `sources validate` during Clone & Talk. No versioned smoke or successful scan is promised while a portal blocks access.
+Built-in runtime adapters (15): Idealista, Fotocasa, Pisos.com, Tecnocasa, Habitaclia, Njuškalo, Kleinanzeigen, Bien’ici, Green-Acres, Funda, ERA, Mäklarhuset, Nieruchomosci-online, Sreality and Daft. This is a starting set, not the product boundary: Clone & Talk selects sources by location and can extend the repository with a tested adapter when a relevant local portal is missing. `max_price`/`min_area_sqm` express search intent in URLs and are applied as strict runtime post-filters (`home_ops.scraper.filter`). An ingested listing or link may later be removed or blocked; availability is never eternal. Reproducible support requires fixtures/tests plus live `sources validate`; no successful scan is promised while a portal blocks access.
 
 After one consolidated user confirmation, Clone & Talk handles a local portal without an adapter by inspecting permitted real HTML/JSON, selecting the cheapest permitted strategy, then having the repository agent implement and verify a shared-contract parser with registration and pagination, a sanitized fixture and TDD tests, real `sources validate`, and a smoke scan. Only then is the source `verified` and persisted. Failure means `blocked`, with the exact error and an alternative source. Runtime code does not generate unsafe dynamic adapters.
 
@@ -248,7 +248,7 @@ home-ops/
 
 The codebase is built under strict senior engineering guidelines:
 
-- **896 Automated Tests**: Unit, integration, CLI, TUI, web and scraper parsers across 15 countries.
+- **896 Automated Tests**: Unit, integration, CLI, TUI, web and international scraper parsers.
 - **84.25% Test Coverage**: Far exceeding the 70% CI coverage budget.
 - **Ruff clean; Mypy clean** across 58 source files.
 - **Modular CLI Architecture**: Single-responsibility submodules (`scan_runner`, `daemon`, `status`, `analytics`, `profile`, `sources`).
