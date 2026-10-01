@@ -164,6 +164,24 @@ PORTALS: dict[str, Portal] = {
     "funda": Portal("funda", ("funda.nl",), "home_ops.scraper.funda", lambda url, page: url),
     "era": Portal("era", ("era.be",), "home_ops.scraper.era", lambda url, page: url),
     "maklarhuset": Portal("maklarhuset", ("maklarhuset.se",), "home_ops.scraper.maklarhuset", lambda url, page: url),
+    "nieruchomosci_online": Portal(
+        "nieruchomosci_online",
+        ("nieruchomosci-online.pl",),
+        "home_ops.scraper.nieruchomosci_online",
+        lambda url, page: url,
+    ),
+    "sreality": Portal(
+        "sreality",
+        ("sreality.cz", "www.sreality.cz"),
+        "home_ops.scraper.sreality",
+        lambda url, page: url,
+    ),
+    "daft": Portal(
+        "daft",
+        ("daft.ie", "www.daft.ie"),
+        "home_ops.scraper.daft",
+        lambda url, page: url,
+    ),
 }
 
 
@@ -182,11 +200,17 @@ def portal_for_url(url: str) -> Portal | None:
         return None
 
     for portal in PORTALS.values():
-        for d in portal.domains:
-            if host == d or host.endswith("." + d):
-                if portal.name in {"green_acres", "funda", "era", "maklarhuset"} and parsed.scheme != "https":
+        if portal.name in {"sreality", "daft"}:
+            if host in portal.domains:
+                if parsed.scheme != "https":
                     return None
                 return portal
+        else:
+            for d in portal.domains:
+                if host == d or host.endswith("." + d):
+                    if portal.name in {"green_acres", "funda", "era", "maklarhuset", "nieruchomosci_online"} and parsed.scheme != "https":
+                        return None
+                    return portal
 
     return None
 

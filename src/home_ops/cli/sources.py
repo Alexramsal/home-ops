@@ -118,7 +118,7 @@ def _municipality_matches(url: str, municipality: str) -> bool:
     if not municipality:
         return True
     parsed = urlparse(url)
-    target = _normalize(parsed.path + " " + parsed.query)
+    target = _normalize((parsed.hostname or "") + " " + parsed.path + " " + parsed.query)
     muni_norm = _normalize(municipality)
     return muni_norm in target
 

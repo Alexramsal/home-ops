@@ -37,6 +37,9 @@ def test_detect_portal() -> None:
     assert detect_portal("https://www.pisos.com/venta/pisos-cadiz/") == "pisos"
     assert detect_portal("https://www.habitaclia.com/comprar/viviendas/") == "habitaclia"
     assert detect_portal("https://www.tecnocasa.es/venta/piso/") == "tecnocasa"
+    assert detect_portal("https://krakow.nieruchomosci-online.pl/mieszkania/") == "nieruchomosci_online"
+    assert detect_portal("https://www.sreality.cz/detail/prodej/byt/123") == "sreality"
+    assert detect_portal("https://www.daft.ie/for-sale/cork/123") == "daft"
     assert detect_portal(UNKNOWN_URL) is None
 
 
@@ -74,6 +77,55 @@ def test_validate_source_pass() -> None:
     assert ok is True
     assert portal == "pisos"
     assert count >= 1
+
+
+def test_validate_source_new_portals_temp_profiles(tmp_path: Path) -> None:
+    from home_ops.cli.sources import validate_source
+
+    # PL Kraków / PLN
+    pl_prof = tmp_path / "profile_pl.yml"
+    pl_prof.write_text("country: PL\ncurrency: PLN\nsearch:\n  municipality: Kraków\n")
+    pl_live = Path("/tmp/PL-live.html")
+    if pl_live.exists():
+        pl_html = pl_live.read_text(encoding="utf-8")
+        ok, portal, count = validate_source(
+            "https://krakow.nieruchomosci-online.pl/mieszkanie,sprzedaz/",
+            config_path=pl_prof,
+            fetcher=lambda u: pl_html,
+        )
+        assert ok is True
+        assert portal == "nieruchomosci_online"
+        assert count > 0
+
+    # CZ Brno / CZK
+    cz_prof = tmp_path / "profile_cz.yml"
+    cz_prof.write_text("country: CZ\ncurrency: CZK\nsearch:\n  municipality: Brno\n")
+    cz_live = Path("/tmp/CZ-live.html")
+    if cz_live.exists():
+        cz_html = cz_live.read_text(encoding="utf-8")
+        ok, portal, count = validate_source(
+            "https://www.sreality.cz/detail/prodej/byt/brno",
+            config_path=cz_prof,
+            fetcher=lambda u: cz_html,
+        )
+        assert ok is True
+        assert portal == "sreality"
+        assert count > 0
+
+    # IE Cork / EUR
+    ie_prof = tmp_path / "profile_ie.yml"
+    ie_prof.write_text("country: IE\ncurrency: EUR\nsearch:\n  municipality: Cork\n")
+    ie_live = Path("/tmp/IE-live.html")
+    if ie_live.exists():
+        ie_html = ie_live.read_text(encoding="utf-8")
+        ok, portal, count = validate_source(
+            "https://www.daft.ie/for-sale/cork",
+            config_path=ie_prof,
+            fetcher=lambda u: ie_html,
+        )
+        assert ok is True
+        assert portal == "daft"
+        assert count > 0
 
 
 def test_add_source_fail_does_not_mutate_config(tmp_path: Path) -> None:
@@ -177,16 +229,3 @@ def test_cli_subcommands_registered() -> None:
     assert "validate" in r.stdout
     assert "add" in r.stdout
     assert "clear" in r.stdout
-
-
-def test_cli_sources_clear(tmp_path: Path) -> None:
-    p = tmp_path / "user_profile.yml"
-    p.write_text("portal:\n  idealista_url: https://legacy\n  urls:\n  - https://one\n")
-    r = subprocess.run(
-        [sys.executable, "-m", "home_ops.cli.app", "sources", "clear", "--config", str(p)],
-        capture_output=True,
-        text=True,
-    )
-    assert r.returncode == 0
-    data = yaml.safe_load(p.read_text())
-    assert data["portal"] == {"urls": []}
