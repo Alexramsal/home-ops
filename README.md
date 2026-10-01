@@ -25,7 +25,7 @@ Finding a good home is a timing problem as much as a search problem. Home-Ops is
 
 | | What it does |
 | --- | --- |
-| 🔎 **Collect** | Scan eight supported adapters independently: Idealista, Fotocasa, Pisos.com, Tecnocasa, Habitaclia, Njuškalo (Croatia), Kleinanzeigen (Germany) and Bien’ici (France). |
+| 🔎 **Collect** | Scan supported international adapters (Idealista, Fotocasa, Pisos.com, Tecnocasa, Habitaclia, Njuškalo, Kleinanzeigen, Bien’ici, Green-Acres, Funda, ERA, Mäklarhuset, Nieruchomosci-online, Sreality, Daft). |
 | 🧠 **Score** | Rank listings across five weighted dimensions based on your profile. |
 | 🛡️ **Enrich** | Optionally add LLM analysis and Catastro OVC cross-checks. |
 | ✅ **Approve** | Keep an optional human-in-the-loop gate before Telegram alerts. |
@@ -73,7 +73,7 @@ Every listing receives a weighted score from five dimensions. The weights live i
 ## Features
 
 ### Multi-portal collection
-Eight supported adapters—Idealista, Fotocasa, Pisos.com, Tecnocasa, Habitaclia, Njuškalo (Croatia), Kleinanzeigen (Germany) and Bien’ici (France)—can be scanned in one run. Each source fails independently, so a problem in one portal does not block the rest of the pipeline.
+Supported international adapters—including Idealista, Fotocasa, Pisos.com, Tecnocasa, Habitaclia, Njuškalo, Kleinanzeigen, Bien’ici, Green-Acres, Funda, ERA, Mäklarhuset, Nieruchomosci-online, Sreality and Daft—can be scanned in one run. Each source fails independently, so a problem in one portal does not block the rest of the pipeline.
 
 ### Content-hash deduplication
 Listings are fingerprinted by content so repeated observations do not become repeated alerts. Only genuinely new inventory is promoted through the alert path.
