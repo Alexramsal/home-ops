@@ -1,0 +1,45 @@
+{
+  "total": 24,
+  "from": 0,
+  "perPage": 24,
+  "realEstateAds": [
+    {
+      "id": "ag757613-550665272",
+      "city": "Paris 15e",
+      "postalCode": "75015",
+      "title": "Paris 15ᵉ – Convention / Saint-Lambert | 2 pièces de 30 m² à rénover",
+      "description": "Sanitized live description.",
+      "price": 265000,
+      "surfaceArea": 30,
+      "roomsQuantity": 2,
+      "floor": 2,
+      "photos": []
+    },
+    {
+      "id": "ag757613-550161659",
+      "city": "Paris 11e",
+      "postalCode": "75011",
+      "title": "2 pièces au calme, lumineux avec extérieur de 7 m² en vente à Paris 11e (75011)",
+      "description": "Sanitized live description.",
+      "price": 448997,
+      "surfaceArea": 38,
+      "roomsQuantity": 2,
+      "floor": 2,
+      "photos": []
+    },
+    {
+      "id": "ag757613-548662421",
+      "city": "Paris 20e",
+      "postalCode": "75020",
+      "title": "Elégant appartement familial et lumineux de 105m2 dans le quartier Charonne/Porte de Vincennes",
+      "description": "Sanitized live description.",
+      "price": 814000,
+      "surfaceArea": 105,
+      "roomsQuantity": 5,
+      "floor": 2,
+      "photos": []
+    }
+  ],
+  "googleStructuredData": {},
+  "leadingAds": []
+}

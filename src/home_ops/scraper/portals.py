@@ -71,6 +71,31 @@ def _paginate_kleinanzeigen(url: str, page_num: int) -> str:
     return f"{url}?seite={page_num}"
 
 
+def _paginate_bienici(url: str, page_num: int) -> str:
+    if page_num == 1:
+        return url
+    import json
+    parsed = urlparse(url)
+    qs = parse_qs(parsed.query, keep_blank_values=True)
+    filters_raw = qs.get("filters", ["{}"])[0]
+    try:
+        filters = json.loads(filters_raw)
+    except (json.JSONDecodeError, TypeError) as exc:
+        raise ValueError("Invalid Bien'ici filters") from exc
+    if not isinstance(filters, dict):
+        raise ValueError("Invalid Bien'ici filters")
+    page_size = filters.get("perPage") or filters.get("size") or 24
+    try:
+        page_size_int = int(page_size)
+    except (ValueError, TypeError):
+        page_size_int = 24
+    filters["from"] = (page_num - 1) * page_size_int
+    filters["page"] = page_num
+    qs["filters"] = [json.dumps(filters, separators=(",", ":"))]
+    parsed = parsed._replace(query=urlencode(qs, doseq=True))
+    return urlunparse(parsed)
+
+
 PORTALS: dict[str, Portal] = {
     "idealista": Portal(
         name="idealista",
@@ -113,6 +138,12 @@ PORTALS: dict[str, Portal] = {
         domains=("kleinanzeigen.de",),
         parser="home_ops.scraper.kleinanzeigen",
         paginate=_paginate_kleinanzeigen,
+    ),
+    "bienici": Portal(
+        name="bienici",
+        domains=("bienici.com",),
+        parser="home_ops.scraper.bienici",
+        paginate=_paginate_bienici,
     ),
 }
 

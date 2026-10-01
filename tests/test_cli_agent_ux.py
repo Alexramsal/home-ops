@@ -95,7 +95,7 @@ def test_cadastre_show_unknown() -> None:
 
 
 def test_adapter_verify_supported() -> None:
-    for name in ["idealista", "fotocasa", "pisos", "tecnocasa", "habitaclia", "njuskalo", "kleinanzeigen"]:
+    for name in ["idealista", "fotocasa", "pisos", "tecnocasa", "habitaclia", "njuskalo", "kleinanzeigen", "bienici"]:
         result = runner.invoke(app, ["adapter", "verify", name])
         assert result.exit_code == 0
         assert name in result.output

@@ -2,7 +2,7 @@
 
 # Home-Ops
 
-### Agentic property intelligence for Spain
+### Clone & Talk property intelligence for international home searches
 
 Scrape listings. Score opportunities. Verify signals. Get alerted before the good ones disappear.
 
@@ -21,11 +21,11 @@ Scrape listings. Score opportunities. Verify signals. Get alerted before the goo
 
 ## Why Home-Ops?
 
-Finding a good flat in Spain is a timing problem as much as a search problem. Home-Ops is built around one idea: **do the repetitive scouting automatically, surface the highest-signal listings, and keep the human in control of the final alert.**
+Finding a good home is a timing problem as much as a search problem. Home-Ops is built around one idea: **use an agent to discover and adapt relevant sources, surface high-signal listings, and keep the human in control of the final decision.** Coverage is country-aware, not a promise of universal scraping.
 
 | | What it does |
 | --- | --- |
-| 🔎 **Collect** | Scan Idealista, Fotocasa, Pisos.com, Tecnocasa, Habitaclia, Njuškalo and Kleinanzeigen independently. |
+| 🔎 **Collect** | Scan eight supported adapters independently: Idealista, Fotocasa, Pisos.com, Tecnocasa, Habitaclia, Njuškalo (Croatia), Kleinanzeigen (Germany) and Bien’ici (France). |
 | 🧠 **Score** | Rank listings across five weighted dimensions based on your profile. |
 | 🛡️ **Enrich** | Optionally add LLM analysis and Catastro OVC cross-checks. |
 | ✅ **Approve** | Keep an optional human-in-the-loop gate before Telegram alerts. |
@@ -73,7 +73,7 @@ Every listing receives a weighted score from five dimensions. The weights live i
 ## Features
 
 ### Multi-portal collection
-Idealista, Fotocasa, Pisos.com, Tecnocasa, Habitaclia, Njuškalo and Kleinanzeigen can be scanned in one run. Each source fails independently, so a problem in one portal does not block the rest of the pipeline.
+Eight supported adapters—Idealista, Fotocasa, Pisos.com, Tecnocasa, Habitaclia, Njuškalo (Croatia), Kleinanzeigen (Germany) and Bien’ici (France)—can be scanned in one run. Each source fails independently, so a problem in one portal does not block the rest of the pipeline.
 
 ### Content-hash deduplication
 Listings are fingerprinted by content so repeated observations do not become repeated alerts. Only genuinely new inventory is promoted through the alert path.
@@ -82,7 +82,7 @@ Listings are fingerprinted by content so repeated observations do not become rep
 Set `hitl_approval_required: true` to require manual approval before a listing can reach Telegram.
 
 ### Optional intelligence layers
-LLM enrichment can extract renovation state, orientation, zone noise and potential scam red flags. Catastro OVC enrichment can cross-check public cadastral attributes such as surface, age and usage. Both are opt-in and their results are persisted for traceability.
+Each result includes a direct link and a personalized deterministic 0–100 score. An optional LLM audit separately reviews condition/renovation, orientation, noise/area, red flags and recommendation; it does not replace the score. Neither output substitutes for viewing, an appraisal, a land-registry extract, a technical inspection or legal advice. Catastro OVC enrichment can cross-check public cadastral attributes where available.
 
 ### Analytics + dashboard
 The project ships with a FastAPI dashboard backed by the real DuckDB dataset. It exposes KPIs, a weekly snapshot and the ranked opportunity table, while `homeops analytics` provides price, €/m², portal and run-time aggregates.
@@ -100,12 +100,12 @@ git clone https://github.com/Alexramsal/Home-Ops.git && cd Home-Ops && uv sync
 
 Open a compatible coding agent in the project root, then say: *"Busco vivienda en Chiclana de la Frontera por menos de 250.000 €, mínimo 80 m² y preferiblemente garaje."* The agent confirms country, municipality, buy/rent, budget, surface and preferences.
 
-[`AGENTS.md`](AGENTS.md) is the operational contract. The CLI is the only validated write surface: no direct DuckDB queries or manual YAML edits.
+[`AGENTS.md`](AGENTS.md) is the operational contract. The CLI is the only validated write surface: no direct DuckDB queries or manual YAML edits. Clone & Talk means the agent discovers and adapts sources; the CLI is not a universal autonomous scraper.
 
 | Source state | Meaning |
 | --- | --- |
 | `candidate` | Relevant portal discovered for this location; not integrated. |
-| `supported` | One of the 7 runtime adapters. |
+| `supported` | One of the 8 runtime adapters. |
 | `verified` | `sources validate URL --config FILE` parsed a sample for the requested municipality. |
 | `blocked` | Access failed or adaptation could not be verified; report the exact failure and offer an alternative source. |
 
@@ -120,7 +120,7 @@ Open a compatible coding agent in the project root, then say: *"Busco vivienda e
 | `uv run homeops status` | Inspect pipeline state and pending approvals. |
 | `uv run homeops approve LISTING_ID` | Approve a pending listing for alert delivery. |
 
-Runtime adapters: Idealista, Fotocasa, Pisos.com, Tecnocasa, Habitaclia, Njuškalo and Kleinanzeigen. `max_price`/`min_area_sqm` express search intent in URLs and are applied as strict runtime post-filters (`home_ops.scraper.filter`); verified URLs must include them when supported. Dated manual live validations may exist outside the suite; reproducible repository support requires fixtures/tests plus live `sources validate` during Clone & Talk. No versioned smoke or successful scan is promised while a portal blocks access.
+Runtime adapters (8): Idealista, Fotocasa, Pisos.com, Tecnocasa, Habitaclia, Njuškalo (Croatia), Kleinanzeigen (Germany) and Bien’ici (France). `max_price`/`min_area_sqm` express search intent in URLs and are applied as strict runtime post-filters (`home_ops.scraper.filter`); verified URLs must include them when supported. An ingested listing or link may later be removed or blocked; availability is never eternal. Dated manual live validations may exist outside the suite; reproducible repository support requires fixtures/tests plus live `sources validate` during Clone & Talk. No versioned smoke or successful scan is promised while a portal blocks access.
 
 After one consolidated user confirmation, Clone & Talk handles a local portal without an adapter by inspecting permitted real HTML/JSON, selecting the cheapest permitted strategy, then having the repository agent implement and verify a shared-contract parser with registration and pagination, a sanitized fixture and TDD tests, real `sources validate`, and a smoke scan. Only then is the source `verified` and persisted. Failure means `blocked`, with the exact error and an alternative source. Runtime code does not generate unsafe dynamic adapters.
 
@@ -162,7 +162,7 @@ homeops status
 
 ## Dashboard and Modal deployment
 
-**Public read-only demo:** [home-ops-web on Modal](https://alejandrors21--home-ops-web-web.modal.run)
+**Public read-only demo:** [home-ops-web on Modal](https://alejandrors21--home-ops-web-web.modal.run). This is a historical, read-only snapshot dated 2026-09-16: 760 properties across five portals. It is not current and makes no claim about France.
 
 Run the read-only dashboard locally with:
 
@@ -245,8 +245,9 @@ home-ops/
 
 The codebase is built under strict senior engineering guidelines:
 
-- **705 Automated Tests**: Unit, integration, CLI, TUI, web and scraper parsers.
-- **84.4% Test Coverage**: Far exceeding the 70% CI coverage budget.
+- **858 Automated Tests**: Unit, integration, CLI, TUI, web and scraper parsers.
+- **85.17% Test Coverage**: Far exceeding the 70% CI coverage budget.
+- **Ruff clean; Mypy clean** across 51 source files.
 - **Modular CLI Architecture**: Single-responsibility submodules (`scan_runner`, `daemon`, `status`, `analytics`, `profile`, `sources`).
 - **Strict Static Typing & Linting**: `mypy` zero-errors and `ruff` formatting.
 
