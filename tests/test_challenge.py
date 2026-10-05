@@ -89,13 +89,13 @@ def test_detect_challenge_unknown_status() -> None:
 
 
 def test_validate_source_challenge_detected() -> None:
-    from home_ops.cli.sources import validate_source
+    from home_ops.cli.sources import VerificationState, validate_source
 
     cf_html = "<html><div id='cf-challenge'>Cloudflare check</div></html>"
-    ok, reason, count = validate_source(
+    result = validate_source(
         "https://www.pisos.com/venta/pisos-cadiz/",
         fetcher=lambda url: cf_html,
     )
-    assert ok is False
-    assert "Challenge detected" in reason or "CLOUDFLARE" in reason
-    assert count == 0
+    assert result.state is VerificationState.ERROR
+    assert "Challenge detected" in result.message or "CLOUDFLARE" in result.message
+    assert result.item_count == 0

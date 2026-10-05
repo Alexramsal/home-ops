@@ -9,9 +9,23 @@ computed straight from the persisted pipeline state.
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
+from urllib.parse import urlparse
 
 if TYPE_CHECKING:
     from home_ops.models.data_storage import DuckDBConnection
+
+# Path segments that are transaction types rather than geographic zones.
+_NON_LOCATION_SEGMENTS = {
+    "venta-viviendas",
+    "alquiler-viviendas",
+    "comprar",
+    "alquilar",
+    "for-sale",
+    "to-rent",
+}
+
+# Prefixes used by result-filter path segments (never a zone).
+_FILTER_PREFIXES = ("con-", "sin-", "precio-", "precios-")
 
 
 def zone_from_portal_url(portal_url: str) -> str | None:
@@ -19,15 +33,25 @@ def zone_from_portal_url(portal_url: str) -> str | None:
 
     e.g. ``https://www.idealista.com/venta-viviendas/chiclana-de-la-frontera-cadiz/``
     -> ``"chiclana-de-la-frontera-cadiz"``. Returns None when no location
-    segment exists (transaction-type segments excluded).
+    segment exists. Only path segments are inspected, so hostnames,
+    transaction types, query strings, numeric filter segments, and opaque
+    ID slugs (``piso-1234567``) never become zones.
     """
-    for segment in portal_url.split("/"):
-        if (
-            "-" in segment
-            and not segment.startswith("http")
-            and segment not in ("venta-viviendas", "alquiler-viviendas")
-        ):
-            return segment
+    parsed = urlparse(portal_url)
+    for segment in (parsed.path or "").split("/"):
+        seg = segment.strip()
+        if "-" not in seg or seg.lower() in _NON_LOCATION_SEGMENTS:
+            continue
+        if seg.lower().startswith(_FILTER_PREFIXES):
+            continue
+        if seg.endswith((".html", ".htm")):
+            seg = seg.rsplit(".", 1)[0]
+            if "-" not in seg:
+                continue
+        # A trailing purely numeric token marks an opaque listing/filter ID.
+        if seg.rsplit("-", 1)[-1].isdigit():
+            continue
+        return seg
     return None
 
 

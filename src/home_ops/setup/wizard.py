@@ -9,9 +9,11 @@ inputs + a live status line. Bottom row = Save / Cancel.
 
 from __future__ import annotations
 
+import unicodedata
 from pathlib import Path
 from typing import Any
 
+from rich.markup import escape
 from textual.app import App, ComposeResult
 from textual.containers import Grid, Horizontal, Vertical, VerticalScroll
 from textual.screen import ModalScreen
@@ -75,6 +77,14 @@ _FIELD_SPECS: dict[str, list[tuple[str, str, tuple[str, ...], bool | str]]] = {
         ("down", "Entrada (0-1)", ("buyer_protection", "down_payment_pct"), False),
         ("years", "Años hipoteca", ("buyer_protection", "mortgage_years"), False),
     ],
+    "Búsqueda": [
+        ("search_country", "País (ISO-2)", ("search", "country_code"), False),
+        ("search_municipality", "Municipio", ("search", "municipality"), False),
+        ("search_transaction", "Operación (buy|rent)", ("search", "transaction"), False),
+        ("search_max_price", "Precio máximo (€)", ("search", "max_price"), False),
+        ("search_min_area", "Superficie mínima (m²)", ("search", "min_area_sqm"), False),
+        ("search_garage", "Garaje preferido", ("search", "garage_preferred"), "boolean"),
+    ],
 }
 
 _DESCRIPTIONS = {
@@ -110,6 +120,10 @@ _DESCRIPTIONS = {
         "es": "Protección al comprador: ITP, esfuerzo hipotecario.",
         "en": "Buyer Protection: ITP, mortgage effort.",
     },
+    "Búsqueda": {
+        "es": "Intención de búsqueda: municipio, operación, presupuesto y superficie.",
+        "en": "Search intent: municipality, transaction, budget and area.",
+    },
 }
 
 _SECTION_LABELS = {
@@ -120,6 +134,7 @@ _SECTION_LABELS = {
     "Scoring": {"es": "Scoring", "en": "Scoring"},
     "Alertas": {"es": "Alertas", "en": "Alerts"},
     "Comprador": {"es": "Comprador", "en": "Buyer"},
+    "Búsqueda": {"es": "Búsqueda", "en": "Search"},
 }
 
 _LABELS = {
@@ -147,11 +162,19 @@ _LABELS = {
     "ceiling": {"es": "Esfuerzo hipotecario máx (0-1)", "en": "Max mortgage effort (0-1)"},
     "down": {"es": "Entrada (0-1)", "en": "Down payment (0-1)"},
     "years": {"es": "Años hipoteca", "en": "Mortgage years"},
+    "search_country": {"es": "País (ISO-2)", "en": "Country (ISO-2)"},
+    "search_municipality": {"es": "Municipio", "en": "Municipality"},
+    "search_transaction": {"es": "Operación (buy|rent)", "en": "Transaction (buy|rent)"},
+    "search_max_price": {"es": "Precio máximo (€)", "en": "Maximum price (€)"},
+    "search_min_area": {"es": "Superficie mínima (m²)", "en": "Minimum area (m²)"},
+    "search_garage": {"es": "Garaje preferido", "en": "Garage preferred"},
 }
 
 
 def _section_id(name: str) -> str:
-    return f"section-{name.lower()}"
+    normalized = unicodedata.normalize("NFKD", name)
+    ascii_name = "".join(c for c in normalized if not unicodedata.combining(c))
+    return f"section-{ascii_name.lower()}"
 
 
 class SetupWizard(ModalScreen[bool]):
@@ -296,6 +319,14 @@ class SetupWizard(ModalScreen[bool]):
         urls = [u.strip() for u in self._get_input("portals").splitlines() if u.strip()]
         s["portals"] = urls
 
+        search = s["search"]
+        search["country_code"] = self._get_input("search_country").strip() or "ES"
+        search["municipality"] = self._get_input("search_municipality").strip()
+        search["transaction"] = self._get_input("search_transaction").strip() or "buy"
+        search["max_price"] = self._search_num("search_max_price", search["max_price"])
+        search["min_area_sqm"] = self._search_num("search_min_area", search["min_area_sqm"])
+        search["garage_preferred"] = self._get_input("search_garage") in ("1", "true", "True")
+
         sc = s["scoring"]
         sc["min_score_to_alert"] = self._num("min_score", sc["min_score_to_alert"])
         sc["price_median"] = self._num("price_median", sc["price_median"])
@@ -325,12 +356,32 @@ class SetupWizard(ModalScreen[bool]):
             self._status(t("wizard.invalid_value", self.locale, fid=fid, default=default), error=True)
             return float(default)
 
+    def _search_num(self, fid: str, default: float) -> float:
+        """Parse a search numeric input, refusing to silently fall back.
+
+        Search intent must not be silently replaced by the prior/default
+        value: an invalid number raises so the save aborts unchanged.
+        """
+        raw = self._get_input(fid).strip()
+        if not raw:
+            return float(default)
+        try:
+            return float(raw)
+        except ValueError as exc:
+            raise ValueError(
+                t("wizard.invalid_value", self.locale, fid=fid, default=default)
+            ) from exc
+
     def _status(self, text: str, error: bool = False) -> None:
         color = "red" if error else "green"
-        self.query_one("#panel-status", Static).update(f"[{color}]{text}[/{color}]")
+        self.query_one("#panel-status", Static).update(f"[{color}]{escape(text)}[/{color}]")
 
     def action_save(self) -> None:
-        state = self._collect_state()
+        try:
+            state = self._collect_state()
+        except ValueError as exc:
+            self._status(str(exc), error=True)
+            return
         if not state["telegram"]["bot_token"]:
             self._status(
                 t("wizard.no_telegram_token", self.locale),

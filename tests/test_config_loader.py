@@ -30,16 +30,16 @@ def test_load_user_profile_valid() -> None:
 
 
 def test_portal_configs_include_cadiz_integrations() -> None:
-    """Both shipped profiles retain existing URLs and add the selected portals."""
+    """Shipped profile sources are municipality-scoped, not province-wide."""
     expected = {
-        "https://www.tecnocasa.es/venta/piso/andalucia/cadiz.html",
-        "https://www.tecnocasa.es/venta/casa/andalucia/cadiz.html",
-        "https://www.habitaclia.com/comprar/viviendas/cadiz-provincia/s",
+        "https://www.idealista.com/venta-viviendas/chiclana-de-la-frontera-cadiz/",
+        "https://www.fotocasa.es/es/comprar/viviendas/chiclana-de-la-frontera/todas-las-zonas/l",
+        "https://www.pisos.com/venta/pisos-chiclana-de-la-frontera/",
     }
     for path in (Path("config/user_profile.template.yml"),):
         urls = set(load_user_profile(path)["portal"]["urls"])
         assert expected <= urls
-        assert "https://www.idealista.com/venta-viviendas/cadiz-provincia/" in urls
+        assert "https://www.idealista.com/venta-viviendas/cadiz-provincia/" not in urls
 
 
 def test_load_user_profile_missing() -> None:

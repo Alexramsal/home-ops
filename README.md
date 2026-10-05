@@ -13,7 +13,7 @@ Scrape listings. Score opportunities. Verify signals. Get alerted before the goo
   <a href="https://github.com/Alexramsal/home-ops"><img src="https://img.shields.io/github/last-commit/alexramsal/home-ops?style=flat-square" alt="Last commit"></a>
 </p>
 
-<img src="assets/banner-home-ops.png" alt="Home-Ops banner" width="100%">
+<img src="assets/banner-home-ops.png" alt="Home-Ops — Clone & Talk property intelligence pipeline" width="100%">
 
 </div>
 
@@ -62,13 +62,13 @@ Every listing receives a weighted score from five dimensions. The weights live i
 
 | Dimension | Default weight | Signal |
 | --- | ---: | --- |
-| Price | **35%** | Price fit against your target range |
+| Price | **35%** | Price per m² compared against the rolling zone median (static `scoring.thresholds.price_median` fallback when the zone has no observations) |
 | Size | **25%** | Surface-area fit |
-| Energy certificate | **15%** | Energy-efficiency signal |
+| Energy certificate | **15%** | Energy-certificate **presence** (binary 0.0 or 1.0; the letter grade is not read) |
 | Garage | **10%** | Garage / parking preference |
-| Affordability | **15%** | Euribor-based affordability |
+| Affordability | **15%** | Euribor-based affordability, **Spain only**; disabled outside ES with its weight redistributed across the remaining active rules |
 
-**Alert threshold:** `70` by default.
+**Alert threshold:** `70` by default (`scoring.thresholds.min_score_to_alert`).
 
 ## Features
 
@@ -82,7 +82,7 @@ Listings are fingerprinted by content so repeated observations do not become rep
 Set `hitl_approval_required: true` to require manual approval before a listing can reach Telegram.
 
 ### Optional intelligence layers
-Each result includes a direct link and a personalized deterministic 0–100 score. An optional LLM audit separately reviews condition/renovation, orientation, noise/area, red flags and recommendation; it does not replace the score. Neither output substitutes for viewing, an appraisal, a land-registry extract, a technical inspection or legal advice. Catastro OVC enrichment can cross-check public cadastral attributes where available.
+Each result includes a direct link and a personalized deterministic 0–100 score. An optional LLM audit separately reviews condition/renovation, orientation, noise/area, red flags and recommendation; recognized LLM risk flags are then applied as deterministic subtractions inside that score rather than living only beside it. Neither output substitutes for viewing, an appraisal, a land-registry extract, a technical inspection or legal advice. Catastro OVC enrichment can cross-check public cadastral attributes where available. Outside Spain the affordability dimension is disabled and its weight is redistributed across the active rules.
 
 ### Analytics + dashboard
 The project ships with a FastAPI dashboard backed by the real DuckDB dataset. It exposes KPIs, a weekly snapshot and the ranked opportunity table, while `homeops analytics` provides price, €/m², portal and run-time aggregates.
@@ -112,7 +112,7 @@ Open a compatible coding agent in the project root, then say: *"Busco vivienda e
 | Command | Action |
 | --- | --- |
 | `uv run homeops profile init [--config FILE]` | Create a profile without overwriting an existing one. |
-| `uv run homeops profile set KEY VALUE [--config FILE]` | Atomically update a key: `search.max_price` is a search criterion/intent used when building sources; `scoring.price_median` is scoring threshold. |
+| `uv run homeops profile set KEY VALUE [--config FILE]` | Atomically update a key: `search.max_price` is a search criterion/intent used when building sources; `scoring.thresholds.price_median` is a scoring threshold. |
 | `uv run homeops profile validate [--config FILE]` | Validate `user_profile.yml`. |
 | `uv run homeops sources validate URL [--config FILE]` | Verify supported URL, parseable sample and municipality. |
 | `uv run homeops sources add URL [--config FILE]` | Persist a verified URL in `portal.urls`. |
@@ -160,6 +160,8 @@ homeops scan
 homeops status
 ```
 
+The dashboard and terminal wizard ship as optional extras: install `.[web]` for `homeops web` and `.[tui]` for `homeops setup` / `homeops tui`. `homeops setup` (requires `[tui]`) captures search intent (country, municipality, transaction, max price, min area, garage preference) alongside scoring, Telegram and LLM settings; it refuses invalid search values without touching the existing profile.
+
 ## Dashboard and Modal deployment
 
 **Public read-only demo:** [home-ops-web on Modal](https://alejandrors21--home-ops-web-web.modal.run). This is a historical, read-only snapshot dated 2026-09-16: 760 properties across five portals. It is not current and makes no claim about France.
@@ -169,10 +171,10 @@ Run the read-only dashboard locally with:
 ```bash
 homeops web
 # or
-uvicorn home_ops.web:app --port 8321
+uvicorn home_ops.web:app --port 8000
 ```
 
-Then open `http://localhost:8321`.
+Then open `http://localhost:8000`.
 
 Deploy the current read-only DuckDB snapshot to Modal with `modal deploy modal_app.py`.
 
@@ -196,8 +198,9 @@ Home-Ops keeps **secrets** and **preferences** separate:
 | Key | Default | Purpose |
 | --- | --- | --- |
 | `portal.urls` | `[idealista_url]` | Search URLs to scan across supported portals. |
-| `scoring.min_score_to_alert` | `70` | Minimum score before a listing becomes alert-eligible. |
-| `scoring.weights` | See scoring table | Per-dimension scoring weights. |
+| `search.country_code`, `search.municipality`, `search.transaction`, `search.max_price`, `search.min_area_sqm`, `search.garage_preferred` | See template | Search intent captured by `homeops setup`; `max_price`/`min_area_sqm` are strict runtime post-filters. |
+| `scoring.thresholds.min_score_to_alert` | `70` | Minimum score before a listing becomes alert-eligible. |
+| `scoring.thresholds.weights` | See scoring table | Per-dimension scoring weights. |
 | `hitl_approval_required` | `true` | Require approval before alerting. |
 | `alert_schedule.daily_time` | `"09:00"` | Daily alert time. |
 | `alert_schedule.timezone` | `"Europe/Madrid"` | Schedule timezone. |
@@ -210,7 +213,7 @@ Home-Ops keeps **secrets** and **preferences** separate:
 | --- | --- |
 | `homeops profile init` | Create a profile without overwriting an existing one. |
 | `homeops profile validate` | Validate `user_profile.yml` structure and values. |
-| `homeops profile set KEY VALUE` | Atomically update a configuration key (e.g. `scoring.price_median`). |
+| `homeops profile set KEY VALUE` | Atomically update a configuration key (e.g. `scoring.thresholds.price_median`). |
 | `homeops location inspect <loc>` | Geocode location (ISO/municipality) via Nominatim. |
 | `homeops cadastre show <country>` | Inspect cadastral registry provider for a country. |
 | `homeops adapter verify <portal>` | Verify parser engine registration for a supported portal. |

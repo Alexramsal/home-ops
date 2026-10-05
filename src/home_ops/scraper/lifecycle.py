@@ -16,6 +16,7 @@ from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 from home_ops.models.schema import Listing
 from home_ops.scraper.challenge import detect_challenge
 from home_ops.scraper.dedup import batch_known_hashes, compute_content_hash
+from home_ops.scraper.location import parsed_location_evidence
 from home_ops.scraper.parse import parse_detail, parse_listings  # noqa: F401
 from home_ops.scraper.portals import PORTALS, portal_for_url, resolve_parser
 
@@ -99,23 +100,25 @@ def _dicts_to_listings(dicts: list[dict[str, Any]], zone: str) -> list[Listing]:
         floor = item.get("floor")
         external_id = item.get("external_id")
         ch = compute_content_hash(portal, zone, m2, floor, external_id)
-        results.append(
-            Listing(
-                content_hash=ch,
-                url=item.get("url", ""),
-                address=item.get("address", ""),
-                external_id=item.get("external_id"),
-                m2=m2,
-                floor=floor,
-                price=item.get("price"),
-                garage_price=item.get("garage_price"),
-                price_includes_garage=bool(item.get("price_includes_garage", False)),
-                certificado_energetico_present=item.get("certificado_energetico_present"),
-                rooms=item.get("rooms"),
-                description=item.get("description", ""),
-                portal=portal,
-            )
+        evidence = parsed_location_evidence(item)
+        listing = Listing(
+            content_hash=ch,
+            url=item.get("url", ""),
+            address=item.get("address", ""),
+            external_id=item.get("external_id"),
+            m2=m2,
+            floor=floor,
+            price=item.get("price"),
+            garage_price=item.get("garage_price"),
+            price_includes_garage=bool(item.get("price_includes_garage", False)),
+            certificado_energetico_present=item.get("certificado_energetico_present"),
+            rooms=item.get("rooms"),
+            description=item.get("description", ""),
+            portal=portal,
         )
+        if evidence is not None and evidence.explicit:
+            listing._explicit_municipality = evidence.text
+        results.append(listing)
     return results
 
 

@@ -147,6 +147,46 @@ def test_set_nested_ok(tmp_path: Path) -> None:
     assert data["scoring"]["thresholds"]["min_score_to_alert"] == 70.0
 
 
+def test_template_init_then_canonical_set_preserves_siblings(tmp_path: Path) -> None:
+    p = tmp_path / "user_profile.yml"
+    r_init = _run("profile", "init", "--config", str(p), cwd=tmp_path)
+    assert r_init.returncode == 0, r_init.stdout + r_init.stderr
+    before = yaml.safe_load(p.read_text())
+
+    r = _run(
+        "profile", "set", "scoring.thresholds.price_median", "2100", "--config", str(p), cwd=tmp_path
+    )
+    assert r.returncode == 0, r.stdout + r.stderr
+    after = yaml.safe_load(p.read_text())
+    assert after["scoring"]["thresholds"]["price_median"] == 2100
+    assert (
+        after["scoring"]["thresholds"]["min_score_to_alert"]
+        == before["scoring"]["thresholds"]["min_score_to_alert"]
+    )
+    assert after["search"] == before["search"]
+
+
+@pytest.mark.parametrize(
+    ("obsolete", "canonical"),
+    [
+        ("scoring.price_median", "scoring.thresholds.price_median"),
+        ("scoring.min_score_to_alert", "scoring.thresholds.min_score_to_alert"),
+        ("scoring.weights", "scoring.thresholds.weights"),
+    ],
+)
+def test_obsolete_flat_scoring_key_suggests_canonical(
+    tmp_path: Path, obsolete: str, canonical: str
+) -> None:
+    p = tmp_path / "user_profile.yml"
+    p.write_text(PROFILE)
+    before = p.read_text()
+    r = _run("profile", "set", obsolete, "1", "--config", str(p), cwd=tmp_path)
+    assert r.returncode == 1
+    combined = r.stdout + r.stderr
+    assert canonical in combined
+    assert p.read_text() == before
+
+
 def test_set_string_ok(tmp_path: Path) -> None:
     p = tmp_path / "user_profile.yml"
     p.write_text(PROFILE)

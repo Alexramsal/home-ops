@@ -3,14 +3,21 @@
 from __future__ import annotations
 
 import logging
-import unicodedata
+from collections import Counter
+from dataclasses import dataclass
+from enum import StrEnum
 from pathlib import Path
 from typing import Annotated, Any
-from urllib.parse import urlparse
 
 import typer
 
 from home_ops.scraper.challenge import detect_challenge
+from home_ops.scraper.location import (
+    MunicipalityMatch,
+    classify_evidence,
+    normalize_text,
+    parsed_location_evidence,
+)
 from home_ops.scraper.portals import PORTALS, portal_for_url, resolve_parser
 
 ConfigOpt = Annotated[
@@ -28,20 +35,56 @@ ConfigOpt = Annotated[
 sources_app = typer.Typer(help="Validate candidate portal URLs or add them to user_profile.yml.")
 
 
+class VerificationState(StrEnum):
+    """Explicit outcome of comparing parsed source content against a town."""
+
+    VERIFIED = "verified"
+    MISMATCH = "mismatch"
+    AMBIGUOUS = "ambiguous"
+    ERROR = "error"
+
+
+@dataclass(frozen=True)
+class SourceValidation:
+    """Structured source-validation result with evidence distribution."""
+
+    state: VerificationState
+    portal: str | None
+    item_count: int
+    matched: int = 0
+    mismatched: int = 0
+    unresolved: int = 0
+    message: str = ""
+
+    @property
+    def resolved(self) -> int:
+        return self.matched + self.mismatched
+
+    @property
+    def share(self) -> float | None:
+        """Matching share over resolved items, or None when none resolved."""
+        return self.matched / self.resolved if self.resolved else None
+
+    @property
+    def verified(self) -> bool:
+        return self.state is VerificationState.VERIFIED
+
+
 @sources_app.command("validate")
 def sources_validate(
     url: str = typer.Argument(..., help="Portal search URL to validate"),
     config_path: ConfigOpt = None,
 ) -> None:
-    """Validate a candidate portal search URL (domain + parser + >=1 item)."""
+    """Validate a candidate portal search URL against configured municipality."""
     import home_ops.cli.app as app_mod
 
-    ok, reason, count = validate_source(url, config_path=config_path)
-    if not ok:
-        app_mod.console.print(f"[bold red]FAIL:[/bold red] {reason}")
+    result = validate_source(url, config_path=config_path)
+    if not result.verified:
+        app_mod.console.print(f"[bold red]FAIL:[/bold red] {result.message}")
         raise typer.Exit(code=1)
     app_mod.console.print(
-        f"[bold green]URL validada para portal {reason} (items={count})[/bold green]"
+        f"[bold green]Source verified for portal {result.portal} "
+        f"(items={result.item_count})[/bold green]"
     )
 
 
@@ -108,30 +151,111 @@ def _get_parser(portal_name: str) -> Any:
     return resolve_parser(portal_name)
 
 
-def _normalize(text: str) -> str:
-    nfkd = unicodedata.normalize("NFKD", text)
-    no_accents = "".join(c for c in nfkd if not unicodedata.combining(c)).lower()
-    return no_accents.replace("-", " ")
+def _resolve_municipality(config_path: Path | None) -> str:
+    try:
+        from home_ops.cli.profile import _resolve_profile_path
+        from home_ops.config.loader import load_config
+
+        resolved_path = _resolve_profile_path(config_path)
+        if resolved_path.exists():
+            return load_config(resolved_path).search.municipality
+    except Exception:
+        pass
+    return ""
 
 
-def _municipality_matches(url: str, municipality: str) -> bool:
+def _is_error(result: SourceValidation) -> bool:
+    return result.state is VerificationState.ERROR
+
+
+def _aggregate(
+    portal: str,
+    item_count: int,
+    counts: Counter[MunicipalityMatch],
+    municipality: str,
+    url: str,
+) -> SourceValidation:
+    matched = counts[MunicipalityMatch.MATCH]
+    mismatched = counts[MunicipalityMatch.MISMATCH]
+    unresolved = counts[MunicipalityMatch.UNRESOLVED]
+    resolved = matched + mismatched
+    distribution = f"parsed={item_count}, matched={matched}, mismatched={mismatched}, resolved={resolved}"
+
     if not municipality:
-        return True
-    parsed = urlparse(url)
-    target = _normalize((parsed.hostname or "") + " " + parsed.path + " " + parsed.query)
-    muni_norm = _normalize(municipality)
-    return muni_norm in target
+        return SourceValidation(
+            VerificationState.AMBIGUOUS,
+            portal,
+            item_count,
+            matched,
+            mismatched,
+            unresolved,
+            f"Ambiguous: no search.municipality configured to verify against ({distribution})",
+        )
+
+    if resolved == 0:
+        return SourceValidation(
+            VerificationState.AMBIGUOUS,
+            portal,
+            item_count,
+            matched,
+            mismatched,
+            unresolved,
+            f"Ambiguous: no resolved municipality evidence for '{municipality}' "
+            f"({distribution}, unresolved={unresolved}); provide a municipality-specific source "
+            "or verify manually",
+        )
+
+    share = matched / resolved
+    share_pct = f"{share * 100:.0f}%"
+    if normalize_text(municipality) in normalize_text(url):
+        url_note = " (URL text mentions the municipality; content evidence governs)"
+    else:
+        url_note = " (URL text does not mention the municipality; content evidence governs)"
+
+    if share > 0.5:
+        return SourceValidation(
+            VerificationState.VERIFIED,
+            portal,
+            item_count,
+            matched,
+            mismatched,
+            unresolved,
+            f"Verified: expected '{municipality}' ({distribution}, unresolved={unresolved}, "
+            f"share={share_pct}){url_note}",
+        )
+    if share == 0.5:
+        return SourceValidation(
+            VerificationState.AMBIGUOUS,
+            portal,
+            item_count,
+            matched,
+            mismatched,
+            unresolved,
+            f"Ambiguous: matching share for '{municipality}' is an exact tie "
+            f"({distribution}, unresolved={unresolved}, share={share_pct}){url_note}",
+        )
+    return SourceValidation(
+        VerificationState.MISMATCH,
+        portal,
+        item_count,
+        matched,
+        mismatched,
+        unresolved,
+        f"Municipality mismatch: expected '{municipality}' ({distribution}, "
+        f"unresolved={unresolved}, share={share_pct}){url_note}",
+    )
 
 
 def validate_source(
     url: str,
     config_path: Path | str | None = None,
     fetcher: Any = None,
-) -> tuple[bool, str, int]:
-    """Validate candidate portal URL.
+) -> SourceValidation:
+    """Validate a candidate portal URL against parsed listing location evidence.
 
-    Returns (success, portal_or_reason, items_count).
-    Does NOT bypass Cloudflare/anti-bot protection beyond standard fetcher.
+    Returns an explicit :class:`SourceValidation`. URL text is diagnostic
+    only; parsed content evidence governs the ``verified`` contract. Does
+    NOT bypass Cloudflare/anti-bot protection beyond the standard fetcher.
     """
     if fetcher is None and config_path is not None and not isinstance(config_path, (str, Path)):
         fetcher = config_path
@@ -141,22 +265,14 @@ def validate_source(
 
     portal = portal_for_url(url)
     if not portal:
-        return False, f"Unsupported domain (must be one of: {', '.join(SUPPORTED_PORTALS)})", 0
+        return SourceValidation(
+            VerificationState.ERROR,
+            None,
+            0,
+            message=f"Unsupported domain (must be one of: {', '.join(SUPPORTED_PORTALS)})",
+        )
 
-    municipality = ""
-    try:
-        from home_ops.cli.profile import _resolve_profile_path
-        from home_ops.config.loader import load_config
-
-        resolved_path = _resolve_profile_path(config_path)
-        if resolved_path.exists():
-            cfg = load_config(resolved_path)
-            municipality = cfg.search.municipality
-    except Exception:
-        pass
-
-    if municipality and not _municipality_matches(url, municipality):
-        return False, f"URL does not contain expected municipality '{municipality}'", 0
+    municipality = _resolve_municipality(config_path)
 
     if fetcher is None:
         try:
@@ -165,7 +281,9 @@ def validate_source(
             fetcher_impl = _get_fetcher()
             html = _fetch_page_text(fetcher_impl, url)
         except Exception as exc:
-            return False, f"Fetch failed: {exc}", 0
+            return SourceValidation(
+                VerificationState.ERROR, portal.name, 0, message=f"Fetch failed: {exc}"
+            )
     else:
         try:
             if callable(fetcher):
@@ -177,35 +295,59 @@ def validate_source(
                 raw_html = str(fetcher)
             html = str(raw_html)
         except Exception as exc:
-            return False, f"Fetch failed: {exc}", 0
+            return SourceValidation(
+                VerificationState.ERROR, portal.name, 0, message=f"Fetch failed: {exc}"
+            )
 
     if not html or not html.strip():
-        return False, "Empty page response", 0
+        return SourceValidation(
+            VerificationState.ERROR, portal.name, 0, message="Empty page response"
+        )
 
     challenge = detect_challenge(html, url=url)
     if challenge.detected:
-        return False, f"Anti-bot challenge detected: {challenge.kind.value} ({challenge.details})", 0
+        return SourceValidation(
+            VerificationState.ERROR,
+            portal.name,
+            0,
+            message=f"Anti-bot challenge detected: {challenge.kind.value} ({challenge.details})",
+        )
 
     try:
         parser = resolve_parser(portal.name)
         items = parser(html)
     except Exception as exc:
-        return False, f"Parse failed for {portal.name}: {exc}", 0
+        return SourceValidation(
+            VerificationState.ERROR,
+            portal.name,
+            0,
+            message=f"Parse failed for {portal.name}: {exc}",
+        )
 
     if not items:
-        return False, f"Parsed 0 items from {portal.name} page", 0
+        return SourceValidation(
+            VerificationState.ERROR,
+            portal.name,
+            0,
+            message=f"Parsed 0 items from {portal.name} page",
+        )
 
-    return True, portal.name, len(items)
+    counts: Counter[MunicipalityMatch] = Counter()
+    for item in items:
+        counts[classify_evidence(parsed_location_evidence(item), municipality)] += 1
+
+    return _aggregate(portal.name, len(items), counts, municipality, url)
 
 
 def add_source(config_path: Path, url: str, fetcher: Any = None) -> tuple[bool, str]:
     """Validate and append URL to portal.urls in user_profile.yml.
 
-    Atomic write; fails fast and does not mutate config on FAIL.
+    Only a ``verified`` source can mutate the profile. Atomic write; fails
+    fast and does not mutate config on FAIL.
     """
-    ok, reason, count = validate_source(url, config_path=config_path, fetcher=fetcher)
-    if not ok:
-        return False, f"Validation failed: {reason}"
+    result = validate_source(url, config_path=config_path, fetcher=fetcher)
+    if not result.verified:
+        return False, f"Validation failed: {result.message}"
 
     from home_ops.cli.profile import _read_yaml, _write_yaml_atomic
 
@@ -217,11 +359,14 @@ def add_source(config_path: Path, url: str, fetcher: Any = None) -> tuple[bool, 
         portal_block["urls"] = urls
 
     if url in urls:
-        return True, f"URL already present in portal.urls (validated {count} items from {reason})"
+        return True, (
+            f"URL already present in portal.urls (validated {result.item_count} items "
+            f"from {result.portal})"
+        )
 
     urls.append(url)
     _write_yaml_atomic(config_path, data)
-    return True, f"Added {url} to portal.urls (validated {count} items from {reason})"
+    return True, f"Added {url} to portal.urls (validated {result.item_count} items from {result.portal})"
 
 
 def clear_sources(config_path: Path) -> bool:

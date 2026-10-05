@@ -9,6 +9,7 @@ from pathlib import Path
 
 from rich.table import Table
 
+from home_ops.analytics import zone_from_portal_url
 from home_ops.enricher import catastro, llm_analyzer
 from home_ops.models.schema import Listing
 from home_ops.scorer import RulesScorer
@@ -24,6 +25,7 @@ class PortalStats:
     rej_m2: int = 0
     rej_missing_price: int = 0
     rej_missing_m2: int = 0
+    rej_municipality: int = 0
     duplicados: int = 0
     nuevos: int = 0
     status: str = "pending"
@@ -32,6 +34,19 @@ class PortalStats:
     @property
     def rej_sin_datos(self) -> int:
         return self.rej_missing_price + self.rej_missing_m2
+
+
+@dataclass(frozen=True)
+class SourcedListing:
+    """Scan-local provenance record: listing + its source URL and derived zone.
+
+    Never persisted and never merged into the public ``Listing`` model; it
+    exists only for the duration of one scan.
+    """
+
+    listing: Listing
+    source_url: str
+    zone: str | None
 
 
 def _scam_fields_from_result(
@@ -81,7 +96,7 @@ def _run_scan(config_path: Path | None = None, force: bool = False) -> str:
             if isinstance(configured_urls, (list, tuple)) and configured_urls
             else [config.portal_url]
         )
-        listings: list[Listing] = []
+        listings: list[SourcedListing] = []
         had_portal_errors = False
         successful_portals = 0
         scraper_cfg = getattr(config, "scraper", None)
@@ -137,14 +152,18 @@ def _run_scan(config_path: Path | None = None, force: bool = False) -> str:
                 if item_stats.status not in {"blocked", "error", "partial"}:
                     item_stats.status = "ok"
                     item_stats.detail = ""
-            listings.extend(new)
+            source_zone = zone_from_portal_url(purl)
+            listings.extend(
+                SourcedListing(listing=item, source_url=purl, zone=source_zone)
+                for item in new
+            )
 
         if not successful_portals and had_portal_errors:
             raise RuntimeError("All configured portal scans failed") from None
 
         # 2. Filter listings based on search criteria
         all_raw_listings = listings
-        listings = []
+        accepted_records: list[SourcedListing] = []
         if all_raw_listings:
             from home_ops.models.schema import SearchConfig
             from home_ops.scraper.filter import filter_listing
@@ -154,13 +173,17 @@ def _run_scan(config_path: Path | None = None, force: bool = False) -> str:
                 search_cfg = SearchConfig()
 
             total_rejected = 0
-            for listing in all_raw_listings:
+            for record in all_raw_listings:
+                listing = record.listing
                 p_st = portal_stats.setdefault(listing.portal or "idealista", PortalStats())
                 p_st.vistos += 1
-                is_ok, reason = filter_listing(listing, search_cfg)
+                explicit_location = getattr(listing, "_explicit_municipality", None)
+                is_ok, reason = filter_listing(
+                    listing, search_cfg, explicit_location=explicit_location
+                )
                 if is_ok:
                     p_st.aceptados += 1
-                    listings.append(listing)
+                    accepted_records.append(record)
                 else:
                     total_rejected += 1
                     if reason == "price_exceeded":
@@ -171,29 +194,31 @@ def _run_scan(config_path: Path | None = None, force: bool = False) -> str:
                         p_st.rej_missing_price += 1
                     elif reason == "missing_m2":
                         p_st.rej_missing_m2 += 1
+                    elif reason == "municipality_mismatch":
+                        p_st.rej_municipality += 1
 
             if total_rejected > 0:
                 rej_price = sum(s.rej_precio for s in portal_stats.values())
                 rej_m2 = sum(s.rej_m2 for s in portal_stats.values())
                 rej_missing_p = sum(s.rej_missing_price for s in portal_stats.values())
                 rej_missing_m = sum(s.rej_missing_m2 for s in portal_stats.values())
+                rej_muni = sum(s.rej_municipality for s in portal_stats.values())
                 app_mod.console.print(
                     f"  [yellow]Filtered {total_rejected}/{len(all_raw_listings)} listings "
                     f"(price: {rej_price}, m2: {rej_m2}, "
-                    f"missing_price: {rej_missing_p}, missing_m2: {rej_missing_m})[/yellow]"
+                    f"missing_price: {rej_missing_p}, missing_m2: {rej_missing_m}, "
+                    f"municipality: {rej_muni})[/yellow]"
                 )
 
         # 3. Process new listings (if any)
-        from home_ops.analytics import zone_from_portal_url
-
-        zone = zone_from_portal_url(portal_urls[0])
-
-        if listings:
+        if accepted_records:
             scored: list[
                 tuple[Listing, float, list[str], AcquisitionCostBreakdown | None]
             ] = []
 
-            for listing in listings:
+            for record in accepted_records:
+                listing = record.listing
+                zone = record.zone
                 p_st = portal_stats.setdefault(listing.portal or "idealista", PortalStats())
 
                 # Append-only price observation: recorded for EVERY seen
@@ -371,8 +396,11 @@ def _run_scan(config_path: Path | None = None, force: bool = False) -> str:
             data = dict(zip(cols, row, strict=True))
             listing = Listing(**data)
 
-            # Re-score to get flags; use stored score when available
-            score_result = scorer.score(listing, db_conn=db.conn, zone=zone)
+            # Re-score to get flags; use stored score when available.
+            # The listing's own latest non-null zone is used, never another
+            # source's zone; absent history falls back to the scorer default.
+            rescore_zone = db.latest_price_zone(listing.content_hash)
+            score_result = scorer.score(listing, db_conn=db.conn, zone=rescore_zone)
             flags = score_result.flags
             score = stored_score if stored_score is not None else score_result.total * 100.0
 
@@ -475,7 +503,8 @@ def _run_scan(config_path: Path | None = None, force: bool = False) -> str:
             data = dict(zip(cols, row, strict=True))
             listing = Listing(**data)
 
-            score_result = scorer.score(listing, db_conn=db.conn, zone=zone)
+            queued_zone = db.latest_price_zone(listing.content_hash)
+            score_result = scorer.score(listing, db_conn=db.conn, zone=queued_zone)
             score_value = score_result.total * 100.0
 
             # Persist scam fields before the threshold gate so data is kept
@@ -529,6 +558,7 @@ def _run_scan(config_path: Path | None = None, force: bool = False) -> str:
         table.add_column("Rej. Precio", justify="right")
         table.add_column("Rej. m2", justify="right")
         table.add_column("Rej. Sin datos", justify="right")
+        table.add_column("Rej. Municipio", justify="right")
         table.add_column("Duplicados", justify="right")
         table.add_column("Nuevos", justify="right")
         table.add_column("Estado")
@@ -542,6 +572,7 @@ def _run_scan(config_path: Path | None = None, force: bool = False) -> str:
                 str(p_st.rej_precio),
                 str(p_st.rej_m2),
                 str(p_st.rej_sin_datos),
+                str(p_st.rej_municipality),
                 str(p_st.duplicados),
                 str(p_st.nuevos),
                 p_st.status,

@@ -384,3 +384,104 @@ def test_llm_validator_response_without_choices() -> None:
         ok, msg = test_llm("http://x", "key", "model")
     assert ok is False
     assert msg
+
+
+class TestSearchSerialization:
+    def test_load_state_reads_all_search_fields(self, tmp_path: Path) -> None:
+        cfg = tmp_path / "user_profile.yml"
+        cfg.write_text(
+            "search:\n"
+            "  country_code: ES\n"
+            "  municipality: Chiclana de la Frontera\n"
+            "  transaction: rent\n"
+            "  max_price: 180000\n"
+            "  min_area_sqm: 70\n"
+            "  garage_preferred: true\n"
+        )
+        state = load_state(cfg, tmp_path / ".env")
+        assert state["search"] == {
+            "country_code": "ES",
+            "municipality": "Chiclana de la Frontera",
+            "transaction": "rent",
+            "max_price": 180000,
+            "min_area_sqm": 70,
+            "garage_preferred": True,
+        }
+
+    def test_default_profile_without_search_gets_defaults(self, tmp_path: Path) -> None:
+        cfg = tmp_path / "user_profile.yml"
+        cfg.write_text("portal: {}\n")
+        state = load_state(cfg, tmp_path / ".env")
+        assert state["search"]["country_code"] == "ES"
+        assert state["search"]["transaction"] == "buy"
+        assert state["search"]["municipality"] == "Cádiz"
+
+    def test_roundtrip_preserves_search_and_unknown_sections(self, tmp_path: Path) -> None:
+        import yaml
+
+        cfg = tmp_path / "user_profile.yml"
+        cfg.write_text(
+            "search:\n  municipality: Chiclana de la Frontera\n  max_price: 240000\n"
+            "custom_section:\n  keep_me: true\n"
+        )
+        env = tmp_path / ".env"
+        env.write_text("")
+        state = load_state(cfg, env)
+        state["search"]["max_price"] = 200000
+        write_config(cfg, env, state)
+
+        written = yaml.safe_load(cfg.read_text())
+        assert written["search"]["municipality"] == "Chiclana de la Frontera"
+        assert written["search"]["max_price"] == 200000
+        assert written["search"]["transaction"] == "buy"
+        assert written["custom_section"] == {"keep_me": True}
+
+    def test_invalid_search_values_preserve_profile(self, tmp_path: Path) -> None:
+        import pytest
+        from pydantic import ValidationError
+
+        cfg = tmp_path / "user_profile.yml"
+        env = tmp_path / ".env"
+        cfg.write_text("search:\n  municipality: Chiclana\n")
+        env.write_text("")
+        before = cfg.read_text()
+
+        state = load_state(cfg, env)
+        state["search"]["transaction"] = "lease"  # not buy|rent
+        with pytest.raises(ValidationError):
+            write_config(cfg, env, state)
+        assert cfg.read_text() == before
+
+        state = load_state(cfg, env)
+        state["search"]["max_price"] = -5
+        with pytest.raises(ValidationError):
+            write_config(cfg, env, state)
+        assert cfg.read_text() == before
+
+    def test_dead_bonus_default_is_not_emitted(self, tmp_path: Path) -> None:
+        cfg = tmp_path / "user_profile.yml"
+        env = tmp_path / ".env"
+        cfg.write_text("scoring:\n  thresholds:\n    min_score_to_alert: 70\n")
+        env.write_text("")
+        state = load_state(cfg, env)
+        write_config(cfg, env, state)
+        assert "price_under_median_bonus" not in cfg.read_text()
+
+
+class TestShippedTemplate:
+    def _template(self) -> dict:
+        import yaml
+
+        path = Path(__file__).resolve().parents[1] / "config" / "user_profile.template.yml"
+        assert path.exists(), f"template missing: {path}"
+        return yaml.safe_load(path.read_text())
+
+    def test_template_has_no_dead_keys(self) -> None:
+        data = self._template()
+        assert "price_under_median_bonus" not in data["scoring"]["thresholds"]
+        assert "garage" not in data
+
+    def test_template_retains_garage_preference_and_first_url_alias(self) -> None:
+        data = self._template()
+        assert data["search"]["garage_preferred"] is True
+        assert data["portal"]["idealista_url"] == data["portal"]["urls"][0]

@@ -15,6 +15,8 @@ from typing import Any
 
 import yaml
 
+from home_ops.models.schema import SearchConfig
+
 # Keys that always live in .env (secrets / per-deployment), never in YAML.
 ENV_KEYS = {
     "TELEGRAM_BOT_TOKEN",
@@ -31,6 +33,7 @@ WIZARD_SECTIONS = {
     "portal",
     "scoring",
     "scoring_thresholds",
+    "search",
     "hitl_approval_required",
     "euribor_rate",
     "alert_schedule",
@@ -85,9 +88,18 @@ def load_state(config_path: Path, env_path: Path) -> dict[str, Any]:
     buyer = yaml_data.get("buyer_protection", {}) or {}
     llm = yaml_data.get("llm", {}) or {}
     scraper = yaml_data.get("scraper", {}) or {}
+    search_raw = yaml_data.get("search", {}) or {}
 
     state: dict[str, Any] = {
         "portals": [str(u) for u in portal_urls],
+        "search": {
+            "country_code": search_raw.get("country_code", "ES"),
+            "municipality": search_raw.get("municipality", "Cádiz"),
+            "transaction": search_raw.get("transaction", "buy"),
+            "max_price": search_raw.get("max_price", 250000.0),
+            "min_area_sqm": search_raw.get("min_area_sqm", 80.0),
+            "garage_preferred": bool(search_raw.get("garage_preferred", False)),
+        },
         "scoring": {
             "min_score_to_alert": thresholds.get("min_score_to_alert", 70),
             "price_median": thresholds.get("price_median", 250000),
@@ -155,7 +167,6 @@ def _scoring_block(state: dict[str, Any]) -> dict[str, Any]:
         "min_score_to_alert": 70,
         "price_median": 250000,
         "price_over_median_penalty": 0.30,
-        "price_under_median_bonus": 0.20,
         "m2_threshold": 80,
         "m2_large_threshold": 120,
         "affordability_high_ratio": 0.50,
@@ -219,6 +230,19 @@ def _scraper_block(state: dict[str, Any]) -> dict[str, Any]:
     return scraper if isinstance(scraper, dict) else {}
 
 
+def _search_block(state: dict[str, Any]) -> dict[str, Any] | None:
+    """Validate and emit the typed ``search`` block.
+
+    Returns None when the caller's state carries no search section (so the
+    existing document's block is left untouched). Invalid values raise
+    ``SearchConfig`` validation errors before any file is written.
+    """
+    raw = state.get("search")
+    if not isinstance(raw, dict):
+        return None
+    return SearchConfig(**raw).model_dump()
+
+
 def build_yaml(state: dict[str, Any], existing: dict[str, Any] | None = None) -> dict[str, Any]:
     """Merge wizard state into the existing YAML, preserving other sections."""
     merged = dict(existing or {})
@@ -229,6 +253,9 @@ def build_yaml(state: dict[str, Any], existing: dict[str, Any] | None = None) ->
     merged["portal"] = _portal_block(state)
     merged["scoring"] = _scoring_block(state)
     merged.pop("scoring_thresholds", None)
+    search_block = _search_block(state)
+    if search_block is not None:
+        merged["search"] = search_block
     merged["hitl_approval_required"] = state.get("hitl_approval_required", True)
     merged["euribor_rate"] = state.get("euribor_rate", 3.5)
     merged["alert_schedule"] = _schedule_block(state)

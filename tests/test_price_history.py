@@ -21,8 +21,55 @@ class TestZoneFromPortalUrl:
         url = "https://www.idealista.com/venta-viviendas/chiclana-de-la-frontera-cadiz/"
         assert zone_from_portal_url(url) == "chiclana-de-la-frontera-cadiz"
 
+    def test_distinct_source_zones(self) -> None:
+        assert (
+            zone_from_portal_url("https://www.idealista.com/venta-viviendas/jerez-de-la-frontera-cadiz/")
+            == "jerez-de-la-frontera-cadiz"
+        )
+        assert (
+            zone_from_portal_url("https://www.fotocasa.es/es/comprar/viviendas/chiclana-de-la-frontera/todas-las-zonas/l")
+            == "chiclana-de-la-frontera"
+        )
+
     def test_returns_none_without_location(self) -> None:
         assert zone_from_portal_url("https://www.idealista.com/venta-viviendas/") is None
+
+    def test_opaque_listing_url_is_not_a_zone(self) -> None:
+        assert zone_from_portal_url("https://www.pisos.com/comprar/piso-1234567/") is None
+
+    def test_hostname_is_not_a_zone(self) -> None:
+        assert zone_from_portal_url("https://krakow.nieruchomosci-online.pl/mieszkanie/") is None
+
+    def test_filter_and_query_segments_are_not_zones(self) -> None:
+        assert (
+            zone_from_portal_url("https://www.idealista.com/venta-viviendas/con-precio-hasta-250000/")
+            is None
+        )
+        assert (
+            zone_from_portal_url("https://www.idealista.com/venta-viviendas/precio-max-250000/")
+            is None
+        )
+        assert zone_from_portal_url("https://www.idealista.com/venta-viviendas/?zona=no-es-zona") is None
+
+
+class TestLatestPriceZone:
+    def test_no_history_returns_none(self, db: DuckDBConnection) -> None:
+        assert db.latest_price_zone("missing-hash") is None
+
+    def test_returns_most_recent_non_null(self, db: DuckDBConnection) -> None:
+        db.record_price_observation("h1", "zona-a", Decimal("100000"), 100.0)
+        db.record_price_observation("h1", "zona-b", Decimal("110000"), 100.0)
+        assert db.latest_price_zone("h1") == "zona-b"
+
+    def test_newer_null_does_not_erase_known_zone(self, db: DuckDBConnection) -> None:
+        db.record_price_observation("h2", "zona-c", Decimal("100000"), 100.0)
+        db.record_price_observation("h2", None, Decimal("100000"), 100.0)
+        assert db.latest_price_zone("h2") == "zona-c"
+
+    def test_scoped_by_content_hash(self, db: DuckDBConnection) -> None:
+        db.record_price_observation("h3", "zona-d", Decimal("100000"), 100.0)
+        db.record_price_observation("h4", "zona-e", Decimal("100000"), 100.0)
+        assert db.latest_price_zone("h3") == "zona-d"
 
 
 def _listing(db: DuckDBConnection, content_hash: str, price: float, m2: float) -> Listing:

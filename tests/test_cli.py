@@ -1953,3 +1953,175 @@ class TestScanObservability:
         assert rows[0][0] == 2  # 2 seen (vistos)
         assert rows[0][1] == 1  # 1 new (l1 inserted)
         assert rows[0][2] == "success"
+
+
+class TestScanProvenance:
+    """Per-source zone provenance for observations and scoring."""
+
+    URL_A = "https://www.idealista.com/venta-viviendas/chiclana-de-la-frontera-cadiz/"
+    URL_B = "https://www.idealista.com/venta-viviendas/jerez-de-la-frontera-cadiz/"
+    URL_NO_ZONE = "https://www.idealista.com/venta-viviendas/"
+
+    def _harness(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        portal_urls: list[str],
+        listings_by_url: dict[str, list],
+        municipality: str = "Chiclana de la Frontera",
+    ) -> tuple[DuckDBConnection, list[tuple[str, str | None]]]:
+        from contextlib import contextmanager
+
+        from home_ops.models.schema import Config, SearchConfig
+        from home_ops.scorer import RulesScorer
+
+        db = DuckDBConnection(":memory:")
+        db.connect()
+        db.init_db()
+
+        cfg = Config(
+            portal_url=portal_urls[0],
+            portal_urls=portal_urls,
+            search=SearchConfig(
+                municipality=municipality, max_price=300000.0, min_area_sqm=50.0
+            ),
+            hitl_approval_required=False,
+            telegram_chat_id="",
+            telegram_bot_token="",
+        )
+
+        @contextmanager
+        def fake_connection(*_args: object, **_kwargs: object):
+            yield db
+
+        monkeypatch.setattr("home_ops.cli.app.get_connection", fake_connection)
+        monkeypatch.setattr("home_ops.cli.app.load_config", lambda *a, **k: cfg)
+        monkeypatch.setattr(
+            "home_ops.scraper.lifecycle.cold_start",
+            lambda url, **_k: list(listings_by_url.get(url, [])),
+        )
+
+        zones: list[tuple[str, str | None]] = []
+        original = RulesScorer.score
+
+        def spy(
+            self,
+            listing,
+            db_conn=None,
+            euribor_rate_override=None,
+            zone=None,
+            extra_flags=None,
+        ):
+            zones.append((listing.content_hash, zone))
+            return original(
+                self,
+                listing,
+                db_conn=db_conn,
+                euribor_rate_override=euribor_rate_override,
+                zone=zone,
+                extra_flags=extra_flags,
+            )
+
+        monkeypatch.setattr(RulesScorer, "score", spy)
+        _run_scan()
+        return db, zones
+
+    def _listing(self, content_hash: str, address: str, explicit: str | None = None):
+        from home_ops.models.schema import Listing
+
+        listing = Listing(
+            content_hash=content_hash,
+            url=f"https://x/{content_hash}",
+            price=Decimal("150000"),
+            m2=60.0,
+            address=address,
+            portal="idealista",
+        )
+        if explicit is not None:
+            listing._explicit_municipality = explicit
+        return listing
+
+    def test_each_source_records_its_own_zone(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        db, zones = self._harness(
+            monkeypatch,
+            [self.URL_A, self.URL_B],
+            {
+                self.URL_A: [self._listing("pa", "Chiclana de la Frontera")],
+                self.URL_B: [self._listing("pb", "Jerez de la Frontera")],
+            },
+        )
+        observed = dict(db.conn.execute("SELECT content_hash, zone FROM price_history").fetchall())
+        assert observed == {
+            "pa": "chiclana-de-la-frontera-cadiz",
+            "pb": "jerez-de-la-frontera-cadiz",
+        }
+        assert zones == [
+            ("pa", "chiclana-de-la-frontera-cadiz"),
+            ("pb", "jerez-de-la-frontera-cadiz"),
+        ]
+
+    def test_source_order_does_not_change_attribution(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        db, zones = self._harness(
+            monkeypatch,
+            [self.URL_B, self.URL_A],
+            {
+                self.URL_A: [self._listing("pa", "Chiclana de la Frontera")],
+                self.URL_B: [self._listing("pb", "Jerez de la Frontera")],
+            },
+        )
+        observed = dict(db.conn.execute("SELECT content_hash, zone FROM price_history").fetchall())
+        assert observed == {
+            "pa": "chiclana-de-la-frontera-cadiz",
+            "pb": "jerez-de-la-frontera-cadiz",
+        }
+        assert ("pb", "jerez-de-la-frontera-cadiz") in zones
+
+    def test_unknown_zone_does_not_inherit_first_source(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        db, zones = self._harness(
+            monkeypatch,
+            [self.URL_A, self.URL_NO_ZONE],
+            {
+                self.URL_A: [self._listing("pa", "Chiclana de la Frontera")],
+                self.URL_NO_ZONE: [self._listing("pz", "Chiclana de la Frontera")],
+            },
+        )
+        observed = dict(db.conn.execute("SELECT content_hash, zone FROM price_history").fetchall())
+        assert observed["pz"] is None
+        assert ("pz", None) in zones
+
+    def test_resolved_out_of_town_listing_has_no_side_effects(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        db, _zones = self._harness(
+            monkeypatch,
+            [self.URL_A],
+            {
+                self.URL_A: [
+                    self._listing("ok", "Chiclana de la Frontera"),
+                    self._listing("bad", "Centro", explicit="Jerez de la Frontera"),
+                ]
+            },
+        )
+        hashes = {r[0] for r in db.conn.execute("SELECT content_hash FROM price_history").fetchall()}
+        assert "bad" not in hashes
+        assert "ok" in hashes
+        inserted = {r[0] for r in db.conn.execute("SELECT content_hash FROM listings").fetchall()}
+        assert "bad" not in inserted
+
+
+class TestWebCommand:
+    def test_web_defaults_to_port_8000(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        captured: dict[str, object] = {}
+
+        def fake_run(app_path: str, host: str, port: int) -> None:
+            captured["app_path"] = app_path
+            captured["host"] = host
+            captured["port"] = port
+
+        monkeypatch.setattr("uvicorn.run", fake_run)
+        result = runner.invoke(app, ["web"])
+        assert result.exit_code == 0, result.output
+        assert captured["port"] == 8000

@@ -5,7 +5,7 @@ from decimal import Decimal
 from typing import Any, Literal
 from zoneinfo import ZoneInfo, available_timezones
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, PrivateAttr, field_validator, model_validator
 
 
 def _parse_timezone(tz_name: Any) -> ZoneInfo:
@@ -48,6 +48,11 @@ class Listing(BaseModel):
     total_acquisition_cost: Decimal | None = Field(
         default=None, description="Estimated total outlay incl. taxes and fees"
     )
+
+    # Transient, non-persisted explicit municipality evidence from the parser
+    # (never written to DuckDB, never part of the dedup hash). Free-form
+    # addresses remain in ``address``.
+    _explicit_municipality: str | None = PrivateAttr(default=None)
 
 
 class SearchConfig(BaseModel):

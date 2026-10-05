@@ -275,6 +275,21 @@ class DuckDBConnection:
         except Exception as exc:
             raise RuntimeError(f"Failed to record price observation: {exc}") from exc
 
+    def latest_price_zone(self, content_hash: str) -> str | None:
+        """Return the most recent non-null zone observed for a listing.
+
+        Uses the existing ``price_history`` rows (no schema change): newer
+        observations with an unknown zone are skipped so a previously known
+        zone is not erased. Returns None when the listing has no zone history.
+        """
+        row = self.conn.execute(
+            "SELECT zone FROM price_history "
+            "WHERE content_hash = ? AND zone IS NOT NULL "
+            "ORDER BY observed_at DESC, rowid DESC LIMIT 1",
+            [content_hash],
+        ).fetchone()
+        return row[0] if row and row[0] is not None else None
+
     def insert_listing(self, listing: Listing) -> int | None:
         """Insert a listing with atomic dedup via content_hash.
 

@@ -253,6 +253,14 @@ def validate_profile(path: Path) -> list[str]:
         return [str(exc)]
 
 
+# Documented flat scoring keys that no longer resolve; map to canonical path.
+_OBSOLETE_SCORING_KEYS = {
+    "scoring.price_median": "scoring.thresholds.price_median",
+    "scoring.min_score_to_alert": "scoring.thresholds.min_score_to_alert",
+    "scoring.weights": "scoring.thresholds.weights",
+}
+
+
 def set_profile_value(path: Path, key_path: str, raw_value: str) -> None:
     """Set a single value in user_profile.yml by dotted key path.
 
@@ -264,6 +272,12 @@ def set_profile_value(path: Path, key_path: str, raw_value: str) -> None:
     Atomic write preserves all other keys.
     """
     data = _read_yaml(path)
+
+    if key_path in _OBSOLETE_SCORING_KEYS:
+        raise ValueError(
+            f"Obsolete key {key_path!r} is not valid; use "
+            f"'{_OBSOLETE_SCORING_KEYS[key_path]}' instead."
+        )
 
     parts = key_path.split(".")
     if not parts or not parts[0]:

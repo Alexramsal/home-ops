@@ -27,7 +27,7 @@ async def test_wizard_mounts_and_renders_sections(tmp_path: Path) -> None:
         assert isinstance(wizard, SetupWizard)
 
         lv = wizard.query_one(ListView)
-        assert len(lv.children) == 7
+        assert len(lv.children) == 8
         assert "General" in str(wizard.query_one("#panel-title", Static).render())
 
         # Navigate to LLM section (index 2: General, Telegram, LLM).
@@ -201,8 +201,8 @@ async def test_wizard_labels_localize(tmp_path: Path) -> None:
         )
         assert "Language" in labels
         assert "Buyer" in labels
-        # Navigate to Buyer section (last) to check description
-        lv.index = len(wizard._sections) - 1
+        # Navigate to Buyer section (index 6; Search is appended last).
+        lv.index = wizard._sections.index("Comprador")
         await pilot.pause()
         assert "Buyer Protection" in str(wizard.query_one("#panel-desc", Static).render())
         title = str(wizard.query_one("#panel-title", Static).render())
@@ -224,3 +224,94 @@ async def test_wizard_label_text_localized_for_language_field(tmp_path: Path) ->
         label = wizard.query_one("#section-general Label", Label)
         assert "Interface language (applies after restart)" in str(label.render())
         assert wizard.query_one("#language", Select)
+
+
+@pytest.mark.asyncio
+async def test_wizard_renders_and_saves_search_intent(tmp_path: Path) -> None:
+    import yaml
+    from textual.widgets import Input, ListView, Switch
+
+    cfg = tmp_path / "user_profile.yml"
+    cfg.write_text("portal:\n  urls: ['https://x']\ncustom:\n  keep: 1\n")
+    env = tmp_path / ".env"
+    env.write_text("TELEGRAM_BOT_TOKEN=tok\nTELEGRAM_CHAT_ID=1\n")
+
+    app = SetupApp(cfg, env)
+    async with app.run_test() as pilot:
+        await pilot.pause()
+        wizard = app.screen
+        lv = wizard.query_one(ListView)
+        lv.index = wizard._sections.index("Búsqueda")
+        await pilot.pause()
+
+        # Prefilled defaults are rendered.
+        assert wizard.query_one("#search_country", Input).value == "ES"
+        assert wizard.query_one("#search_transaction", Input).value == "buy"
+        assert wizard.query_one("#search_garage", Switch).value is False
+
+        wizard.query_one("#search_municipality", Input).value = "Chiclana de la Frontera"
+        wizard.query_one("#search_max_price", Input).value = "230000"
+        wizard.query_one("#search_min_area", Input).value = "85"
+        wizard.query_one("#search_garage", Switch).value = True
+        await pilot.pause()
+        await pilot.press("ctrl+s")
+        await pilot.pause()
+
+    data = yaml.safe_load(cfg.read_text())
+    assert data["search"]["municipality"] == "Chiclana de la Frontera"
+    assert data["search"]["max_price"] == 230000
+    assert data["search"]["min_area_sqm"] == 85
+    assert data["search"]["garage_preferred"] is True
+    assert data["custom"] == {"keep": 1}
+
+
+@pytest.mark.asyncio
+async def test_wizard_invalid_search_numeric_does_not_save(tmp_path: Path) -> None:
+    from textual.widgets import Input, ListView
+
+    cfg = tmp_path / "user_profile.yml"
+    cfg.write_text("portal:\n  urls: ['https://x']\n")
+    env = tmp_path / ".env"
+    env.write_text("TELEGRAM_BOT_TOKEN=tok\nTELEGRAM_CHAT_ID=1\n")
+    before = cfg.read_text()
+
+    app = SetupApp(cfg, env)
+    async with app.run_test() as pilot:
+        await pilot.pause()
+        wizard = app.screen
+        lv = wizard.query_one(ListView)
+        lv.index = wizard._sections.index("Búsqueda")
+        await pilot.pause()
+        wizard.query_one("#search_max_price", Input).value = "not-a-number"
+        await pilot.pause()
+        await pilot.press("ctrl+s")
+        await pilot.pause()
+        assert wizard.is_running
+
+    assert cfg.read_text() == before
+
+
+@pytest.mark.asyncio
+async def test_wizard_invalid_search_enum_does_not_save(tmp_path: Path) -> None:
+    from textual.widgets import Input, ListView
+
+    cfg = tmp_path / "user_profile.yml"
+    cfg.write_text("portal:\n  urls: ['https://x']\n")
+    env = tmp_path / ".env"
+    env.write_text("TELEGRAM_BOT_TOKEN=tok\nTELEGRAM_CHAT_ID=1\n")
+    before = cfg.read_text()
+
+    app = SetupApp(cfg, env)
+    async with app.run_test() as pilot:
+        await pilot.pause()
+        wizard = app.screen
+        lv = wizard.query_one(ListView)
+        lv.index = wizard._sections.index("Búsqueda")
+        await pilot.pause()
+        wizard.query_one("#search_transaction", Input).value = "lease"
+        await pilot.pause()
+        await pilot.press("ctrl+s")
+        await pilot.pause()
+        assert wizard.is_running
+
+    assert cfg.read_text() == before
